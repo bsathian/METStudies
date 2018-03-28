@@ -48,7 +48,7 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
   TIter fileIter(listOfFiles);
   TFile *currentFile = 0;
 
-  TFile* f1 = new TFile(output_name, "RECREATE");
+  TFile* f1 = new TFile(output_name+".root", "RECREATE");
   f1->cd();
 
   // Pf cand MET, Sum E_T, MET phi for each eta region and pf candidate category
@@ -90,9 +90,9 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
   TH1D* hSumETEndcapPhotonsClustered = create_histogram("hSumETEndcapPhotonsClustered", 100, 0, 1000); 
 
   TH1D* hRawMETMod = create_histogram("hRawMETMod", 80, 0, 400);
-  TH1D* hRawMETMod_v2 = create_histogram("hRawMETMod", 80, 0, 400);  
+  TH1D* hRawMETMod_v2 = create_histogram("hRawMETMod_v2", 80, 0, 400);  
   TH1D* hT1CMETMod = create_histogram("hT1CMETMod", 80, 0, 400);
-  TH1D* hT1CMETMod_v2 = create_histogram("hT1CMETMod", 80, 0, 400);
+  TH1D* hT1CMETMod_v2 = create_histogram("hT1CMETMod_v2", 80, 0, 400);
 
   double vtxBins[] = {0,5,10,15,20,25,30,35,40,45,100};
   int nVtxBins = (sizeof(vtxBins)/sizeof(vtxBins[0]))-1;
@@ -175,10 +175,8 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
       
       // Weight further if MC
       if (!cms3.evt_isRealData()) {
-        cout << genps_weight() << endl;
         weight *= scale1fb * target_lumi *sgn(genps_weight());
       }
-
 
       // Fill dilep mass before cutting on it
       double ZpT = -1;
