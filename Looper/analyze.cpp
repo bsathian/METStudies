@@ -1,14 +1,24 @@
 #include "ScanChain.C"
 #include <stdlib.h>
 
-int main(int argc, char* argv[]) {
-  TChain *ch = new TChain("Events");
+int main(int argc, char* argv[])
+{
+  cout << "Input files: " << argv[1] << endl;
+  cout << "Output file: " << argv[2] << endl;
+  cout << "Index: " << argv[3] << endl;
+  cout << "Weight file: " << argv[4] << endl;
+  cout << "Selection: " << argv[5] << endl;
+  cout << "Scale1fb: " << argv[6] << endl;
+
+
+  TChain *chain = new TChain("Events");
   
   TString input_files = argv[1];
-  TObjArray *tx = infile.Tokenize(",");
+  TObjArray *tx = input_files.Tokenize(",");
   for (int i = 0; i < tx->GetEntries(); i++) {
     TString fname = ((TObjString *)(tx->At(i)))->String();
     fname.ReplaceAll("'","");
+    cout << "Adding file: " << fname << endl;
     chain->Add(fname);
   }
 
@@ -17,12 +27,11 @@ int main(int argc, char* argv[]) {
   TString output_name = output_file + "_" + idx;
 
   TString weight_file = argv[4];
-  TString sReweight = argv[5];
-  bool puReweight = (sReweight == "YesReweight");
+  bool puReweight = (weight_file != "none");
 
-  int selection = atoi(argv[6]);
-  double scale1fb = atof(argv[7]);
-  double target_lumi = atof(argv[8]);
-
-  ScanChain(chain, output_name, weight_file, puReweight, selection, scale1fb, target_lumi); 
+  int selection = atoi(argv[5]);
+  double scale1fb = atof(argv[6]);
+  
+  ScanChain(chain, output_name, weight_file, puReweight, selection, scale1fb); 
+  return 0;
 }

@@ -36,7 +36,7 @@ const int nEtaRegions = 6;
 const int nCandCats = 4;
 const int nMETVars = 3;
 
-int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puReweight, int selection, double scale1fb, double target_lumi) {
+int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puReweight, int selection, double scale1fb, double target_lumi = 1.) {
   // Benchmark
   TBenchmark *bmark = new TBenchmark();
   bmark->Start("benchmark");
@@ -44,7 +44,6 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
   // Loop over events to Analyze
   unsigned int nEventsTotal = 0;
   unsigned int nEventsChain = chain->GetEntries();
-  if (nEvents >= 0) nEventsChain = nEvents;
   TObjArray *listOfFiles = chain->GetListOfFiles();
   TIter fileIter(listOfFiles);
   TFile *currentFile = 0;
@@ -90,33 +89,47 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
   TH1D* hSumETEndcapPhotonsUnclustered = create_histogram("hSumETEndcapPhotonsUnclustered", 100, 0, 1000);
   TH1D* hSumETEndcapPhotonsClustered = create_histogram("hSumETEndcapPhotonsClustered", 100, 0, 1000); 
 
-  TH1D* hRawMETMod = create_histogram("hRawMETMod", 80, 0, 200);
-  
+  TH1D* hRawMETMod = create_histogram("hRawMETMod", 80, 0, 400);
+  TH1D* hRawMETMod_v2 = create_histogram("hRawMETMod", 80, 0, 400);  
+  TH1D* hT1CMETMod = create_histogram("hT1CMETMod", 80, 0, 400);
+  TH1D* hT1CMETMod_v2 = create_histogram("hT1CMETMod", 80, 0, 400);
+
+  double vtxBins[] = {0,5,10,15,20,25,30,35,40,45,100};
+  int nVtxBins = (sizeof(vtxBins)/sizeof(vtxBins[0]))-1;
+  TH1D* hNVtx = new TH1D("hNVtx","", nVtxBins, vtxBins);
+  hNVtx->Sumw2();
+
   TH1D* hPhotonpTEndcap = create_histogram("hPhotonpTEndcap", 100, 0, 100);
 
-  TFile* fWeights = new TFile(weightFile, "READ");
-  TH1D* hWeights = (TH1D*)fWeights->Get("pileupReweight"); 
+  TH1D* hNJets = create_histogram("hNJets", 16, -0.5, 15.5);
+
+  TFile* fWeights;
+  TH1D* hWeights;
+  if (puReweight) {
+    fWeights = new TFile(weightFile, "READ");
+    hWeights = (TH1D*)fWeights->Get("pileupReweight");
+  } 
 
   // File Loop
   while ( (currentFile = (TFile*)fileIter.Next()) ) {
-    TString currentFileName = currentFile->GetTitle()
+    TString currentFileName = currentFile->GetTitle();
     TFile file(currentFileName);
     TTree *tree = (TTree*)file.Get("Events");
-    if (fast) TTreeCache::SetLearnEntries(10);
-    if (fast) tree->SetCacheSize(128*1024*1024);
+    TTreeCache::SetLearnEntries(10);
+    tree->SetCacheSize(128*1024*1024);
     cms3.Init(tree);
     if (nEventsTotal >= nEventsChain) continue;
     unsigned int nEventsTree = tree->GetEntriesFast();
 
     const char* json_file;
-    if (currentFile->GetTitle().Contains("2016"))
+    if (currentFileName.Contains("2016"))
       json_file = "Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_snt.txt";
     else
       json_file = "Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON_snt.txt"; // FIXME: update to rereco json file
 
     for (unsigned int event = 0; event < nEventsTree; ++event) {
       if (nEventsTotal >= nEventsChain) continue;
-      if (fast) tree->LoadTree(event);
+      tree->LoadTree(event);
       cms3.GetEntry(event);
       ++nEventsTotal;
       CMS3::progress( nEventsTotal, nEventsChain );
@@ -128,6 +141,7 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       // Check triggers, categorize as ee/uu
       bool isElEvt;
+      int id1(-1), id2(-1);
       if (cms3.evt_isRealData()) {
         if (!(passHLTTriggerPattern(elT) ||  passHLTTriggerPattern(muT1) || passHLTTriggerPattern(muT2) || passHLTTriggerPattern(muT3))) continue;
         if (passHLTTriggerPattern(elT))                                          isElEvt = true;
@@ -160,8 +174,11 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 	weight *= hWeights->GetBinContent(hWeights->FindBin(nvtx));
       
       // Weight further if MC
-      if (!cms3.evt_isRealData())
-        weight *= scale1fb * target_lumi;
+      if (!cms3.evt_isRealData()) {
+        cout << genps_weight() << endl;
+        weight *= scale1fb * target_lumi *sgn(genps_weight());
+      }
+
 
       // Fill dilep mass before cutting on it
       double ZpT = -1;
@@ -183,6 +200,7 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       // Fill Z-Removed MET before cutting on it (if selection == 0)
       ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET = t1CMET(currentFileName);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod = t1CMET_noHE(currentFileName);
 
       double dPhi2(0), dPhiRaw(0);
       double zRemMET = ZRemovedMET(fT1CMET, isElEvt, id1, id2, dPhi2);
@@ -196,14 +214,25 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       // Done with selection, now fill histograms
       hT1CMET->Fill(fT1CMET.pt(), weight);
+      hT1CMETMod->Fill(fT1CMETMod.pt(), weight);
       hNVtx->Fill(nvtx, weight);
       
       hpfMET->Fill(evt_pfmet(), weight);
       hpfMETraw->Fill(evt_pfmet_raw(), weight);
+
+      int nJet = nJets(isElEvt, id1, id2);
       hNJets->Fill(nJet, weight);
 
       int nCands = pfcands_p4().size();
       hNCands->Fill(nCands, weight);
+
+      vector<vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> >>> vFourVec(nEtaRegions, vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> >>(nCandCats));
+      vector<vector<double>> vSumET(nEtaRegions, vector<double>(nCandCats, 0.0));
+
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fourVRawMETMod;
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fourVRawMETMod_v2;
+
+      double sumETPhotonsEndcapClustered(0), sumETPhotonsEndcapUnclustered(0);
 
       int nCCands(0), nPCands(0), nNCands(0);
       for (int i=0; i<nCands; i++) { // begin pf cand loop
@@ -223,7 +252,6 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 	vhCandpT[candIdx]->Fill(pt, weight);
 	vhCandeta[candIdx]->Fill(eta, weight);
 	if (candIdx == 1 && eta > 2.3 && eta < 3.0) hPhotonpTEndcap->Fill(pt, weight);
-	if (candIdx == 0) { hCCetaSigned->Fill(etaS, weight); }
 	vFourVec[etaIdx][candIdx] += fourV;
 	vFourVec[etaIdx][3] += fourV;
 	vFourVec[5][3] += fourV;
@@ -231,9 +259,12 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 	vSumET[etaIdx][3] += pt;
 	vSumET[5][3] += pt;
 
+   
+        if (!( (candIdx == 1 || candIdx == 2) && (eta > 2.5 && eta < 3.0))) // not a low pt photon or neutral had in endcap
+          fourVRawMETMod += fourV;
         // Raw MET excluding low pT photons and neutral hads in endcap
 	if (!( (candIdx == 1 || candIdx == 2) && pt < 10 && (eta > 2.0 && eta < 3.0))) // not a low pt photon or neutral had in endcap
-          fourVRawMETMod += fourV;
+          fourVRawMETMod_v2 += fourV;
 
 	// Check clustered vs unclustered photons
 	if (candIdx == 1 && etaIdx == 3) {
@@ -241,7 +272,7 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 	    sumETPhotonsEndcapClustered += pt;
 	  else
 	    sumETPhotonsEndcapUnclustered += pt;
-
+	}
       } // end pf cand loop
       hNCCands->Fill(nCCands, weight);
       hNPCands->Fill(nPCands, weight);
