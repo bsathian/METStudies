@@ -30,9 +30,9 @@ echo "[wrapper] linux timestamp = " `date +%s`
 ######################
 # Set up environment #
 ######################
-export SCRAM_ARCH=slc6_amd64_gcc530   # or whatever scram_arch you need for your desired CMSSW release
+export SCRAM_ARCH=slc6_amd64_gcc630   # or whatever scram_arch you need for your desired CMSSW release
 source /cvmfs/cms.cern.ch/cmsset_default.sh
-pushd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/CMSSW_9_2_0/src
+pushd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/CMSSW_9_4_0/src
 eval `scramv1 runtime -sh`
 popd
 
