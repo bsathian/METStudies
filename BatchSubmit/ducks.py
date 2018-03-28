@@ -56,6 +56,8 @@ while True:
   allcomplete = True
   for key, info in mc.iteritems():
     for set in info[0]:
+      if args.weightfile == "none": # only if you've already made unweighted MC histograms for nvtx reweighting
+        continue
       sample = DirectorySample(dataset = set, location = basepath + set)
       job_args = "%s %d %.12f" % (args.weightfile, 1, (info[1]*1000.0)/info[2])
       task = CondorTask(
