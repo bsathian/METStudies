@@ -33,23 +33,21 @@ data = {"B" : ["/DoubleEG_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCand
 
 # mc "name" : [[samples], xsec(*bf*kfac), nEvents]
 # TO-DO: figure out MC normalization
-mc = {"Drell-Yan" : [["/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/", "/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10_ext1-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 7181, 212922560],
-	"WW" : [["/WW_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 63.21, 7547722],
-	"WZ" : [["/WZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 22.82, 3928630],
-	"ZZ" : [["/ZZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 10.32, 1949768],
-	"WWW": [["/WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v11-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 0.286, 240000],
-	"WZZ": [["/WZZ_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v11-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 0.05565, 250000],
-	"WWZ": [["/WWZ_4F_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v11-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 0.1651, 250000],
-	"ZZZ": [["/ZZZ_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v11-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 0.01398, 250000],
-	"ST_s" : [["/ST_s-channel_4f_leptonDecays_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 3.74, 9472619],
-	"ST_t_top" : [["/ST_t-channel_top_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 136.02, 5841455],
-	"ST_t_antitop" : [["/ST_t-channel_antitop_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 80.95, 3891190],
-	"ST_tW_top": [["/ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 34.91, 7558006],
-	"ST_tW_antitop": [["/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 34.91, 6620324],
-	"TTJets": [["/TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 72.1, 153596015], 
+mc = {"Drell-Yan" : [["/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/", "/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10_ext1-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 7181.0, 212922560.0],
+	"WW" : [["/WW_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 63.21, 7547722.0],
+	"WZ" : [["/WZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 22.82, 3928630.0],
+	"ZZ" : [["/ZZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 10.32, 1949768.0],
+	"WWW": [["/WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v11-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 0.286, 240000.0],
+	"WZZ": [["/WZZ_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v11-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 0.05565, 250000.0],
+	"WWZ": [["/WWZ_4F_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v11-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 0.1651, 250000.0],
+	"ZZZ": [["/ZZZ_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v11-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 0.01398, 250000.0],
+	"ST_s" : [["/ST_s-channel_4f_leptonDecays_TuneCP5_13TeV-amcatnlo-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 3.74, 9472619.0],
+	"ST_t_top" : [["/ST_t-channel_top_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 136.02, 5841455.0],
+	"ST_t_antitop" : [["/ST_t-channel_antitop_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 80.95, 3891190.0],
+	"ST_tW_top": [["/ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 34.91, 7558006.0],
+	"ST_tW_antitop": [["/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 34.91, 6620324.0],
+	"TTJets": [["/TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 72.1, 153596015.0], 
 }
-
-#mc = 
 
 basepath = "/hadoop/cms/store/user/smay/ProjectMetis"
 total_summary = {}
@@ -59,12 +57,12 @@ while True:
   for key, info in mc.iteritems():
     for set in info[0]:
       sample = DirectorySample(dataset = set, location = basepath + set)
-      job_args = "%s %d %.12f" % (args.weightfile, 1, (info[1]*1000)/info[2])
+      job_args = "%s %d %.12f" % (args.weightfile, 1, (info[1]*1000.0)/info[2])
       task = CondorTask(
               sample = sample,
               open_dataset = False,
               flush = True,
-              files_per_output = 10,
+              files_per_output = 5,
               output_name = "Zll_histograms.root",
               tag = job_tag,
               cmssw_version = "CMSSW_9_2_1", # doesn't do anything
@@ -96,7 +94,7 @@ while True:
 	      sample = sample,
 	      open_dataset = False,
 	      flush = True,
-	      files_per_output = 25,
+	      files_per_output = 5,
 	      output_name = "Zll_histograms.root",
 	      tag = job_tag,
 	      cmssw_version = "CMSSW_9_2_1", # doesn't do anything

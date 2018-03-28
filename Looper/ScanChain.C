@@ -279,6 +279,9 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
       hSumETEndcapPhotonsUnclustered->Fill(sumETPhotonsEndcapUnclustered, weight);
       hSumETEndcapPhotonsClustered->Fill(sumETPhotonsEndcapClustered, weight);
 
+      hRawMETMod->Fill(fourVRawMETMod.Pt(), weight);
+      hRawMETMod_v2->Fill(fourVRawMETMod_v2.Pt(), weight);
+
       // Fill pf cand histos
       for (int i=0; i<nEtaRegions; i++) {
         for (int j=0; j<nCandCats; j++) {
