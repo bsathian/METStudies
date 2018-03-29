@@ -4,8 +4,9 @@ import itertools
 import numpy
 import glob
 
-os.system("/home/users/smay/Utilities/ShellFunctions.sh")
-os.system("cd histograms")
+os.system("cd /home/users/smay/Utilities")
+os.system("./ShellFunctions.sh")
+os.system("cd /home/users/smay/Commissioning2017/Commissioning2017_MET/histograms")
 
 import argparse
 parser = argparse.ArgumentParser()
