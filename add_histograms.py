@@ -4,15 +4,23 @@ import itertools
 import numpy
 import glob
 
-os.system("cd /home/users/smay/Utilities")
-os.system("./ShellFunctions.sh")
-os.system("cd /home/users/smay/Commissioning2017/Commissioning2017_MET/histograms")
+os.chdir("histograms")
+sys.path.append("~/Utilities")
 
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("eras", help = "Which 2017 data eras to consider (B,C,D,E,F)", type=str)
+parser.add_argument("--skip_data", action="store_true")
+parser.add_argument("--skip_mc"  , action="store_true")
 args = parser.parse_args()
 eras = args.eras.split(",")
+
+doData = True
+doMC = True
+if args.skip_data:
+  doData = False
+if args.skip_mc:
+  doMC = False
 
 data = {"B" : ["DoubleEG_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands__MET_v1/", "DoubleMuon_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands__MET_v1/"],  
         "C" : ["DoubleEG_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands__MET_v1/", "DoubleMuon_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands__MET_v1/"],
@@ -28,27 +36,37 @@ mc = {	"Drell-Yan" : ["DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIF
 }
 
 nPar = 10
-basepath = "/hadoop/cms/store/user/smay/ProjectMetis/MET/"
-intermediate_files = ""
-for era in eras:
-  for set in data[era]:
-    files = glob.glob(basepath+set+"*.root")
-    intermediate_file = "intermediate_" + set
-    intermediate_files += intermediate_file + ".root "
-    os.system("addHistos %s %s %d %d" % (intermediate_file, basepath+set+"/Zll_histograms", len(files), nPar))
+basepath = "/hadoop/cms/store/user/smay/MET/"
 
-os.system("hadd Zll_histograms_%s %s" % (args.eras + ".root", intermediate_files))
-
-process_files = ""
-for key, sets in mc.iteritems():
+if (doData):
   intermediate_files = ""
-  for set in sets:
-    files = glob.glob(basepath+set+"*.root")
-    intermediate_file = "intermediate_" + set + "_" + args.eras 
-    intermediate_files += intermediate_file + ".root"
-    os.system("addHistos %s %s %d %d" % (intermediate_file, basepath+set+"/Zll_histograms", len(files), nPar))
-  process_file = "Zll_histograms_%s_%s.root" % (key, args.eras)
-  process_files += process_file + " "
-  os.system("hadd %s %s" % (process_file, intermediate_files))
+  for era in eras:
+    for set in data[era]:
+      files = glob.glob(basepath+set+"*.root")
+      if len(files) == 0:
+	continue
+      intermediate_file = "intermediate_" + set.replace("/", "_")
+      intermediate_files += intermediate_file + ".root "
+      print("addHistos %s %s %d %d" % (intermediate_file, basepath+set+"/Zll_histograms", len(files), nPar))
+      os.system("addHistos %s %s %d %d" % (intermediate_file, basepath+set+"/Zll_histograms", len(files), nPar))
 
-os.system("hadd Zll_histograms_MC_%s.root %s" % (args.eras, process_files))
+  os.system("hadd -fk Zll_histograms_%s %s" % (args.eras + ".root", intermediate_files))
+
+if (doMC):
+  process_files = ""
+  for key, sets in mc.iteritems():
+    intermediate_files = ""
+    for set in sets:
+      files = glob.glob(basepath+set+"*.root") 
+      if len(files) == 0:
+	continue
+      intermediate_file = "intermediate_" + set.replace("/","_") + "_" + args.eras 
+      intermediate_files += intermediate_file + ".root "
+      print("addHistos %s %s %d %d" % (intermediate_file, basepath+set+"/Zll_histograms_"+args.eras, len(files), nPar))
+      os.system("addHistos %s %s %d %d" % (intermediate_file, basepath+set+"/Zll_histograms_"+args.eras, len(files), nPar))
+    process_file = "Zll_histograms_%s_%s.root" % (key, args.eras)
+    process_files += process_file + " "
+    print("hadd -fk %s %s" % (process_file, intermediate_files))
+    os.system("hadd -fk %s %s" % (process_file, intermediate_files))
+
+  os.system("hadd -fk Zll_histograms_MC_%s.root %s" % (args.eras, process_files))

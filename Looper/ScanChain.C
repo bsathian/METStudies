@@ -122,10 +122,14 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
     unsigned int nEventsTree = tree->GetEntriesFast();
 
     const char* json_file;
-    if (currentFileName.Contains("2016"))
+    if (currentFileName.Contains("2016")) {
       json_file = "Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_snt.txt";
-    else
+      set_goodrun_file(json_file);
+    }
+    else {
       json_file = "Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON_snt.txt"; // FIXME: update to rereco json file
+      set_goodrun_file(json_file);
+    }
 
     for (unsigned int event = 0; event < nEventsTree; ++event) {
       if (nEventsTotal >= nEventsChain) continue;
@@ -158,6 +162,24 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       // Check if leps pass POG IDs
       if (!lepsPassPOG(isElEvt, id1, id2)) 						continue;
+
+      if (selection == 2) { // only fill hNVtx for deriving pileup weights
+        if (!lepsPassOtherLenient(isElEvt, id1, id2))                                   continue;
+	double ZpT = -1;
+	double dMass = dilepMass(isElEvt, id1, id2, ZpT);
+	if (dMass < 81 || dMass > 101)                                                  continue;
+ 	double weight = 1;
+	int nvtx = evt_nvtxs();
+	if (puReweight)
+	  weight *= hWeights->GetBinContent(hWeights->FindBin(nvtx));
+
+	// Weight further if MC
+	if (!cms3.evt_isRealData()) {
+	  weight *= scale1fb * target_lumi *sgn(genps_weight());
+	}
+	hNVtx->Fill(nvtx, weight);
+	continue;		
+      }
 
       // Check pT/eta requirements
       if (selection == 1) { // regular Z->ll
