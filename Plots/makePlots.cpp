@@ -55,11 +55,11 @@ int main(int argc, char* argv[])
   string eras_s = argv[1];
   double lumi = atof(argv[2]);
   string output_name = "plots_" + eras_s + ".pdf";
-  TFile* fData = new TFile("histograms/Zll_histograms_" + eras + ".root");
-  TFile* fDY = new TFile("histograms/Zll_histograms_Drell-Yan_" + eras + ".root");
-  TFile* fDiBoson = new TFile("histograms/Zll_histograms_DiBoson_" + eras + ".root");
-  TFile* fTriBoson = new TFile("histograms/Zll_histograms_TriBoson_" + eras + ".root");
-  TFile* fTop = new TFile("histograms/Zll_histograms_Top_" + eras + ".root");
+  TFile* fData = new TFile("../histograms/Zll_histograms_" + eras + ".root");
+  TFile* fDY = new TFile("../histograms/Zll_histograms_Drell-Yan_" + eras + ".root");
+  TFile* fDiBoson = new TFile("../histograms/Zll_histograms_DiBoson_" + eras + ".root");
+  TFile* fTriBoson = new TFile("../histograms/Zll_histograms_TriBoson_" + eras + ".root");
+  TFile* fTop = new TFile("../histograms/Zll_histograms_Top_" + eras + ".root");
   vector<TFile*> vFiles = {fData, fDY, fDiBoson, fTriBoson, fTop};
 
   TCanvas* c1 = new TCanvas("c1", "histos", 600, 800);
@@ -110,7 +110,6 @@ int main(int argc, char* argv[])
   make_plot(c1, vFiles, output_name, "hSumETEndcapPhotonsClustered", "Sum E_{T} [GeV]", lumi, -1, {"Clustered Photon Candidates", "2.5 < |#eta| < 3.0"}, 1);
   make_plot(c1, vFiles, output_name, "hSumETEndcapPhotonsUnclustered", "Sum E_{T} [GeV]", lumi, -1, {"Unclustered Photon Candidates", "2.5 < |#eta| < 3.0"}, 1);
   make_plot(c1, vFiles, output_name, "hPhotonpTEndcap", "p_{T} [GeV]", lumi, -1, {"Photon Candidates", "2.3 < |#eta| < 3.0"}, 1);
-  make_plot(c1, vFiles, output_name, "hT1CRawMETMod", "E_{T}^{miss} [GeV]", lumi, -1, {"Raw MET (No HE)"}, 1); 
   make_plot(c1, vFiles, output_name, "hNVtx", "N_{vtx}", lumi, -1, {""}, 1);
   make_plot(c1, vFiles, output_name, "hRawMETMod_v2", "E_{T}^{miss} [GeV]", lumi, -1, {"Raw MET (No Low pT HE)"}, 1);
   make_plot(c1, vFiles, output_name, "hRawMETMod", "E_{T}^{miss} [GeV]", lumi, -1, {"Raw MET (No HE)"}, 1);  
