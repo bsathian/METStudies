@@ -29,7 +29,12 @@ source setup.sh
 
 
 # Main analysis #
+cd Looper
+make
+cd ..
+cp Looper/analyze .
 
+rm -rf /hadoop/cms/store/user/smay/MET/*
 tar -czf BatchSubmit/package.tar.gz analyze Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON_snt.txt Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_snt.txt pileupReweight*.root jetCorrections CORE/
 cd BatchSubmit
 rm -rf tasks/
@@ -45,6 +50,6 @@ python add_histograms.py "F"
 
 # Plots #
 cd Plots
-makePlots "B" "4.8"
-makePlots "C,D,E" "23.5"
-makePlots "F" "13.5"
+./makePlots "B" "4.8"
+./makePlots "C,D,E" "23.5"
+./makePlots "F" "13.5"

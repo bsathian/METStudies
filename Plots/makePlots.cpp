@@ -10,6 +10,12 @@ void make_plot(TCanvas* c1, vector<TFile*> vFiles, string output_name, TString h
   for (int i = 1; i < vFiles.size(); i++) 
     hMC.push_back((TH1D*)vFiles[i]->Get(hist_name));
   Comparison* c = new Comparison(c1, hData, hMC);
+  if (lumi == 4.8)
+    c->give_info({"2017 Run B"});
+  else if (lumi == 23.5)
+    c->give_info({"2017 Runs C,D,E"});
+  else if (lumi == 13.5)
+    c->give_info({"2017 Run F"});
   c->set_filename(output_name);
   c->set_rat_label("#frac{Data}{MC}");
   c->set_legend_labels({"2017 Data", "Drell-Yan", "DiBoson", "TriBoson", "Top"});
@@ -113,6 +119,10 @@ int main(int argc, char* argv[])
   make_plot(c1, vFiles, output_name, "hNVtx", "N_{vtx}", lumi, -1, {""}, 1);
   make_plot(c1, vFiles, output_name, "hRawMETMod_v2", "E_{T}^{miss} [GeV]", lumi, -1, {"Raw MET (No Low pT HE)"}, 1);
   make_plot(c1, vFiles, output_name, "hRawMETMod", "E_{T}^{miss} [GeV]", lumi, -1, {"Raw MET (No HE)"}, 1);  
-  make_plot(c1, vFiles, output_name, "hT1CMETMod", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE)"}, 2); 
+  make_plot(c1, vFiles, output_name, "hT1CMETMod", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE)"}, 1); 
+  make_plot(c1, vFiles, output_name, "hT1CMETMod_v1", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE), No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0"}, 1);
+  make_plot(c1, vFiles, output_name, "hT1CMETMod_v2", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE), No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0"}, 1);
+  make_plot(c1, vFiles, output_name, "hT1CMETMod_v3", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE), No JECs for p_{T} < 30 && 2.5 < |#eta| < 5.0"}, 1);
+  make_plot(c1, vFiles, output_name, "hT1CMETMod_v4", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE), No JECs for p_{T} < 50 && 2.5 < |#eta| < 5.0"}, 2);
 
 }

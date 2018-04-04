@@ -94,6 +94,11 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
   TH1D* hT1CMETMod = create_histogram("hT1CMETMod", 80, 0, 400);
   TH1D* hT1CMETMod_v2 = create_histogram("hT1CMETMod_v2", 80, 0, 400);
 
+  TH1D* hT1CMET_NoECJECs_v1 = create_histogram("hT1CMET_NoECJECs_v1", 80, 0, 400);
+  TH1D* hT1CMET_NoECJECs_v2 = create_histogram("hT1CMET_NoECJECs_v2", 80, 0, 400);
+  TH1D* hT1CMET_NoECJECs_v3 = create_histogram("hT1CMET_NoECJECs_v3", 80, 0, 400);
+  TH1D* hT1CMET_NoECJECs_v4 = create_histogram("hT1CMET_NoECJECs_v4", 80, 0, 400);
+
   double vtxBins[] = {0,5,10,15,20,25,30,35,40,45,100};
   int nVtxBins = (sizeof(vtxBins)/sizeof(vtxBins[0]))-1;
   TH1D* hNVtx = new TH1D("hNVtx","", nVtxBins, vtxBins);
@@ -220,7 +225,11 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       // Fill Z-Removed MET before cutting on it (if selection == 0)
       ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET = t1CMET(currentFileName);
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod = t1CMET_noHE(currentFileName);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod = t1CMET_noHE(currentFileName, 15., {0., 0.});
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v1 = t1CMET_noHE(currentFileName, 30., {2.5, 3.0});
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v2 = t1CMET_noHE(currentFileName, 50., {2.5, 3.0});
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v3 = t1CMET_noHE(currentFileName, 30., {2.5, 5.0});
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v4 = t1CMET_noHE(currentFileName, 50., {2.5, 5.0});
 
       double dPhi2(0), dPhiRaw(0);
       double zRemMET = ZRemovedMET(fT1CMET, isElEvt, id1, id2, dPhi2);
@@ -235,6 +244,12 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
       // Done with selection, now fill histograms
       hT1CMET->Fill(fT1CMET.pt(), weight);
       hT1CMETMod->Fill(fT1CMETMod.pt(), weight);
+
+      hT1CMET_NoECJECs_v1->Fill(fT1CMETMod_v1.pt(), weight);
+      hT1CMET_NoECJECs_v2->Fill(fT1CMETMod_v2.pt(), weight);
+      hT1CMET_NoECJECs_v3->Fill(fT1CMETMod_v3.pt(), weight);
+      hT1CMET_NoECJECs_v4->Fill(fT1CMETMod_v4.pt(), weight);
+
       hNVtx->Fill(nvtx, weight);
       
       hpfMET->Fill(evt_pfmet(), weight);
