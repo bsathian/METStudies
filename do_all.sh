@@ -39,11 +39,15 @@ tar -czf BatchSubmit/package.tar.gz analyze Cert_294927-306462_13TeV_PromptReco_
 cd BatchSubmit
 rm -rf tasks/
 python ducks.py "B" "pileupReweightsMC_B.root"
+wait
 rm -rf tasks/
 python ducks.py "C,D,E" "pileupReweightsMC_C,D,E.root"
+wait
 rm -rf tasks/
 python ducks.py "F" "pileupReweightsMC_F.root"
+wait
 
+cd ..
 python add_histograms.py "B"
 python add_histograms.py "C,D,E"
 python add_histograms.py "F"
