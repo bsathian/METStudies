@@ -296,7 +296,7 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET(TString currentFi
   return fT1CMET;
 }
 
-ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_noHE(TString currentFileName, double ptThresh, vector<double> etaExclusionRange) {
+ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_noHE(TString currentFileName, double ptThresh, vector<double> etaExclusionRange, bool useHE) {
   std::pair<float, float> pT1CMET;
 
   std::vector<std::string> jetcorr_filenames_pfL1FastJetL2L3;
@@ -377,7 +377,7 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_noHE(TString curr
 
   jet_corrector = makeJetCorrector(jetcorr_filenames_pfL1FastJetL2L3);
 
-  pT1CMET = getT1CHSMET_fromMINIAOD_noECJECs(jet_corrector, NULL, 0, 1, 0, false, ptThresh, etaExclusionRange);
+  pT1CMET = getT1CHSMET_fromMINIAOD_noECJECs(jet_corrector, NULL, 0, 1, 0, useHE, ptThresh, etaExclusionRange);
 
   float metX = pT1CMET.first * cos(pT1CMET.second);
   float metY = pT1CMET.first * sin(pT1CMET.second);

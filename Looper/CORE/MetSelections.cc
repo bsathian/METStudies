@@ -476,6 +476,8 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
       if (!useHE) {
         if (abs(cms3.pfcands_p4().at(pfind).eta()) > 2.5 && abs(cms3.pfcands_p4().at(pfind).eta()) < 3.0 && abs(cms3.pfcands_charge().at(pfind)) == 0)
           continue;
+	if (abs(cms3.pfcands_p4().at(pfind).eta()) > 2.5 && abs(cms3.pfcands_particleId().at(pfind)) == 22)
+          continue;
       }
       met_raw_OTF -= cms3.pfcands_p4().at(pfind);
     }

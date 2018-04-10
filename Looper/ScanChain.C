@@ -94,10 +94,10 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
   TH1D* hT1CMETMod = create_histogram("hT1CMETMod", 80, 0, 400);
   TH1D* hT1CMETMod_v2 = create_histogram("hT1CMETMod_v2", 80, 0, 400);
 
-  TH1D* hT1CMET_NoECJECs_v1 = create_histogram("hT1CMET_NoECJECs_v1", 80, 0, 400);
-  TH1D* hT1CMET_NoECJECs_v2 = create_histogram("hT1CMET_NoECJECs_v2", 80, 0, 400);
-  TH1D* hT1CMET_NoECJECs_v3 = create_histogram("hT1CMET_NoECJECs_v3", 80, 0, 400);
-  TH1D* hT1CMET_NoECJECs_v4 = create_histogram("hT1CMET_NoECJECs_v4", 80, 0, 400);
+  TH1D* hT1CMET_NoECJECs_v1 = create_histogram("hT1CMET_NoECJECs_v1", 80, 0, 400); // no  HE, pT < 30 
+  TH1D* hT1CMET_NoECJECs_v2 = create_histogram("hT1CMET_NoECJECs_v2", 80, 0, 400); // no  HE, pT < 50
+  TH1D* hT1CMET_NoECJECs_v3 = create_histogram("hT1CMET_NoECJECs_v3", 80, 0, 400); // use HE, pt < 30
+  TH1D* hT1CMET_NoECJECs_v4 = create_histogram("hT1CMET_NoECJECs_v4", 80, 0, 400); // use HE, pt < 50
 
   double vtxBins[] = {0,5,10,15,20,25,30,35,40,45,100};
   int nVtxBins = (sizeof(vtxBins)/sizeof(vtxBins[0]))-1;
@@ -225,22 +225,22 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       // Fill Z-Removed MET before cutting on it (if selection == 0)
       ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET = t1CMET(currentFileName);
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod = t1CMET_noHE(currentFileName, 15., {0., 0.});
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v1 = t1CMET_noHE(currentFileName, 30., {2.5, 3.0});
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v2 = t1CMET_noHE(currentFileName, 50., {2.5, 3.0});
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v3 = t1CMET_noHE(currentFileName, 30., {2.5, 5.0});
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v4 = t1CMET_noHE(currentFileName, 50., {2.5, 5.0});
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod = t1CMET_noHE(currentFileName, 15., {0., 0.}, false);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v1 = t1CMET_noHE(currentFileName, 30., {2.5, 3.0}, false);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v2 = t1CMET_noHE(currentFileName, 50., {2.5, 3.0}, false);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v3 = t1CMET_noHE(currentFileName, 30., {2.5, 3.0}, true);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v4 = t1CMET_noHE(currentFileName, 50., {2.5, 3.0}, true);
 
       double dPhi2(0), dPhiRaw(0);
-      double zRemMET = ZRemovedMET(fT1CMET, isElEvt, id1, id2, dPhi2);
-      hZRemovedMET->Fill(zRemMET, weight);
+      if (selection == 0) {
+	double zRemMET = ZRemovedMET(fT1CMET, isElEvt, id1, id2, dPhi2);
+	hZRemovedMET->Fill(zRemMET, weight);
 
-      double zRemMETRaw = ZRemovedMETRaw(isElEvt, id1, id2, dPhiRaw);
-      hZRemovedMETRaw->Fill(zRemMETRaw, weight);
+	double zRemMETRaw = ZRemovedMETRaw(isElEvt, id1, id2, dPhiRaw);
+	hZRemovedMETRaw->Fill(zRemMETRaw, weight);
 
-      if (selection == 0)
 	if (zRemMET < 100 || zRemMET > 200)						continue;
-
+      }
       // Done with selection, now fill histograms
       hT1CMET->Fill(fT1CMET.pt(), weight);
       hT1CMETMod->Fill(fT1CMETMod.pt(), weight);
@@ -271,6 +271,7 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       int nCCands(0), nPCands(0), nNCands(0);
       for (int i=0; i<nCands; i++) { // begin pf cand loop
+        continue;
 	ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fourV = cms3.pfcands_p4().at(i);
         double pt = fourV.Pt();
         double phi = fourV.Phi();
@@ -295,7 +296,7 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 	vSumET[5][3] += pt;
 
    
-        if (!( (candIdx == 1 || candIdx == 2) && (eta > 2.5 && eta < 3.0))) // not a low pt photon or neutral had in endcap
+        if (!( (candIdx == 1 || candIdx == 2) && (eta > 2.5 && eta < 3.0)) && !(candIdx == 1 && eta > 2.5)) // not a low pt photon or neutral had in endcap
           fourVRawMETMod += fourV;
         // Raw MET excluding low pT photons and neutral hads in endcap
 	if (!( (candIdx == 1 || candIdx == 2) && pt < 10 && (eta > 2.0 && eta < 3.0))) // not a low pt photon or neutral had in endcap
@@ -321,6 +322,7 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       // Fill pf cand histos
       for (int i=0; i<nEtaRegions; i++) {
+	continue; //skip pf cands for saving time
         for (int j=0; j<nCandCats; j++) {
           if (vSumET[i][j] == 0) { continue; }
           vhMET[i][j][0]->Fill(vFourVec[i][j].Pt(), weight);
