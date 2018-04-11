@@ -120,9 +120,9 @@ int main(int argc, char* argv[])
   make_plot(c1, vFiles, output_name, "hRawMETMod_v2", "E_{T}^{miss} [GeV]", lumi, -1, {"Raw MET (No Low pT HE)"}, 1);
   make_plot(c1, vFiles, output_name, "hRawMETMod", "E_{T}^{miss} [GeV]", lumi, -1, {"Raw MET (No HE)"}, 1);  
   make_plot(c1, vFiles, output_name, "hT1CMETMod", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE)"}, 1); 
-  make_plot(c1, vFiles, output_name, "hT1CMETMod_v1", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE), No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0"}, 1);
-  make_plot(c1, vFiles, output_name, "hT1CMETMod_v2", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE), No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0"}, 1);
-  make_plot(c1, vFiles, output_name, "hT1CMETMod_v3", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE), No JECs for p_{T} < 30 && 2.5 < |#eta| < 5.0"}, 1);
-  make_plot(c1, vFiles, output_name, "hT1CMETMod_v4", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE), No JECs for p_{T} < 50 && 2.5 < |#eta| < 5.0"}, 2);
+  make_plot(c1, vFiles, output_name, "hT1CMET_NoECJECs_v1", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE)", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0"}, 1);
+  make_plot(c1, vFiles, output_name, "hT1CMET_NoECJECs_v2", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No HE)", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0"}, 1);
+  make_plot(c1, vFiles, output_name, "hT1CMET_NoECJECs_v3", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0"}, 1);
+  make_plot(c1, vFiles, output_name, "hT1CMET_NoECJECs_v4", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0"}, 2);
 
 }

@@ -293,6 +293,7 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET(TString currentFi
   float metX = pT1CMET.first * cos(pT1CMET.second);
   float metY = pT1CMET.first * sin(pT1CMET.second);
   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET(metX, metY, 0, pT1CMET.first);
+  delete jet_corrector;
   return fT1CMET;
 }
 
@@ -382,6 +383,7 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_noHE(TString curr
   float metX = pT1CMET.first * cos(pT1CMET.second);
   float metY = pT1CMET.first * sin(pT1CMET.second);
   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET(metX, metY, 0, pT1CMET.first);
+  delete jet_corrector;
   return fT1CMET;
 }
 

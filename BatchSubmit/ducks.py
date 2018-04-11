@@ -22,7 +22,6 @@ args = parser.parse_args()
 
 eras = args.eras.split(",")
 
-
 data = {"B" : ["/DoubleEG_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/", "/DoubleMuon_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/"], 
 	"C" : ["/DoubleEG_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/", "/DoubleMuon_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/"], 
 	"D" : ["/DoubleEG_Run2017D-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/", "/DoubleMuon_Run2017D-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/"], 
@@ -51,7 +50,6 @@ basepath = "/hadoop/cms/store/user/smay/ProjectMetis"
 total_summary = {}
 while True:
   all_jobs_done = True
-  allcomplete = True
   for key, info in mc.iteritems():
     for set in info[0]:
       if args.weightfile == "none" and (not args.reweight or eras[0] != "MC") : # only if you've already made unweighted MC histograms for nvtx reweighting
@@ -78,15 +76,14 @@ while True:
               special_dir = hadoop_path
               )
       task.process()
-      allcomplete = allcomplete and task.complete()
       if not task.complete():
+        print("Job %s still running." % job_tag)
         all_jobs_done = False
       total_summary[set] = task.get_task_summary()
-      if allcomplete:
+      if task.complete():
 	print ""
 	print "Job={} finished".format(job_tag)
 	print ""
-	break   
  
   for era in eras:
     if era == "MC":
@@ -115,15 +112,14 @@ while True:
 	      special_dir = hadoop_path
 	      )
       task.process()
-      allcomplete = allcomplete and task.complete()
       if not task.complete():
+        print("Job %s still running." % job_tag)
         all_jobs_done = False
       total_summary[set] = task.get_task_summary()
-      if allcomplete:
+      if task.complete():
 	print ""
 	print "Job={} finished".format(job_tag)
 	print ""
-	break
 
   if all_jobs_done:
     print ""

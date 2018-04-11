@@ -182,7 +182,7 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 	if (!cms3.evt_isRealData()) {
 	  weight *= scale1fb * target_lumi *sgn(genps_weight());
 	}
-	hNVtx->Fill(nvtx, weight);
+	//hNVtx->Fill(nvtx, weight);
 	continue;		
       }
 
@@ -233,6 +233,7 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       double dPhi2(0), dPhiRaw(0);
       if (selection == 0) {
+	ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET = t1CMET(currentFileName);
 	double zRemMET = ZRemovedMET(fT1CMET, isElEvt, id1, id2, dPhi2);
 	hZRemovedMET->Fill(zRemMET, weight);
 
@@ -271,7 +272,7 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       int nCCands(0), nPCands(0), nNCands(0);
       for (int i=0; i<nCands; i++) { // begin pf cand loop
-        continue;
+	continue;
 	ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fourV = cms3.pfcands_p4().at(i);
         double pt = fourV.Pt();
         double phi = fourV.Phi();
@@ -322,7 +323,6 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       // Fill pf cand histos
       for (int i=0; i<nEtaRegions; i++) {
-	continue; //skip pf cands for saving time
         for (int j=0; j<nCandCats; j++) {
           if (vSumET[i][j] == 0) { continue; }
           vhMET[i][j][0]->Fill(vFourVec[i][j].Pt(), weight);
