@@ -272,7 +272,6 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 
       int nCCands(0), nPCands(0), nNCands(0);
       for (int i=0; i<nCands; i++) { // begin pf cand loop
-	continue;
 	ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fourV = cms3.pfcands_p4().at(i);
         double pt = fourV.Pt();
         double phi = fourV.Phi();
