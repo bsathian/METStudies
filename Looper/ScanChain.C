@@ -36,11 +36,14 @@ const int nEtaRegions = 6;
 const int nCandCats = 4;
 const int nMETVars = 3;
 
-int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puReweight, int selection, double scale1fb, double target_lumi = 1.) {
+int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, bool puReweight, int selection, double scale1fb, double target_lumi = 1.) {
   // Benchmark
   TBenchmark *bmark = new TBenchmark();
   bmark->Start("benchmark");
 
+  int nHists = puReweight ? vWeightFile.size() : 1; 
+  cout << nHists << endl;
+  if (puReweight) cout << "puReweight" << endl;
   // Loop over events to Analyze
   unsigned int nEventsTotal = 0;
   unsigned int nEventsChain = chain->GetEntries();
@@ -52,67 +55,110 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
   f1->cd();
 
   // Pf cand MET, Sum E_T, MET phi for each eta region and pf candidate category
-  vector<vector<vector<TH1D*>>> vhMET = create_met_histograms(nEtaRegions, nCandCats);
+  vector<vector<vector<vector<TH1D*>>>> vhMET = create_met_histograms_vector(nEtaRegions, nCandCats, nHists);
 
   // MET
-  TH1D* hpfMET = create_histogram("hpfMET", 80, 0, 400);
-  TH1D* hpfMETraw = create_histogram("hpfMETraw", 80, 0, 400); 
-  TH1D* hT1CMET = create_histogram("hT1CMET", 80, 0, 400);
-  TH1D* hZRemovedMET = create_histogram("hZRemovedMET", 80, 0, 400);
-  TH1D* hZRemovedMETRaw = create_histogram("hZRemovedMETRaw", 80, 0, 400);
-  TH1D* hMHT = create_histogram("hMHT", 80, 0, 400);
+  vector<TH1D*> hpfMET = create_histogram_vector("hpfMET", 80, 0, 400, nHists);
+  vector<TH1D*> hpfMETraw = create_histogram_vector("hpfMETraw", 80, 0, 400, nHists); 
+  vector<TH1D*> hT1CMET = create_histogram_vector("hT1CMET", 80, 0, 400, nHists);
+  vector<TH1D*> hZRemovedMET = create_histogram_vector("hZRemovedMET", 80, 0, 400, nHists);
+  vector<TH1D*> hZRemovedMETRaw = create_histogram_vector("hZRemovedMETRaw", 80, 0, 400, nHists);
+  vector<TH1D*> hMHT = create_histogram_vector("hMHT", 80, 0, 400, nHists);
 
   // Dilepton Mass
-  TH1D* hDilepMass = create_histogram("hDilepMass", 100, 0, 250);
-  TH1D* hDilepMassEE = create_histogram("hDilepMassEE", 100, 0, 250);
-  TH1D* hDilepMassMuMu = create_histogram("hDilepMassMuMu", 100, 0, 250);
+  vector<TH1D*> hDilepMass = create_histogram_vector("hDilepMass", 100, 0, 250, nHists);
+  vector<TH1D*> hDilepMassEE = create_histogram_vector("hDilepMassEE", 100, 0, 250, nHists);
+  vector<TH1D*> hDilepMassMuMu = create_histogram_vector("hDilepMassMuMu", 100, 0, 250, nHists);
 
   // Pf Cand pT
-  TH1D* hCCpT = create_histogram("hCCpT", 100, 0, 100); 
-  TH1D* hPhotonpT = create_histogram("hPhotonpT", 100, 0, 100); 
-  TH1D* hNeutpT = create_histogram("hNeutpT", 100, 0, 100); 
-  vector<TH1D*> vhCandpT = {hCCpT, hPhotonpT, hNeutpT};
+  vector<TH1D*> hCCpT = create_histogram_vector("hCCpT", 100, 0, 100, nHists); 
+  vector<TH1D*> hPhotonpT = create_histogram_vector("hPhotonpT", 100, 0, 100, nHists); 
+  vector<TH1D*> hNeutpT = create_histogram_vector("hNeutpT", 100, 0, 100, nHists); 
+  vector<vector<TH1D*>> vhCandpT = {hCCpT, hPhotonpT, hNeutpT};
  
   // Pf Cand eta
-  TH1D* hCCeta = create_histogram("hCCeta", 50, 0, 5);
-  TH1D* hPhotoneta = create_histogram("hPhotoneta", 50, 0, 5);
-  TH1D* hNeuteta = create_histogram("hNeuteta", 50, 0, 5);
-  vector<TH1D*> vhCandeta = {hCCeta, hPhotoneta, hNeuteta};
+  vector<TH1D*> hCCeta = create_histogram_vector("hCCeta", 50, 0, 5, nHists);
+  vector<TH1D*> hPhotoneta = create_histogram_vector("hPhotoneta", 50, 0, 5, nHists);
+  vector<TH1D*> hNeuteta = create_histogram_vector("hNeuteta", 50, 0, 5, nHists);
+  vector<vector<TH1D*>> vhCandeta = {hCCeta, hPhotoneta, hNeuteta};
 
   // Candidate multiplicity
-  TH1D* hNCands = create_histogram("hNCands", 300, 0, 3000);
-  TH1D* hNCCands = create_histogram("hNCCands", 300, 0, 3000);
-  TH1D* hNPCands = create_histogram("hNPCands", 300, 0, 3000);
-  TH1D* hNNCands = create_histogram("hNNCands", 300, 0, 3000);
+  vector<TH1D*> hNCands = create_histogram_vector("hNCands", 300, 0, 3000, nHists);
+  vector<TH1D*> hNCCands = create_histogram_vector("hNCCands", 300, 0, 3000, nHists);
+  vector<TH1D*> hNPCands = create_histogram_vector("hNPCands", 300, 0, 3000, nHists);
+  vector<TH1D*> hNNCands = create_histogram_vector("hNNCands", 300, 0, 3000, nHists);
 
   // Misc
-  TH1D* hSumETEndcapPhotonsUnclustered = create_histogram("hSumETEndcapPhotonsUnclustered", 100, 0, 1000);
-  TH1D* hSumETEndcapPhotonsClustered = create_histogram("hSumETEndcapPhotonsClustered", 100, 0, 1000); 
+  vector<TH1D*> hSumETEndcapPhotonsUnclustered = create_histogram_vector("hSumETEndcapPhotonsUnclustered", 100, 0, 1000, nHists);
+  vector<TH1D*> hSumETEndcapPhotonsClustered = create_histogram_vector("hSumETEndcapPhotonsClustered", 100, 0, 1000, nHists); 
 
-  TH1D* hRawMETMod = create_histogram("hRawMETMod", 80, 0, 400);
-  TH1D* hRawMETMod_v2 = create_histogram("hRawMETMod_v2", 80, 0, 400);  
-  TH1D* hT1CMETMod = create_histogram("hT1CMETMod", 80, 0, 400);
-  TH1D* hT1CMETMod_v2 = create_histogram("hT1CMETMod_v2", 80, 0, 400);
+  // Type-1 MET variations
+  vector<TH1D*> hRawMETMod = create_histogram_vector("hRawMETMod", 80, 0, 400, nHists);
+  vector<TH1D*> hRawMETMod_v2 = create_histogram_vector("hRawMETMod_v2", 80, 0, 400, nHists);  
+  vector<TH1D*> hT1CMETMod = create_histogram_vector("hT1CMETMod", 80, 0, 400, nHists);
+  vector<TH1D*> hT1CMETMod_v2 = create_histogram_vector("hT1CMETMod_v2", 80, 0, 400, nHists);
 
-  TH1D* hT1CMET_NoECJECs_v1 = create_histogram("hT1CMET_NoECJECs_v1", 80, 0, 400); // no  HE, pT < 30 
-  TH1D* hT1CMET_NoECJECs_v2 = create_histogram("hT1CMET_NoECJECs_v2", 80, 0, 400); // no  HE, pT < 50
-  TH1D* hT1CMET_NoECJECs_v3 = create_histogram("hT1CMET_NoECJECs_v3", 80, 0, 400); // use HE, pt < 30
-  TH1D* hT1CMET_NoECJECs_v4 = create_histogram("hT1CMET_NoECJECs_v4", 80, 0, 400); // use HE, pt < 50
+  vector<TH1D*> hT1CMET_NoECJECs_v1 = create_histogram_vector("hT1CMET_NoECJECs_v1", 80, 0, 400, nHists); // no  HE, pT < 30 
+  vector<TH1D*> hT1CMET_NoECJECs_v2 = create_histogram_vector("hT1CMET_NoECJECs_v2", 80, 0, 400, nHists); // no  HE, pT < 50
+  vector<TH1D*> hT1CMET_NoECJECs_v3 = create_histogram_vector("hT1CMET_NoECJECs_v3", 80, 0, 400, nHists); // use HE, pt < 30
+  vector<TH1D*> hT1CMET_NoECJECs_v4 = create_histogram_vector("hT1CMET_NoECJECs_v4", 80, 0, 400, nHists); // use HE, pt < 50
+
+  // 0-1 jet binned MET
+  vector<TH1D*> hpfMET_0Jets = create_histogram_vector("hpfMET_0Jets", 80, 0, 400, nHists);
+  vector<TH1D*> hpfMET_0Jetsraw = create_histogram_vector("hpfMET_0Jetsraw", 80, 0, 400, nHists);
+  vector<TH1D*> hT1CMET_0Jets = create_histogram_vector("hT1CMET_0Jets", 80, 0, 400, nHists);
+
+  vector<TH1D*> hRawMET_0JetsMod = create_histogram_vector("hRawMET_0JetsMod", 80, 0, 400, nHists);
+  vector<TH1D*> hRawMET_0JetsMod_v2 = create_histogram_vector("hRawMET_0JetsMod_v2", 80, 0, 400, nHists);
+  vector<TH1D*> hT1CMET_0JetsMod = create_histogram_vector("hT1CMET_0JetsMod", 80, 0, 400, nHists);
+  vector<TH1D*> hT1CMET_0JetsMod_v2 = create_histogram_vector("hT1CMET_0JetsMod_v2", 80, 0, 400, nHists);
+
+  vector<TH1D*> hT1CMET_0Jets_NoECJECs_v1 = create_histogram_vector("hT1CMET_0Jets_NoECJECs_v1", 80, 0, 400, nHists); // no  HE, pT < 30 
+  vector<TH1D*> hT1CMET_0Jets_NoECJECs_v2 = create_histogram_vector("hT1CMET_0Jets_NoECJECs_v2", 80, 0, 400, nHists); // no  HE, pT < 50
+  vector<TH1D*> hT1CMET_0Jets_NoECJECs_v3 = create_histogram_vector("hT1CMET_0Jets_NoECJECs_v3", 80, 0, 400, nHists); // use HE, pt < 30
+  vector<TH1D*> hT1CMET_0Jets_NoECJECs_v4 = create_histogram_vector("hT1CMET_0Jets_NoECJECs_v4", 80, 0, 400, nHists); // use HE, pt < 50
+
+  vector<TH1D*> hpfMET_1pJets = create_histogram_vector("hpfMET_1pJets", 80, 0, 400, nHists);
+  vector<TH1D*> hpfMET_1pJetsraw = create_histogram_vector("hpfMET_1pJetsraw", 80, 0, 400, nHists);
+  vector<TH1D*> hT1CMET_1pJets = create_histogram_vector("hT1CMET_1pJets", 80, 0, 400, nHists);
+
+  vector<TH1D*> hRawMET_1pJetsMod = create_histogram_vector("hRawMET_1pJetsMod", 80, 0, 400, nHists);
+  vector<TH1D*> hRawMET_1pJetsMod_v2 = create_histogram_vector("hRawMET_1pJetsMod_v2", 80, 0, 400, nHists);
+  vector<TH1D*> hT1CMET_1pJetsMod = create_histogram_vector("hT1CMET_1pJetsMod", 80, 0, 400, nHists);
+  vector<TH1D*> hT1CMET_1pJetsMod_v2 = create_histogram_vector("hT1CMET_1pJetsMod_v2", 80, 0, 400, nHists);
+
+  vector<TH1D*> hT1CMET_1pJets_NoECJECs_v1 = create_histogram_vector("hT1CMET_1pJets_NoECJECs_v1", 80, 0, 400, nHists); // no  HE, pT < 30 
+  vector<TH1D*> hT1CMET_1pJets_NoECJECs_v2 = create_histogram_vector("hT1CMET_1pJets_NoECJECs_v2", 80, 0, 400, nHists); // no  HE, pT < 50
+  vector<TH1D*> hT1CMET_1pJets_NoECJECs_v3 = create_histogram_vector("hT1CMET_1pJets_NoECJECs_v3", 80, 0, 400, nHists); // use HE, pt < 30
+  vector<TH1D*> hT1CMET_1pJets_NoECJECs_v4 = create_histogram_vector("hT1CMET_1pJets_NoECJECs_v4", 80, 0, 400, nHists); // use HE, pt < 50
+
+  // Jets
+  vector<TH1D*> hLeadJetPt = create_histogram_vector("hLeadJetPt", 100, 0, 500, nHists);
+  vector<TH1D*> hLeadJetEta = create_histogram_vector("hLeadJetEta", 50, 0, 5, nHists);
+
+  vector<TH1D*> hJetPt = create_histogram_vector("hJetPt", 100, 0, 500, nHists);
+  vector<TH1D*> hJetEta = create_histogram_vector("hJetEta", 50, 0, 5, nHists);  
 
   double vtxBins[] = {0,5,10,15,20,25,30,35,40,45,100};
   int nVtxBins = (sizeof(vtxBins)/sizeof(vtxBins[0]))-1;
-  TH1D* hNVtx = new TH1D("hNVtx","", nVtxBins, vtxBins);
-  hNVtx->Sumw2();
+  vector<TH1D*> hNVtx;
+  for (int i = 0; i < nHists; i++) { 
+   TString name = "hNVtx"+to_string(i);
+   hNVtx.push_back(new TH1D(name,"", nVtxBins, vtxBins));
+   hNVtx[i]->Sumw2();
+  }
 
-  TH1D* hPhotonpTEndcap = create_histogram("hPhotonpTEndcap", 100, 0, 100);
+  vector<TH1D*> hPhotonpTEndcap = create_histogram_vector("hPhotonpTEndcap", 100, 0, 100, nHists);
 
-  TH1D* hNJets = create_histogram("hNJets", 16, -0.5, 15.5);
+  vector<TH1D*> hNJets = create_histogram_vector("hNJets", 16, -0.5, 15.5, nHists);
 
-  TFile* fWeights;
-  TH1D* hWeights;
+  vector<TFile*> fWeights;
+  vector<TH1D*> hWeights;
   if (puReweight) {
-    fWeights = new TFile(weightFile, "READ");
-    hWeights = (TH1D*)fWeights->Get("pileupReweight");
+    for (int i = 0; i < nHists; i++) {
+      fWeights.push_back(new TFile(vWeightFile[i], "READ"));
+      hWeights.push_back((TH1D*)fWeights[i]->Get("pileupReweight"));
+    }
   } 
 
   // File Loop
@@ -165,6 +211,15 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
         else continue;
       }
 
+      // Check filters
+      if (firstGoodVertex() == -1)		continue;
+      if (!filt_goodVertices())          	continue;
+      if (!filt_globalTightHalo2016())   	continue;
+      if (!filt_hbheNoise())             	continue;
+      if (!filt_hbheNoiseIso())          	continue; 
+      if (!filt_ecalTP())			continue;
+      if (!filt_eeBadSc())			continue;
+
       // Check if leps pass POG IDs
       if (!lepsPassPOG(isElEvt, id1, id2)) 						continue;
 
@@ -175,13 +230,12 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 	if (dMass < 81 || dMass > 101)                                                  continue;
  	double weight = 1;
 	int nvtx = evt_nvtxs();
-	if (puReweight)
-	  weight *= hWeights->GetBinContent(hWeights->FindBin(nvtx));
 
 	// Weight further if MC
 	if (!cms3.evt_isRealData()) {
 	  weight *= scale1fb * target_lumi *sgn(genps_weight());
 	}
+        fill_histograms(hNVtx, nvtx, {weight});
 	//hNVtx->Fill(nvtx, weight);
 	continue;		
       }
@@ -195,24 +249,27 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
       }
 
       // Grab pu weights
-      double weight = 1;
+      vector<double> weight(nHists, 1);
       int nvtx = evt_nvtxs();
-      if (puReweight) 
-	weight *= hWeights->GetBinContent(hWeights->FindBin(nvtx));
-      
+      if (puReweight) {
+        for (int i = 0; i < nHists; i++) {
+	  weight[i] *= hWeights[i]->GetBinContent(hWeights[i]->FindBin(nvtx));
+        }
+      }
       // Weight further if MC
       if (!cms3.evt_isRealData()) {
-        weight *= scale1fb * target_lumi *sgn(genps_weight());
+	for (int i = 0; i < nHists; i++)
+          weight[i] *= scale1fb * target_lumi *sgn(genps_weight());
       }
 
       // Fill dilep mass before cutting on it
       double ZpT = -1;
       double dMass = dilepMass(isElEvt, id1, id2, ZpT);
-      hDilepMass->Fill(dMass, weight);
+      fill_histograms(hDilepMass,dMass, weight);
       if (isElEvt)
-	hDilepMassEE->Fill(dMass, weight);
+	fill_histograms(hDilepMassEE,dMass, weight);
       else
-	hDilepMassMuMu->Fill(dMass, weight);
+	fill_histograms(hDilepMassMuMu,dMass, weight);
 
       if (selection == 1) { // regular Z->ll
         if (dMass < 81 || dMass > 101)							continue;
@@ -235,32 +292,58 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
       if (selection == 0) {
 	ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET = t1CMET(currentFileName);
 	double zRemMET = ZRemovedMET(fT1CMET, isElEvt, id1, id2, dPhi2);
-	hZRemovedMET->Fill(zRemMET, weight);
+	fill_histograms(hZRemovedMET,zRemMET, weight);
 
 	double zRemMETRaw = ZRemovedMETRaw(isElEvt, id1, id2, dPhiRaw);
-	hZRemovedMETRaw->Fill(zRemMETRaw, weight);
+	fill_histograms(hZRemovedMETRaw,zRemMETRaw, weight);
 
 	if (zRemMET < 100 || zRemMET > 200)						continue;
       }
       // Done with selection, now fill histograms
-      hT1CMET->Fill(fT1CMET.pt(), weight);
-      hT1CMETMod->Fill(fT1CMETMod.pt(), weight);
+      fill_histograms(hT1CMET,fT1CMET.pt(), weight);
+      fill_histograms(hT1CMETMod,fT1CMETMod.pt(), weight);
 
-      hT1CMET_NoECJECs_v1->Fill(fT1CMETMod_v1.pt(), weight);
-      hT1CMET_NoECJECs_v2->Fill(fT1CMETMod_v2.pt(), weight);
-      hT1CMET_NoECJECs_v3->Fill(fT1CMETMod_v3.pt(), weight);
-      hT1CMET_NoECJECs_v4->Fill(fT1CMETMod_v4.pt(), weight);
+      fill_histograms(hT1CMET_NoECJECs_v1,fT1CMETMod_v1.pt(), weight);
+      fill_histograms(hT1CMET_NoECJECs_v2,fT1CMETMod_v2.pt(), weight);
+      fill_histograms(hT1CMET_NoECJECs_v3,fT1CMETMod_v3.pt(), weight);
+      fill_histograms(hT1CMET_NoECJECs_v4,fT1CMETMod_v4.pt(), weight);
 
-      hNVtx->Fill(nvtx, weight);
+      fill_histograms(hNVtx,nvtx, weight);
       
-      hpfMET->Fill(evt_pfmet(), weight);
-      hpfMETraw->Fill(evt_pfmet_raw(), weight);
+      fill_histograms(hpfMET,evt_pfmet(), weight);
+      fill_histograms(hpfMETraw,evt_pfmet_raw(), weight);
 
       int nJet = nJets(isElEvt, id1, id2);
-      hNJets->Fill(nJet, weight);
+      fill_histograms(hNJets,nJet, weight);
+
+      if (nJet == 0) {
+        fill_histograms(hT1CMET_0Jets,fT1CMET.pt(), weight);
+	fill_histograms(hT1CMET_0JetsMod,fT1CMETMod.pt(), weight);
+
+	fill_histograms(hT1CMET_0Jets_NoECJECs_v1,fT1CMETMod_v1.pt(), weight);
+	fill_histograms(hT1CMET_0Jets_NoECJECs_v2,fT1CMETMod_v2.pt(), weight);
+	fill_histograms(hT1CMET_0Jets_NoECJECs_v3,fT1CMETMod_v3.pt(), weight);
+	fill_histograms(hT1CMET_0Jets_NoECJECs_v4,fT1CMETMod_v4.pt(), weight);
+
+	fill_histograms(hpfMET_0Jets,evt_pfmet(), weight);
+	fill_histograms(hpfMET_0Jetsraw,evt_pfmet_raw(), weight);
+      }
+
+      else if (nJet >= 1) {
+	fill_histograms(hT1CMET_1pJets,fT1CMET.pt(), weight);
+        fill_histograms(hT1CMET_1pJetsMod,fT1CMETMod.pt(), weight);
+
+        fill_histograms(hT1CMET_1pJets_NoECJECs_v1,fT1CMETMod_v1.pt(), weight);
+        fill_histograms(hT1CMET_1pJets_NoECJECs_v2,fT1CMETMod_v2.pt(), weight);
+        fill_histograms(hT1CMET_1pJets_NoECJECs_v3,fT1CMETMod_v3.pt(), weight);
+        fill_histograms(hT1CMET_1pJets_NoECJECs_v4,fT1CMETMod_v4.pt(), weight);
+
+        fill_histograms(hpfMET_1pJets,evt_pfmet(), weight);
+        fill_histograms(hpfMET_1pJetsraw,evt_pfmet_raw(), weight);
+      }
 
       int nCands = pfcands_p4().size();
-      hNCands->Fill(nCands, weight);
+      fill_histograms(hNCands,nCands, weight);
 
       vector<vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> >>> vFourVec(nEtaRegions, vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> >>(nCandCats));
       vector<vector<double>> vSumET(nEtaRegions, vector<double>(nCandCats, 0.0));
@@ -271,6 +354,19 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
       double sumETPhotonsEndcapClustered(0), sumETPhotonsEndcapUnclustered(0);
 
       int nCCands(0), nPCands(0), nNCands(0);
+
+      
+      for (int i = 0; i < cms3.pfjets_p4().size(); i++) {
+	ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> jet_p4 = cms3.pfjets_p4().at(i)*cms3.pfjets_undoJEC().at(i);	
+        if (i == 0) {
+	  fill_histograms(hLeadJetPt, jet_p4.pt(), weight);
+          fill_histograms(hLeadJetEta, jet_p4.eta(), weight); 
+        }
+        fill_histograms(hJetPt, jet_p4.pt(), weight);
+        fill_histograms(hJetEta, jet_p4.eta(), weight);
+      }
+
+
       for (int i=0; i<nCands; i++) { // begin pf cand loop
 	ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fourV = cms3.pfcands_p4().at(i);
         double pt = fourV.Pt();
@@ -285,9 +381,9 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
         else if (particleId == 22 )                      { candIdx = 1; nPCands++; }        // photon candidate
         else                                             { candIdx = 2; nNCands++; }        // neutral hadron candidate
 
-	vhCandpT[candIdx]->Fill(pt, weight);
-	vhCandeta[candIdx]->Fill(eta, weight);
-	if (candIdx == 1 && eta > 2.3 && eta < 3.0) hPhotonpTEndcap->Fill(pt, weight);
+	fill_histograms(vhCandpT[candIdx], pt, weight);
+	fill_histograms(vhCandeta[candIdx], eta, weight);
+	if (candIdx == 1 && eta > 2.3 && eta < 3.0) fill_histograms(hPhotonpTEndcap,pt, weight);
 	vFourVec[etaIdx][candIdx] += fourV;
 	vFourVec[etaIdx][3] += fourV;
 	vFourVec[5][3] += fourV;
@@ -310,23 +406,35 @@ int ScanChain(TChain* chain, TString output_name, TString weightFile, bool puRew
 	    sumETPhotonsEndcapUnclustered += pt;
 	}
       } // end pf cand loop
-      hNCCands->Fill(nCCands, weight);
-      hNPCands->Fill(nPCands, weight);
-      hNNCands->Fill(nNCands, weight);
+      fill_histograms(hNCCands,nCCands, weight);
+      fill_histograms(hNPCands,nPCands, weight);
+      fill_histograms(hNNCands,nNCands, weight);
 
-      hSumETEndcapPhotonsUnclustered->Fill(sumETPhotonsEndcapUnclustered, weight);
-      hSumETEndcapPhotonsClustered->Fill(sumETPhotonsEndcapClustered, weight);
+      fill_histograms(hSumETEndcapPhotonsUnclustered,sumETPhotonsEndcapUnclustered, weight);
+      fill_histograms(hSumETEndcapPhotonsClustered,sumETPhotonsEndcapClustered, weight);
 
-      hRawMETMod->Fill(fourVRawMETMod.Pt(), weight);
-      hRawMETMod_v2->Fill(fourVRawMETMod_v2.Pt(), weight);
+      fill_histograms(hRawMETMod,fourVRawMETMod.Pt(), weight);
+      fill_histograms(hRawMETMod_v2,fourVRawMETMod_v2.Pt(), weight);
+
+      if (nJet == 0) {
+        fill_histograms(hRawMET_0JetsMod,fourVRawMETMod.Pt(), weight);
+        fill_histograms(hRawMET_0JetsMod_v2,fourVRawMETMod_v2.Pt(), weight);
+      }
+      else if (nJet >= 1) {
+	fill_histograms(hRawMET_1pJetsMod,fourVRawMETMod.Pt(), weight);
+        fill_histograms(hRawMET_1pJetsMod_v2,fourVRawMETMod_v2.Pt(), weight);
+      }
 
       // Fill pf cand histos
       for (int i=0; i<nEtaRegions; i++) {
         for (int j=0; j<nCandCats; j++) {
           if (vSumET[i][j] == 0) { continue; }
-          vhMET[i][j][0]->Fill(vFourVec[i][j].Pt(), weight);
-          vhMET[i][j][1]->Fill(vSumET[i][j], weight);
-          vhMET[i][j][2]->Fill(vFourVec[i][j].Phi(), weight);
+	  fill_histograms(vhMET[i][j][0], vFourVec[i][j].Pt(), weight);
+          fill_histograms(vhMET[i][j][1], vSumET[i][j], weight);
+	  fill_histograms(vhMET[i][j][2], vFourVec[i][j].Phi(), weight);
+          //vhMET[i][j][0]->Fill(vFourVec[i][j].Pt(), weight);
+          //vhMET[i][j][1]->Fill(vSumET[i][j], weight);
+          //vhMET[i][j][2]->Fill(vFourVec[i][j].Phi(), weight);
         }
       }
     }

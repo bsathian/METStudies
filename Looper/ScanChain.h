@@ -387,10 +387,78 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_noHE(TString curr
   return fT1CMET;
 }
 
+/*
+vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> apply_JECs(TString currentFileName) {
+  vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> vJet_p4;
+
+  std::vector<std::string> jetcorr_filenames_pfL1FastJetL2L3;
+  std::string jetcorr_uncertainty_filename;
+
+  FactorizedJetCorrector* jet_corrector(0);
+ 
+  if (currentFileName.Contains("2017B")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_V8_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_V8_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_V8_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_V8_DATA_L2L3Residual_AK4PFchs.txt");
+  }else if (currentFileName.Contains("2017C")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_V8_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_V8_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_V8_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_V8_DATA_L2L3Residual_AK4PFchs.txt");
+  }else if (currentFileName.Contains("2017D")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_V8_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_V8_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_V8_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_V8_DATA_L2L3Residual_AK4PFchs.txt");
+  }else if (currentFileName.Contains("2017E")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_V8_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_V8_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_V8_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_V8_DATA_L2L3Residual_AK4PFchs.txt");
+  }else if (currentFileName.Contains("2017F")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_V8_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_V8_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_V8_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_V8_DATA_L2L3Residual_AK4PFchs.txt");
+  }
+  else if (currentFileName.Contains("Fall17")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_V8_MC_L1FastJet_AK4PFchs.txt");
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_V8_MC_L2Relative_AK4PFchs.txt");
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_V8_MC_L3Absolute_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017_V8_MC_Uncertainty_AK4PFchs.txt";
+   }
+
+  jet_corrector = makeJetCorrector(jetcorr_filenames_pfL1FastJetL2L3);
+   
+  
+}
+*/
+
 TH1D* create_histogram(TString name, int nBins, double x_low, double x_high) {
   TH1D* h = new TH1D(name, "", nBins, x_low, x_high);
   h->Sumw2();
   return h;
+}
+
+vector<TH1D*> create_histogram_vector(TString name, int nBins, double x_low, double x_high, int nHists) {
+  vector<TH1D*> vHists;
+  for (int i = 0; i < nHists; i++) {
+    vHists.push_back(create_histogram(name+to_string(i), nBins, x_low, x_high));
+  }
+  return vHists;
+}
+
+void fill_histograms(vector<TH1D*> vHists, double value, vector<double> vWeights) {
+  for (int i = 0; i < vHists.size(); i++) {
+    vHists[i]->Fill(value, vWeights[i]);
+  }
 }
 
 vector<vector<vector<TH1D*>>> create_met_histograms(int nEtaRegions, int nCandCats) {
@@ -416,6 +484,64 @@ vector<vector<vector<TH1D*>>> create_met_histograms(int nEtaRegions, int nCandCa
   }
   return vhMET;
 }
+
+vector<vector<vector<TH1D*>>> create_met_histograms(int nEtaRegions, int nCandCats, TString idx) {
+  vector<vector<vector<TH1D*>>> vhMET;
+  for (int i=0; i<nEtaRegions; i++) {
+    vector<vector<TH1D*>> vTemp2;
+    for (int j=0; j<nCandCats; j++) {
+      TString etaIdx = to_string(i);
+      TString candIdx = to_string(j);
+      TString base = "h_eta" + etaIdx + "_cand" + candIdx;
+      TString name1 = base + "MET";
+      TString name2 = base + "SumET";
+      TString name3 = base + "METPhi";
+      vector<TH1D*> vTemp1;
+      vTemp1.push_back(new TH1D(name1+idx,"",80,0,400));
+      vTemp1.push_back(new TH1D(name2+idx,"",200,0,2000));
+      vTemp1.push_back(new TH1D(name3+idx,"",40,-3.142,3.142));
+      for (int k=0; k<vTemp1.size(); k++)
+        vTemp1[k]->Sumw2();
+      vTemp2.push_back(vTemp1);
+    }
+    vhMET.push_back(vTemp2);
+  }
+  return vhMET;
+}
+
+vector<vector<vector<vector<TH1D*>>>> create_met_histograms_vector(int nEtaRegions, int nCandCats, int nHists) {
+  vector<vector<vector<vector<TH1D*>>>> vhMET;
+  for (int i=0; i<nEtaRegions; i++) {
+    vector<vector<vector<TH1D*>>> vTemp2;
+    for (int j=0; j<nCandCats; j++) {
+      TString etaIdx = to_string(i);
+      TString candIdx = to_string(j);
+      TString base = "h_eta" + etaIdx + "_cand" + candIdx;
+      TString name1 = base + "MET";
+      TString name2 = base + "SumET";
+      TString name3 = base + "METPhi";
+      vector<vector<TH1D*>> vTemp1;
+      vTemp1.push_back(create_histogram_vector(name1, 80, 0, 400, nHists));
+      vTemp1.push_back(create_histogram_vector(name2, 200, 0, 2000, nHists));
+      vTemp1.push_back(create_histogram_vector(name3, 40, -3.142, 3.142, nHists));
+      vTemp2.push_back(vTemp1);
+    }
+    vhMET.push_back(vTemp2);
+  }
+  return vhMET;
+}
+
+
+
+/*
+vector<vector<vector<vector<TH1D*>>>> create_met_histograms_vector(int nEtaRegions, int nCandCats, int nHists) {
+  vector<vector<vector<vector<TH1D*>>>> vHists;
+  for (int i = 0; i < nHists; i++) {
+    vHists.push_back(create_met_histograms(nEtaRegions, nCandCats, to_string(i)));
+  } 
+  return vHists;
+}
+*/
 
 float sgn(float x) {
   if (x < 0)

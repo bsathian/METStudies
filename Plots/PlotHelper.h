@@ -145,7 +145,7 @@ class Comparison
     int mColor2;
     vector<int> mColorData;
 
-    const double topSpace = 0.20;
+    const double topSpace = 0.15;
     const double botSpace = 0.05;
     const double fs = 0.04;
 };
@@ -380,9 +380,9 @@ void Comparison::compute_limits(bool customXRange, bool customYRange)
       avgContent += binContent/float(mXBinRange[1] - mXBinRange[0]);
       if ((binContent < minContent) && binContent > 0)  minContent = binContent;
       if (binContent > maxContent) maxContent = binContent;
-      binContent = (mHMC->GetBinContent(i))*mScale;
-      if ((binContent < minContent) && binContent > 0)  minContent = binContent;
-      if (binContent > maxContent) maxContent = binContent;
+      //binContent = (mHMC->GetBinContent(i))*mScale;
+      //if ((binContent < minContent) && binContent > 0)  minContent = binContent;
+      //if (binContent > maxContent) maxContent = binContent;
     }
     //if (minContent < avgContent/1000) minContent = avgContent/1000;
     double range;
@@ -686,7 +686,7 @@ void Comparison::annotate_plot()
   for(int i=0; i<mVInfo.size(); i++) {
     double j = i;
     j *= 0.05;
-    t[i] = new TLatex(0.30, 0.85-j, mVInfo[i]);
+    t[i] = new TLatex(0.20, 0.85-j, mVInfo[i]);
     t[i]->SetTextSize(fs);
     t[i]->SetNDC(kTRUE);
     t[i]->Draw("SAME");
