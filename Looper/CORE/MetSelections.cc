@@ -336,6 +336,32 @@ pair <float, float> getT1CHSMET( FactorizedJetCorrector * jet_corrector, JetCorr
 
   return make_pair(T1_met, T1_metPhi);
 } */
+
+vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> getCorrectedJets( FactorizedJetCorrector * jet_corrector ) {
+  vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> vCorrJets;
+  for(unsigned int iJet = 0; iJet < cms3.pfjets_p4().size(); iJet++){
+    LorentzVector jetp4_uncorr = cms3.pfjets_p4().at(iJet)*cms3.pfjets_undoJEC().at(iJet);
+
+    // get L1FastL2L3 total correction
+    jet_corrector->setRho   ( cms3.evt_fixgridfastjet_all_rho()      );
+    jet_corrector->setJetA  ( cms3.pfjets_area().at(iJet) );
+    jet_corrector->setJetPt ( jetp4_uncorr.pt()                      );
+    jet_corrector->setJetEta( jetp4_uncorr.eta()                     );
+
+    //Note the subcorrections are stored with corr_vals(N) = corr(N)*corr(N-1)*...*corr(1)
+    vector<float> corr_vals = jet_corrector->getSubCorrections();
+
+    double corr             = corr_vals.at(corr_vals.size()-1); // All corrections
+
+    float emfrac = (cms3.pfjets_chargedEmE().at(iJet) + cms3.pfjets_neutralEmE().at(iJet)) / jetp4_uncorr.E();
+    if (emfrac <= 0.9 && corr * jetp4_uncorr.pt() > 15.)
+      jetp4_uncorr*=corr;       
+
+    vCorrJets.push_back(jetp4_uncorr);
+  }  
+  return vCorrJets; 
+}
+
 // takes in an already initialized FactorizedJetCorrector object
 // and returns T1 Corrected MET using the CHS jet collection from miniAOD
 pair <float, float> getT1CHSMET_fromMINIAOD( FactorizedJetCorrector * jet_corrector, JetCorrectionUncertainty* jecUnc, bool uncUp, bool recompute_raw_met , int use_cleaned_met , bool useHE ){
@@ -457,7 +483,7 @@ pair <float, float> getT1CHSMET_fromMINIAOD( FactorizedJetCorrector * jet_correc
   return make_pair(T1_met, T1_metPhi);
 }
 
-pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * jet_corrector, JetCorrectionUncertainty* jecUnc, bool uncUp, bool recompute_raw_met , int use_cleaned_met , bool useHE , double ptThresh, vector<double> etaExclusionRange){
+pair <float, float> getT1CHSMET_fromMINIAOD_tightID( FactorizedJetCorrector * jet_corrector, JetCorrectionUncertainty* jecUnc, bool uncUp, bool recompute_raw_met , int use_cleaned_met){
 
   float T1_met    = cms3.evt_pfmet_raw();
   float T1_metPhi = cms3.evt_pfmetPhi_raw();
@@ -466,6 +492,195 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
     //MuonEG cleaned MET
     //T1_met    = cms3.evt_muegclean_pfmet_raw();
     //T1_metPhi = cms3.evt_muegclean_pfmetPhi_raw();
+  //}
+  float T1_metx   = T1_met * cos(T1_metPhi);
+  float T1_mety   = T1_met * sin(T1_metPhi);
+
+  if( recompute_raw_met ){
+    LorentzVector met_raw_OTF(0,0,0,0);
+    for( size_t pfind = 0; pfind < cms3.pfcands_p4().size(); pfind++ ){
+      met_raw_OTF -= cms3.pfcands_p4().at(pfind);
+    }
+    T1_met    = met_raw_OTF.pt();
+    T1_metPhi = met_raw_OTF.phi();
+    T1_metx   = T1_met * cos(T1_metPhi);
+    T1_mety   = T1_met * sin(T1_metPhi);
+  }
+
+  LorentzVector jetp4_unshift_vsum(0,0,0,0);
+  LorentzVector jetp4_shifted_vsum(0,0,0,0);
+
+  for(unsigned int iJet = 0; iJet < cms3.pfjets_p4().size(); iJet++){
+
+    LorentzVector jetp4_uncorr = cms3.pfjets_p4().at(iJet)*cms3.pfjets_undoJEC().at(iJet);
+
+    // get L1FastL2L3 total correction
+    jet_corrector->setRho   ( cms3.evt_fixgridfastjet_all_rho()      );
+    jet_corrector->setJetA  ( cms3.pfjets_area().at(iJet) );
+    jet_corrector->setJetPt ( jetp4_uncorr.pt()                      );
+    jet_corrector->setJetEta( jetp4_uncorr.eta()                     );
+
+    //Note the subcorrections are stored with corr_vals(N) = corr(N)*corr(N-1)*...*corr(1)
+    vector<float> corr_vals = jet_corrector->getSubCorrections();
+
+    double corr             = corr_vals.at(corr_vals.size()-1); // All corrections
+
+    double shift = 0.0;
+    if (jecUnc != 0) {
+      jecUnc->setJetEta(jetp4_uncorr.eta());
+      jecUnc->setJetPt(jetp4_uncorr.pt()*corr);
+      double unc = jecUnc->getUncertainty(true);
+      if( cms3.evt_isRealData() && corr_vals.size() == 4 ) shift = sqrt(unc*unc + pow((corr_vals.at(corr_vals.size()-1)/corr_vals.at(corr_vals.size()-2)-1.),2));
+      else                                                 shift = unc;
+    }
+
+    double totalshift = 1.0;
+    if (jecUnc != 0) {
+      if (uncUp) totalshift += shift;
+      else  totalshift      -= shift;
+    }
+
+    float emfrac = (cms3.pfjets_chargedEmE().at(iJet) + cms3.pfjets_neutralEmE().at(iJet)) / jetp4_uncorr.E();
+    float neutral_emfrac = cms3.pfjets_neutralEmE().at(iJet) / jetp4_uncorr.E();
+    float neutral_hadfrac = pfjets_neutralHadronE().at(iJet) / jetp4_uncorr.E();
+    float charged_hadfrac = pfjets_chargedHadronE().at(iJet) / jetp4_uncorr.E();
+
+    float neutral_emfrac_hf = pfjets_hfEmE().at(iJet) / jetp4_uncorr.E();
+    float neutral_hadfrac_hf = pfjets_hfHadronE().at(iJet) / jetp4_uncorr.E();
+
+    int nConstituents(0), nCharged(0), nNeutral(0);
+    for( size_t pfind = 0; pfind < cms3.pfcands_p4().size(); pfind++ ){
+      LorentzVector p1 = jetp4_uncorr;
+      LorentzVector p2 = cms3.pfcands_p4().at(pfind);
+      double dphi = acos( cos( p1.phi() - p2.phi() ) );
+      double dR = sqrt( (p1.eta() - p2.eta())*(p1.eta() - p2.eta())+ dphi*dphi );
+      if (dR > 0.4) continue;
+      else {
+        nConstituents++;
+	if (abs(cms3.pfcands_charge().at(pfind)) > 0) 
+          nCharged++;
+        else 
+          nNeutral++;
+      }
+    }
+    bool applyJEC = true;
+    if (!(corr * jetp4_uncorr.pt() > 15.)) applyJEC = false;
+    else if (abs(jetp4_uncorr.eta()) < 2.7) {
+      if (abs(jetp4_uncorr.eta()) < 2.4) {
+        if ( neutral_hadfrac >= 0.9 || neutral_emfrac >= 0.9 || charged_hadfrac <= 0 || nConstituents <= 1 || nCharged == 0)
+          applyJEC = false;
+      }
+      else if (abs(jetp4_uncorr.eta()) >= 2.4) {
+        if ( neutral_hadfrac >= 0.9 || neutral_emfrac >= 0.9 || charged_hadfrac <= 0) 
+          applyJEC = false;
+      }
+    }
+    else if (abs(jetp4_uncorr.eta()) >= 2.7 && abs(jetp4_uncorr.eta()) <= 3.0) {
+      if (neutral_emfrac <= 0.02 || neutral_emfrac >= 0.99 || nNeutral <= 2)
+        applyJEC = false;
+    }
+    else { // eta > 3.0
+      if (neutral_emfrac >= 0.9 || neutral_hadfrac <= 0.02 || nNeutral <= 10)
+        applyJEC = false;
+    }
+
+    if (applyJEC){
+      jetp4_unshift_vsum += jetp4_uncorr*corr;
+      jetp4_shifted_vsum += jetp4_uncorr*corr*totalshift;
+    }
+  }
+
+  for(unsigned int iJet = 0; iJet < cms3.pfjets_p4().size(); iJet++){
+
+    // // get uncorrected jet p4 to use as input for corrections
+    LorentzVector jetp4_uncorr = cms3.pfjets_p4().at(iJet)*cms3.pfjets_undoJEC().at(iJet);
+    float emfrac = (cms3.pfjets_chargedEmE().at(iJet) + cms3.pfjets_neutralEmE().at(iJet)) / jetp4_uncorr.E();
+
+    if (emfrac > 0.9                  ) continue; // veto events with EM fraction > 0.9
+    if( abs(jetp4_uncorr.eta()) > 9.9 ) continue; // veto jets with eta > 9.9
+
+    // get L1FastL2L3 total correction
+    jet_corrector->setRho   ( cms3.evt_fixgridfastjet_all_rho()      );
+    jet_corrector->setJetA  ( cms3.pfjets_area().at(iJet) );
+    jet_corrector->setJetPt ( jetp4_uncorr.pt()                      );
+    jet_corrector->setJetEta( jetp4_uncorr.eta()                     );
+
+    //Note the subcorrections are stored with corr_vals(N) = corr(N)*corr(N-1)*...*corr(1)
+    vector<float> corr_vals = jet_corrector->getSubCorrections();
+
+    double corr             = corr_vals.at(corr_vals.size()-1); // All corrections
+    double corr_l1          = corr_vals.at(0);                  // offset correction
+
+    //  
+    // remove SA or global muons from jets before correcting
+    //
+    /*
+    for (unsigned int pfcind = 0; pfcind < cms3.pfjets_pfcandIndicies().at(iJet).size(); pfcind++){
+      int index = cms3.pfjets_pfcandIndicies().at(iJet).at(pfcind);
+      if( cms3.pfcands_isGlobalMuon()    .at(index) ||
+          cms3.pfcands_isStandAloneMuon().at(index)){
+        jetp4_uncorr -= cms3.pfcands_p4()   .at(index);
+      }
+    } */
+
+    float neutral_emfrac = cms3.pfjets_neutralEmE().at(iJet) / jetp4_uncorr.E();
+    float neutral_hadfrac = pfjets_neutralHadronE().at(iJet) / jetp4_uncorr.E();
+    float charged_hadfrac = pfjets_chargedHadronE().at(iJet) / jetp4_uncorr.E();
+
+    float neutral_emfrac_hf = pfjets_hfEmE().at(iJet) / jetp4_uncorr.E();
+    float neutral_hadfrac_hf = pfjets_hfHadronE().at(iJet) / jetp4_uncorr.E();
+
+    bool applyJEC;
+    if (!(corr * jetp4_uncorr.pt() > 15.)) applyJEC = false;
+    else if (abs(jetp4_uncorr.eta()) < 2.7) {
+      if (neutral_hadfrac >= 0.9 || neutral_emfrac >= 0.9 || charged_hadfrac <= 0)
+        applyJEC = false;
+      else
+        applyJEC = true;
+    }
+    else if (abs(jetp4_uncorr.eta()) >= 2.7 && abs(jetp4_uncorr.eta()) < 3.0) {
+      if (neutral_emfrac <= 0.02 || neutral_emfrac >= 0.99)
+        applyJEC = false;
+      else
+        applyJEC = true;
+    }
+    else {
+      if (neutral_emfrac >= 0.9 || neutral_hadfrac <= 0.02)
+        applyJEC = false;
+      else
+        applyJEC = true;
+    }
+
+
+    if ( applyJEC ){
+      T1_metx += jetp4_uncorr.px() * ( corr_l1 - corr );
+      T1_mety += jetp4_uncorr.py() * ( corr_l1 - corr );
+    }
+
+  }
+
+  T1_metx += jetp4_unshift_vsum.px();
+  T1_mety += jetp4_unshift_vsum.py();
+  T1_metx -= jetp4_shifted_vsum.px();
+  T1_mety -= jetp4_shifted_vsum.py();
+
+  T1_met    = std::sqrt(pow(T1_metx, 2) + pow(T1_mety, 2));
+  T1_metPhi = std::atan2(T1_mety, T1_metx);
+
+  return make_pair(T1_met, T1_metPhi);
+}
+
+
+
+pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * jet_corrector, JetCorrectionUncertainty* jecUnc, bool uncUp, bool recompute_raw_met , int use_cleaned_met , bool useHE , double ptThresh, vector<double> etaExclusionRange){
+
+  float T1_met    = cms3.evt_pfmet_raw();
+  float T1_metPhi = cms3.evt_pfmetPhi_raw();
+  //use option use_cleaned_met to select alternate met collections
+  //if (use_cleaned_met == 1) {
+    //MuonEG cleaned MET
+   //T1_met    = cms3.evt_muegclean_pfmet_raw();
+   //T1_metPhi = cms3.evt_muegclean_pfmetPhi_raw();
   //}
   float T1_metx   = T1_met * cos(T1_metPhi);
   float T1_mety   = T1_met * sin(T1_metPhi);
