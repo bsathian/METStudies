@@ -35,6 +35,51 @@ void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_na
   delete c;
 } 
 
+void make_double_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name1, TString hist_name2, TString label1, TString label2, TString x_label, double lumi, double scale, vector<TString> vInfo, bool data, int idx) {
+  TH1D* h1;
+  TH1D* h2;
+  if (data) {
+    h1 = (TH1D*)vFiles[0]->Get(hist_name1 + "0");
+    h2 = (TH1D*)vFiles[0]->Get(hist_name2 + "0");
+  }  
+  else {
+    h1 = (TH1D*)vFiles[1]->Get(hist_name1 + to_string(histIdx)); 
+    h2 = (TH1D*)vFiles[1]->Get(hist_name2 + to_string(histIdx));
+    for (int i = 2; i < vFiles.size(); i++) {
+      h1->Add((TH1D*)vFiles[i]->Get(hist_name1 + to_string(histIdx)));
+      h2->Add((TH1D*)vFiles[i]->Get(hist_name2 + to_string(histIdx)));
+    }
+  }
+  Comparison* c = new Comparison(c1, h1, h2);
+  if (lumi == 4.8) 
+    c->give_info({"2017 Run B"});
+  else if (lumi == 23.5)
+    c->give_info({"2017 Runs C,D,E"});
+  else if (lumi == 13.5)
+    c->give_info({"2017 Run F"});
+  else if (lumi == 9.76)
+    c->give_info({"2017 Run C"});
+  else if (lumi == 13.74)
+    c->give_info({"2017 Runs D,E"});
+  c->set_filename(output_name);
+  c->set_both_data();
+  TString rat_label = "#frac{" + label1 + "}{" + label2 + "}";
+  c->set_rat_label(rat_label);
+  c->set_legend_labels({label1, label2});
+  if (data)
+    c->give_info("Data vs. Data");
+  else
+    c->give_info("MC vs. MC");
+  c->set_x_label(x_label);
+  c->set_y_label("Events");
+  c->set_lumi(lumi);
+  c->set_scale(scale);
+  c->set_x_bin_range({1,80});
+  c->set_rat_lim_range({0.0, 5.0});
+  c->plot(idx);
+  delete c;
+}
+
 double get_scaleMC(vector<TFile*> vFiles, TString hist_name, int histIdx, double lumi) {
   TH1D* hData = (TH1D*)vFiles[0]->Get(hist_name + "0");
   TH1D* hMC;
@@ -138,23 +183,68 @@ int main(int argc, char* argv[])
   make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoECJECs_v3", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0"}, 1);
   make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoECJECs_v4", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0"}, 1);
   make_plot(c1, histIdx, vFiles, output_name, "hLeadJetPt", "p_{T} [GeV]", lumi, -1, {"Lead jet p_{T}"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJetPt", "p_{T} [GeV]", lumi, -1, {"Jet p_{T}"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJetPt", "p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T}"}, 1);
   make_plot(c1, histIdx, vFiles, output_name, "hLeadJetEta", "#eta [GeV]", lumi, -1, {"Lead jet #eta"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJetEta", "#eta [GeV]", lumi, -1, {"Jet #eta"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJetEta", "#eta [GeV]", lumi, scaleMC, {"Jet #eta"}, 1);
 
   // 0-1 Jet Bins
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0JetsMod", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No Neutral EC)", "0 Jets"}, 1); 
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v1", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v2", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v3", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v4", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "0 Jets"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0JetsMod", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "0 Jets"}, 1); 
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v1", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v2", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v3", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v4", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
   
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJetsMod", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No Neutral EC)", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v1", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v2", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v3", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v4", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 2);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "#geq 1 Jets"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJetsMod", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "#geq 1 Jets"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v1", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v2", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v3", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v4", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
 
+  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET", "h_eta5_cand3MET", "Type-1 MET", "Raw MET", "E_{T}^{miss} [GeV]", lumi, -1, {""}, true, 1);
+  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET", "h_eta5_cand3MET", "Type-1 MET", "Raw MET","E_{T}^{miss} [GeV]", lumi, -1, {""}, false, 1);
+
+  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoResiduals", "h_eta5_cand3MET", "Type-1 MET (No Residuals)", "Raw MET", "E_{T}^{miss} [GeV]", lumi, -1, {""}, true, 1);
+  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoResiduals", "h_eta5_cand3MET", "Type-1 MET (No Residuals)", "Raw MET", "E_{T}^{miss} [GeV]", lumi, -1, {""}, false, 1);
+
+  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET", "hT1CMET_NoResiduals", "Type-1 MET", "Type-1 MET (No Residuals)", "E_{T}^{miss} [GeV]", lumi, -1, {""}, true, 1);
+  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET", "hT1CMET_NoResiduals", "Type-1 MET", "Type-1 MET (No Residuals)", "E_{T}^{miss} [GeV]", lumi, -1, {""}, false, 1);
+
+  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET_tightID", "hT1CMET", "Type-1 MET (Tight ID)", "Type-1 MET", "E_{T}^{miss} [GeV]", lumi, -1, {""}, true, 1);
+  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET_tightID", "hT1CMET", "Type-1 MET (Tight ID)", "Type-1 MET", "E_{T}^{miss} [GeV]", lumi, -1, {""}, false, 1);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoResiduals", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No Resdiuals)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_tightID", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (Tight Jet ID)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoResiduals", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Resdiuals)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_tightID", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (Tight Jet ID)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoResiduals", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Resdiuals)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_tightID", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (Tight Jet ID)"}, 1);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hJet_Emfrac", "Jet EM Fraction", lumi, scaleMC, {""}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Emfrac", "Jet Neutral EM Fraction", lumi, scaleMC, {""}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Hadfrac", "Jet Neutral Hadronic Fraction", lumi, scaleMC, {""}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJet_Charged_Hadfrac", "Jet Charged Hadronic Fraction", lumi, scaleMC, {""}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Emfrac_hf", "Jet Neutral EM Fraction (HF)", lumi, scaleMC, {""}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Hadfrac_hf", "Jet Neutral Hadronic Fraction (HF)", lumi, scaleMC, {""}, 1);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_RunFV6", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (V6 JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJetPt_RunFV6", "Jet p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T} (V6 JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_RunFV6", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V6 JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV6", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V6 JECs)"}, 1);
+  
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_RunFV8b", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (V8b JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJetPt_RunFV8b", "Jet p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T} (V8b JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_RunFV8b", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8b JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV8b", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8b JECs)"}, 1);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_RunFV8c", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (V8c JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJetPt_RunFV8c", "Jet p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T} (V8c JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_RunFV8c", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8c JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV8c", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8c JECs)"}, 1);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_RunFV8d", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (V8d JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJetPt_RunFV8d", "Jet p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T} (V8d JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_RunFV8d", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8d JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV8d", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8d JECs)"}, 2);
 }

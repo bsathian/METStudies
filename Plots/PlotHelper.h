@@ -174,6 +174,7 @@ Comparison::Comparison(TCanvas* c1, TH1D* hData, TH1D* hMC)
   mVHData.push_back((TH1D*)hData->Clone("mHData"));
   //mVHRat.push_back((TH1D*)hData->Clone("mHRat"));
   mHMC = (TH1D*)hMC->Clone("mHMC");
+  mVHMC.push_back((TH1D*)hMC->Clone("mHMC0"));
 }
 
 inline
@@ -443,7 +444,6 @@ void Comparison::compute_flow(vector<int> xBinRange)
 inline
 void Comparison::set_histogram_options(int color1, int color2)
 {
-  /*
   mHMC->SetFillColor(mColor1);
   mHMC->SetLineColor(mColor1);
   mHMC->SetMarkerColor(mColor1);
@@ -454,7 +454,6 @@ void Comparison::set_histogram_options(int color1, int color2)
   if (!mLog) mHMC->GetYaxis()->SetTitleOffset(1.6);
   mHMC->GetXaxis()->SetLabelOffset(999);
   mHMC->GetXaxis()->SetLabelSize(0);
-  */
 
   for (int i=0; i<mVHData.size(); i++) {
     mVHData[i]->SetMarkerStyle(20);
@@ -478,9 +477,10 @@ void Comparison::set_histogram_options(int color1, int color2)
     mVHMC[i]->GetXaxis()->SetLabelOffset(999);
     mVHMC[i]->GetXaxis()->SetLabelSize(0);
   }
-  mStack->GetXaxis()->SetLabelOffset(999);
-  mStack->GetXaxis()->SetLabelSize(0);
-
+  if (!mBothData) { 
+    mStack->GetXaxis()->SetLabelOffset(999);
+    mStack->GetXaxis()->SetLabelSize(0);
+  }
 }
 
 bool sortByValue(const std::pair<int,float>& pair1, const std::pair<int,float>& pair2 ) {
@@ -694,13 +694,13 @@ void Comparison::annotate_plot()
 
   if (mVLegendLabels.size() > 0) {
     double j = mVHData.size()*0.05;
-    TLegend* l1 = new TLegend(0.80, 0.82-j, 0.92, 0.89);
+    TLegend* l1 = new TLegend(0.70, 0.82-j, 0.92, 0.89);
     for (int i=0; i<mVHData.size(); i++)
       l1->AddEntry(mVHData[i], mVLegendLabels[i], "lep");
     int idxMC = mVHData.size();
     for (int i=0; i<mVHMC.size(); i++) {
       if (!mBothData) l1->AddEntry(mVHMC[i], mVLegendLabels[idxMC+i], "f");
-      else l1->AddEntry(mVHMC[i], mVLegendLabels[idxMC], "lep");
+      else l1->AddEntry(mHMC, mVLegendLabels[idxMC], "lep");
     }
     l1->SetBorderSize(0);
     l1->Draw("SAME");
@@ -731,8 +731,9 @@ void Comparison::make_rat_histogram(TH1D* hData, TH1D* hMC)
   mVHRat.push_back((TH1D*)hData->Clone("mVHRat0"));
   mVHRat[0]->SetTitle("");
   mVHRat[0]->Divide(hMC);
-  if (mCustomRatRange)
+  if (mCustomRatRange) {
     mVHRat[0]->GetYaxis()->SetRangeUser(mRatRange[0],mRatRange[1]);
+  }
   else
     mVHRat[0]->GetYaxis()->SetRangeUser(0.0,2.0);
   mVHRat[0]->GetYaxis()->SetLabelSize(0.08);
