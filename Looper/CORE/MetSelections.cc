@@ -630,27 +630,41 @@ pair <float, float> getT1CHSMET_fromMINIAOD_tightID( FactorizedJetCorrector * je
     float neutral_emfrac_hf = pfjets_hfEmE().at(iJet) / jetp4_uncorr.E();
     float neutral_hadfrac_hf = pfjets_hfHadronE().at(iJet) / jetp4_uncorr.E();
 
-    bool applyJEC;
+    int nConstituents(0), nCharged(0), nNeutral(0);
+    for( size_t pfind = 0; pfind < cms3.pfcands_p4().size(); pfind++ ){
+      LorentzVector p1 = jetp4_uncorr;
+      LorentzVector p2 = cms3.pfcands_p4().at(pfind);
+      double dphi = acos( cos( p1.phi() - p2.phi() ) );
+      double dR = sqrt( (p1.eta() - p2.eta())*(p1.eta() - p2.eta())+ dphi*dphi );
+      if (dR > 0.4) continue;
+      else {
+        nConstituents++;
+        if (abs(cms3.pfcands_charge().at(pfind)) > 0)
+          nCharged++;
+        else 
+          nNeutral++;
+      }
+    }
+    bool applyJEC = true;
     if (!(corr * jetp4_uncorr.pt() > 15.)) applyJEC = false;
     else if (abs(jetp4_uncorr.eta()) < 2.7) {
-      if (neutral_hadfrac >= 0.9 || neutral_emfrac >= 0.9 || charged_hadfrac <= 0)
-        applyJEC = false;
-      else
-        applyJEC = true;
+      if (abs(jetp4_uncorr.eta()) < 2.4) {
+        if ( neutral_hadfrac >= 0.9 || neutral_emfrac >= 0.9 || charged_hadfrac <= 0 || nConstituents <= 1 || nCharged == 0)
+          applyJEC = false;
+      }
+      else if (abs(jetp4_uncorr.eta()) >= 2.4) {
+        if ( neutral_hadfrac >= 0.9 || neutral_emfrac >= 0.9 || charged_hadfrac <= 0)
+          applyJEC = false;
+      }
     }
-    else if (abs(jetp4_uncorr.eta()) >= 2.7 && abs(jetp4_uncorr.eta()) < 3.0) {
-      if (neutral_emfrac <= 0.02 || neutral_emfrac >= 0.99)
+    else if (abs(jetp4_uncorr.eta()) >= 2.7 && abs(jetp4_uncorr.eta()) <= 3.0) {
+      if (neutral_emfrac <= 0.02 || neutral_emfrac >= 0.99 || nNeutral <= 2)
         applyJEC = false;
-      else
-        applyJEC = true;
     }
-    else {
-      if (neutral_emfrac >= 0.9 || neutral_hadfrac <= 0.02)
+    else { // eta > 3.0
+      if (neutral_emfrac >= 0.9 || neutral_hadfrac <= 0.02 || nNeutral <= 10)
         applyJEC = false;
-      else
-        applyJEC = true;
     }
-
 
     if ( applyJEC ){
       T1_metx += jetp4_uncorr.px() * ( corr_l1 - corr );

@@ -160,6 +160,8 @@ Comparison::~Comparison()
       delete mVHRat[i];
     }
     delete mHMC;  
+    for (int i = 0; i < mVHMC.size(); i++)
+      delete mVHMC[i];
   }
   else {
     delete mH2DData;
@@ -421,10 +423,10 @@ void Comparison::compute_flow(vector<int> xBinRange)
       double underflowMC = mVHMC[i]->Integral(0, mXBinRange[0]-1);
       mVHMC[i]->AddBinContent(mXBinRange[0], underflowMC);
     }
-    //double overflowMC = mHMC->Integral(mXBinRange[1]+1, nBins+1);
-    //mHMC->AddBinContent(mXBinRange[1], overflowMC);
-    //double underflowMC = mHMC->Integral(0, mXBinRange[0]-1);
-    //mHMC->AddBinContent(mXBinRange[0], underflowMC);
+    double overflowMC = mHMC->Integral(mXBinRange[1]+1, nBins+1);
+    mHMC->AddBinContent(mXBinRange[1], overflowMC);
+    double underflowMC = mHMC->Integral(0, mXBinRange[0]-1);
+    mHMC->AddBinContent(mXBinRange[0], underflowMC);
     for (int i=0; i<mVHData.size(); i++) {
       double overflowData = mVHData[i]->Integral(mXBinRange[1]+1, nBins+1);
       mVHData[i]->AddBinContent(mXBinRange[1], overflowData);

@@ -541,7 +541,9 @@ vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> correctedJets(TS
 
   jet_corrector = makeJetCorrector(jetcorr_filenames_pfL1FastJetL2L3);
   
-  return getCorrectedJets( jet_corrector );
+  vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> v = getCorrectedJets( jet_corrector );
+  delete jet_corrector;
+  return v;
 }
   
 

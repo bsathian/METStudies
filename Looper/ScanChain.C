@@ -123,6 +123,11 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   vector<TH1D*> hJet_Neutral_Emfrac_hf = create_histogram_vector("hJet_Neutral_Emfrac_hf", 100, 0, 1, nHists);
   vector<TH1D*> hJet_Neutral_Hadfrac_hf = create_histogram_vector("hJet_Neutral_Hadfrac_hf", 100, 0, 1, nHists);
 
+  vector<TH1D*> hJet_Neutral_Emfrac_central = create_histogram_vector("hJet_Neutral_Emfrac_central", 100, 0, 1, nHists);
+  vector<TH1D*> hJet_Neutral_Hadfrac_central = create_histogram_vector("hJet_Neutral_Hadfrac_central", 100, 0, 1, nHists);
+  vector<TH1D*> hJet_Neutral_Emfrac_forward = create_histogram_vector("hJet_Neutral_Emfrac_forward", 100, 0, 1, nHists);
+  vector<TH1D*> hJet_Neutral_Hadfrac_forward = create_histogram_vector("hJet_Neutral_Hadfrac_forward", 100, 0, 1, nHists);
+
   // 0-1 jet binned MET
   vector<TH1D*> hpfMET_0Jets = create_histogram_vector("hpfMET_0Jets", 80, 0, 400, nHists);
   vector<TH1D*> hpfMET_0Jetsraw = create_histogram_vector("hpfMET_0Jetsraw", 80, 0, 400, nHists);
@@ -318,11 +323,11 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
       // Fill Z-Removed MET before cutting on it (if selection == 0)
       ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET = t1CMET(currentFileName);
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod = t1CMET_noHE(currentFileName, 15., {0., 0.}, false);
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v1 = t1CMET_noHE(currentFileName, 30., {2.5, 3.0}, false);
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v2 = t1CMET_noHE(currentFileName, 50., {2.5, 3.0}, false);
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v3 = t1CMET_noHE(currentFileName, 30., {2.5, 3.0}, true);
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v4 = t1CMET_noHE(currentFileName, 50., {2.5, 3.0}, true);
+      //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod = t1CMET_noHE(currentFileName, 15., {0., 0.}, false);
+      //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v1 = t1CMET_noHE(currentFileName, 30., {2.5, 3.0}, false);
+      //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v2 = t1CMET_noHE(currentFileName, 50., {2.5, 3.0}, false);
+      //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v3 = t1CMET_noHE(currentFileName, 30., {2.5, 3.0}, true);
+      //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v4 = t1CMET_noHE(currentFileName, 50., {2.5, 3.0}, true);
 
       ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_NoResiduals = t1CMET_PartialJECs(currentFileName, true, false);
       ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_tightID = t1CMET_tightID(currentFileName); 
@@ -345,12 +350,12 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       }
       // Done with selection, now fill histograms
       fill_histograms(hT1CMET,fT1CMET.pt(), weight);
-      fill_histograms(hT1CMETMod,fT1CMETMod.pt(), weight);
+      //fill_histograms(hT1CMETMod,fT1CMETMod.pt(), weight);
 
-      fill_histograms(hT1CMET_NoECJECs_v1,fT1CMETMod_v1.pt(), weight);
-      fill_histograms(hT1CMET_NoECJECs_v2,fT1CMETMod_v2.pt(), weight);
-      fill_histograms(hT1CMET_NoECJECs_v3,fT1CMETMod_v3.pt(), weight);
-      fill_histograms(hT1CMET_NoECJECs_v4,fT1CMETMod_v4.pt(), weight);
+      //fill_histograms(hT1CMET_NoECJECs_v1,fT1CMETMod_v1.pt(), weight);
+      //fill_histograms(hT1CMET_NoECJECs_v2,fT1CMETMod_v2.pt(), weight);
+      //fill_histograms(hT1CMET_NoECJECs_v3,fT1CMETMod_v3.pt(), weight);
+      //fill_histograms(hT1CMET_NoECJECs_v4,fT1CMETMod_v4.pt(), weight);
 
       fill_histograms(hT1CMET_NoResiduals, fT1CMET_NoResiduals.pt(), weight); 
       fill_histograms(hT1CMET_tightID, fT1CMET_tightID.pt(), weight);
@@ -370,12 +375,17 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
       if (nJet == 0) {
         fill_histograms(hT1CMET_0Jets,fT1CMET.pt(), weight);
-	fill_histograms(hT1CMET_0JetsMod,fT1CMETMod.pt(), weight);
+	//fill_histograms(hT1CMET_0JetsMod,fT1CMETMod.pt(), weight);
 
-	fill_histograms(hT1CMET_0Jets_NoECJECs_v1,fT1CMETMod_v1.pt(), weight);
-	fill_histograms(hT1CMET_0Jets_NoECJECs_v2,fT1CMETMod_v2.pt(), weight);
-	fill_histograms(hT1CMET_0Jets_NoECJECs_v3,fT1CMETMod_v3.pt(), weight);
-	fill_histograms(hT1CMET_0Jets_NoECJECs_v4,fT1CMETMod_v4.pt(), weight);
+	//fill_histograms(hT1CMET_0Jets_NoECJECs_v1,fT1CMETMod_v1.pt(), weight);
+	//fill_histograms(hT1CMET_0Jets_NoECJECs_v2,fT1CMETMod_v2.pt(), weight);
+	//fill_histograms(hT1CMET_0Jets_NoECJECs_v3,fT1CMETMod_v3.pt(), weight);
+	//fill_histograms(hT1CMET_0Jets_NoECJECs_v4,fT1CMETMod_v4.pt(), weight);
+
+	fill_histograms(hT1CMET_0Jets_RunFV6, fT1CMET_RunFV6.pt(), weight);
+	fill_histograms(hT1CMET_0Jets_RunFV8b, fT1CMET_RunFV8b.pt(), weight);
+	fill_histograms(hT1CMET_0Jets_RunFV8c, fT1CMET_RunFV8c.pt(), weight);
+	fill_histograms(hT1CMET_0Jets_RunFV8d, fT1CMET_RunFV8d.pt(), weight);
 
 	fill_histograms(hT1CMET_0Jets_NoResiduals, fT1CMET_NoResiduals.pt(), weight);
 	fill_histograms(hT1CMET_0Jets_tightID, fT1CMET_tightID.pt(), weight);
@@ -386,12 +396,17 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
       else if (nJet >= 1) {
 	fill_histograms(hT1CMET_1pJets,fT1CMET.pt(), weight);
-        fill_histograms(hT1CMET_1pJetsMod,fT1CMETMod.pt(), weight);
+        //fill_histograms(hT1CMET_1pJetsMod,fT1CMETMod.pt(), weight);
 
-        fill_histograms(hT1CMET_1pJets_NoECJECs_v1,fT1CMETMod_v1.pt(), weight);
-        fill_histograms(hT1CMET_1pJets_NoECJECs_v2,fT1CMETMod_v2.pt(), weight);
-        fill_histograms(hT1CMET_1pJets_NoECJECs_v3,fT1CMETMod_v3.pt(), weight);
-        fill_histograms(hT1CMET_1pJets_NoECJECs_v4,fT1CMETMod_v4.pt(), weight);
+        //fill_histograms(hT1CMET_1pJets_NoECJECs_v1,fT1CMETMod_v1.pt(), weight);
+        //fill_histograms(hT1CMET_1pJets_NoECJECs_v2,fT1CMETMod_v2.pt(), weight);
+        //fill_histograms(hT1CMET_1pJets_NoECJECs_v3,fT1CMETMod_v3.pt(), weight);
+        //fill_histograms(hT1CMET_1pJets_NoECJECs_v4,fT1CMETMod_v4.pt(), weight);
+
+	fill_histograms(hT1CMET_1pJets_RunFV6, fT1CMET_RunFV6.pt(), weight);
+        fill_histograms(hT1CMET_1pJets_RunFV8b, fT1CMET_RunFV8b.pt(), weight);
+        fill_histograms(hT1CMET_1pJets_RunFV8c, fT1CMET_RunFV8c.pt(), weight);
+        fill_histograms(hT1CMET_1pJets_RunFV8d, fT1CMET_RunFV8d.pt(), weight);
 
 	fill_histograms(hT1CMET_1pJets_NoResiduals, fT1CMET_NoResiduals.pt(), weight);
 	fill_histograms(hT1CMET_1pJets_tightID, fT1CMET_tightID.pt(), weight);
@@ -423,10 +438,10 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 	if (!(jet_p4.pt() > 0)) continue;
 	if (i == 0) {
 	  fill_histograms(hLeadJetPt, jet_p4.pt(), weight);
-	  fill_histograms(hLeadJetEta, cms3.pfjets_p4().at(0).eta(), weight); 
+	  fill_histograms(hLeadJetEta, abs(cms3.pfjets_p4().at(0).eta()), weight); 
 	}
 	fill_histograms(hJetPt, jet_p4.pt(), weight);
-	fill_histograms(hJetEta, cms3.pfjets_p4().at(i).eta(), weight);
+	fill_histograms(hJetEta, abs(cms3.pfjets_p4().at(i).eta()), weight);
         fill_histograms(hJetPt_RunFV6, vCorrectedJets_V6[i].pt(), weight);
 	fill_histograms(hJetPt_RunFV8b, vCorrectedJets_V8b[i].pt(), weight);
 	fill_histograms(hJetPt_RunFV8c, vCorrectedJets_V8c[i].pt(), weight);
@@ -448,6 +463,15 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 	else {
 	  fill_histograms(hJet_Neutral_Emfrac_hf, neutral_emfrac_hf, weight);
 	  fill_histograms(hJet_Neutral_Hadfrac_hf, neutral_hadfrac_hf, weight); 
+	}
+
+	if (abs(cms3.pfjets_p4().at(i).eta()) <= 2.7) {
+	  fill_histograms(hJet_Neutral_Emfrac_central, neutral_emfrac, weight);
+          fill_histograms(hJet_Neutral_Hadfrac_central, neutral_hadfrac, weight);
+	}
+	else if (abs(cms3.pfjets_p4().at(i).eta()) <= 3.0) {
+	  fill_histograms(hJet_Neutral_Emfrac_forward, neutral_emfrac, weight);
+          fill_histograms(hJet_Neutral_Hadfrac_forward, neutral_hadfrac, weight);
 	}
       }
 
