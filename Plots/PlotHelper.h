@@ -222,7 +222,7 @@ Comparison::Comparison(TCanvas* c1, TH2D* hData, TH2D* hMC)
 
   mLogY = false;
 
-  m2DDrawOpt = "COLZ2,TEXT";
+  m2DDrawOpt = "COLZ";
 }
 
 inline

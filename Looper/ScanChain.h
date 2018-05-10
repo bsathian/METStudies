@@ -155,6 +155,61 @@ double ZRemovedMET(ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CM
   return fZRemoved.pt();
 }
 
+double sgn(double x) {
+  return x > 0 ? 1 : -1;
+}
+
+double pPRel(const LorentzVector& pCand, const LorentzVector& pLep) {
+  if (pLep.pt()<=0.) return 0.;
+  LorentzVector jp4 = pLep;
+  double dot = pCand.Vect().Dot( pLep.Vect() );
+  return sgn(dot)*sqrt((dot*dot)/pLep.P2());
+}
+
+double boson_pT(bool isElEvt, int id1, int id2, ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fMet, double &u_para, double &u_perp, double &u_para_plus_qt) {
+  ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fZ;
+  ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fLep1;
+  ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fLep2;
+  if (isElEvt) {
+    fLep1 = els_p4().at(id1);
+    fLep2 = els_p4().at(id2);
+  }
+  else {
+    fLep1 = mus_p4().at(id1);
+    fLep2 = mus_p4().at(id2);
+  }
+
+  fZ += fLep1;
+  fZ += fLep2;
+
+  ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fU = -fMet - fZ;
+  //cout << fU.pt() << " " << fU.mag() << endl;
+
+
+  ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> qT = fZ;
+  ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> uT = fU;
+  ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> eT = fMet;
+  qT.SetPz(0);
+  uT.SetPz(0);
+  eT.SetPz(0);
+
+  u_para = pPRel(uT, qT);
+  u_perp = sgn(uT.py())*sqrt(pow(uT.pt(), 2) - pow(u_para, 2));
+  u_para_plus_qt = qT.pt() + u_para; 
+
+  //cout << "Boson pT: " << qT.pt() << " , u_parallel: " << u_para << " , u_perp: " << u_perp << endl;
+
+  return qT.pt();
+}
+
+int find_index(vector<double> bins, double value) {
+  for (int i = 0; i < bins.size() - 1; i++) {
+    if (value >= bins[i] && value < bins[i+1])
+      return i;
+  }
+  return -1;
+}
+
 double ZRemovedMETRaw(bool isElEvt, int id1, int id2, double &phiZ) {
   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fZRemoved;
   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fLep1;
@@ -501,7 +556,10 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_version(TString c
 
   jet_corrector = makeJetCorrector(jetcorr_filenames_pfL1FastJetL2L3);
 
-  pT1CMET = getT1CHSMET_fromMINIAOD(jet_corrector, NULL, 0, 0, 0);
+  if (version != "V9")
+    pT1CMET = getT1CHSMET_fromMINIAOD(jet_corrector, NULL, 0, 0, 0);
+  else 
+    pT1CMET = getT1CHSMET_fromMINIAOD_noECJECs(jet_corrector, NULL, 0, 1, 0, true, 0, {2.853, 2.964});
 
   float metX = pT1CMET.first * cos(pT1CMET.second);
   float metY = pT1CMET.first * sin(pT1CMET.second);
@@ -615,9 +673,24 @@ vector<TH1D*> create_histogram_vector(TString name, int nBins, double x_low, dou
   return vHists;
 }
 
+vector<TH2D*> create_2Dhistogram_vector(TString name, int nBinsX, double x_low, double x_high, int nBinsY, double y_low, double y_high, int nHists) {
+  vector<TH2D*> vHists;
+  for (int i = 0; i < nHists; i++) {
+    vHists.push_back(new TH2D(name+to_string(i), "", nBinsX, x_low, x_high, nBinsY, y_low, y_high));
+    vHists[i]->Sumw2();
+  }
+  return vHists;
+}
+
 void fill_histograms(vector<TH1D*> vHists, double value, vector<double> vWeights) {
   for (int i = 0; i < vHists.size(); i++) {
     vHists[i]->Fill(value, vWeights[i]);
+  }
+}
+
+void fill_histograms2D(vector<TH2D*> vHists, double x_value, double y_value, vector<double> vWeights) {
+  for (int i = 0; i < vHists.size(); i++) {
+    vHists[i]->Fill(x_value, y_value, vWeights[i]);
   }
 }
 

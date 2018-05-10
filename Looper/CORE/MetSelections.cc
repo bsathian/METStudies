@@ -442,6 +442,7 @@ pair <float, float> getT1CHSMET_fromMINIAOD( FactorizedJetCorrector * jet_correc
     if( abs(jetp4_uncorr.eta()) > 9.9 ) continue; // veto jets with eta > 9.9
 
     // get L1FastL2L3 total correction
+    //cout << "Rho: " << cms3.evt_fixgridfastjet_all_rho() << endl;
     jet_corrector->setRho   ( cms3.evt_fixgridfastjet_all_rho()      );
     jet_corrector->setJetA  ( cms3.pfjets_area().at(iJet) );
     jet_corrector->setJetPt ( jetp4_uncorr.pt()                      );
