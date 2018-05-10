@@ -194,7 +194,7 @@ double boson_pT(bool isElEvt, int id1, int id2, ROOT::Math::LorentzVector<ROOT::
   eT.SetPz(0);
 
   u_para = pPRel(uT, qT);
-  u_perp = sgn(uT.py())*sqrt(pow(uT.pt(), 2) - pow(u_para, 2));
+  u_perp = sgn((qT.px()*uT.py()) - (uT.px()*qT.py()))*sqrt(pow(uT.pt(), 2) - pow(u_para, 2));
   u_para_plus_qt = qT.pt() + u_para; 
 
   //cout << "Boson pT: " << qT.pt() << " , u_parallel: " << u_para << " , u_perp: " << u_perp << endl;
@@ -207,7 +207,12 @@ int find_index(vector<double> bins, double value) {
     if (value >= bins[i] && value < bins[i+1])
       return i;
   }
-  return -1;
+  if (value > bins[bins.size() -1])
+    return bins.size() - 1;
+  else {
+    cout << "Did not sort into a bin" << endl;
+    return -1;
+  }
 }
 
 double ZRemovedMETRaw(bool isElEvt, int id1, int id2, double &phiZ) {

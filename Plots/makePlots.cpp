@@ -316,6 +316,19 @@ int main(int argc, char* argv[])
 
   make_2Dplot(c1, histIdx, vFiles, output_name, "hJetEtaPhi", "Jet #eta", "Jet #phi", lumi, -1, {}, 1);
   make_2Dplot(c1, histIdx, vFiles, output_name, "hJetPtEta", "Jet p_{T} [GeV]", "Jet #eta", lumi, -1, {}, 1);
-  make_2Dplot(c1, histIdx, vFiles, output_name, "hJetPtPhi", "Jet p_{T} [GeV]", "Jet #phi", lumi, -1, {}, 2);
+  make_2Dplot(c1, histIdx, vFiles, output_name, "hJetPtPhi", "Jet p_{T} [GeV]", "Jet #phi", lumi, -1, {}, 1);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_RunFV9", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (V9 JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJetPt_RunFV9", "Jet p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T} (V9 JECs)"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_RunFV9", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V9 JECs)", "0 Jets"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV9", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V9 JECs)", "#geq 1 Jets"}, 1); 
+
+  make_plot(c1, histIdx, vFiles, output_name, "hZpT", "q_{T} [GeV]", lumi, -1, {}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPara", "u_{#parallel} [GeV]", lumi, -1, {"All JECs applied"});
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaMod", "u_{#parallel} [GeV]", lumi, -1, {"No JECs for p_{T} < 75 && 2.7 < |#eta| < 3.0", "#geq 1 Jets"});
+  make_plot(c1, histIdx, vFiles, output_name, "hUPerp", "u_{#perp} [GeV]", lumi, -1, {"All JECs applied"});
+  make_plot(c1, histIdx, vFiles, output_name, "hUPerpMod", "u_{#perp} [GeV]", lumi, -1, {"No JECs for p_{T} < 75 && 2.7 < |#eta| < 3.0", "#geq 1 Jets"});
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied"});
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"No JECs for p_{T} < 75 && 2.7 < |#eta| < 3.0", "#geq 1 Jets"}); 
 
 }
