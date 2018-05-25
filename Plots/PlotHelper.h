@@ -37,6 +37,7 @@ class Comparison
     Comparison(TCanvas* c1, vector<TH1D*> hData, TH1D* hMC);
     Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC);
     Comparison(TCanvas* c1, TH2D* hData, TH2D* hMC);
+  
     ~Comparison();
 
     void plot(int idx);
@@ -192,6 +193,7 @@ Comparison::Comparison(TCanvas* c1, vector<TH1D*> hData, TH1D* hMC)
 
   mHMC = (TH1D*)hMC->Clone("mHMC");
 }
+
 
 inline
 Comparison::Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC)
@@ -696,7 +698,7 @@ void Comparison::annotate_plot()
 
   if (mVLegendLabels.size() > 0) {
     double j = mVHData.size()*0.05;
-    TLegend* l1 = new TLegend(0.70, 0.82-j, 0.92, 0.89);
+    TLegend* l1 = new TLegend(0.72, 0.75-j, 0.92, 0.89);
     for (int i=0; i<mVHData.size(); i++)
       l1->AddEntry(mVHData[i], mVLegendLabels[i], "lep");
     int idxMC = mVHData.size();

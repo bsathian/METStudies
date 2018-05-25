@@ -69,6 +69,205 @@ void make_2Dplot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_
   delete c;
 }
 
+void make_resolution_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name1, TString hist_name2, TString label1, TString label2, TString x_label, TString y_label, double mLumi, double scale, vector<TString> vInfo, vector<double> y_lim, int idx) {
+  c1->cd();
+  TPad* mainPad = new TPad("p_main", "p_main", 0.0, 0.3, 1.0, 1.0);
+  mainPad->SetBottomMargin(0.02);
+  mainPad->SetRightMargin(0.07);
+  mainPad->SetTopMargin(0.08);
+  mainPad->SetLeftMargin(0.12);
+  mainPad->Draw();
+  mainPad->cd();
+
+  double resolution_bins[] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200, 250, 300, 400};
+  int n_resolution_bins = (sizeof(resolution_bins)/sizeof(resolution_bins[0]))-1;
+
+  TH1D* hD1 = new TH1D("hD1", "", n_resolution_bins, resolution_bins);
+  TH1D* hD2 = new TH1D("hD2", "", n_resolution_bins, resolution_bins);
+  TH1D* hM1 = new TH1D("hM1", "", n_resolution_bins, resolution_bins);
+  TH1D* hM2 = new TH1D("hM2", "", n_resolution_bins, resolution_bins);  
+  
+  for (int i = 0; i < n_resolution_bins; i++) {
+    TH1D* hDataTemp1 = (TH1D*)vFiles[0]->Get(hist_name1 + to_string(i+1) + "0");
+    TH1D* hDataTemp2 = (TH1D*)vFiles[0]->Get(hist_name2 + to_string(i+1) + "0");
+    TH1D* hMCTemp1 = (TH1D*)vFiles[1]->Get(hist_name1 + to_string(i+1) + to_string(histIdx));
+    TH1D* hMCTemp2 = (TH1D*)vFiles[1]->Get(hist_name2 + to_string(i+1) + to_string(histIdx));
+    for (int j = 2; j < vFiles.size(); j++) {
+      hMCTemp1->Add((TH1D*)vFiles[j]->Get(hist_name1 + to_string(i+1) + to_string(histIdx)));
+      hMCTemp2->Add((TH1D*)vFiles[j]->Get(hist_name2 + to_string(i+1) + to_string(histIdx)));
+    }
+    if (hist_name1.Contains("Perp") || hist_name1.Contains("Para")) {
+      hD1->SetBinContent(i+1, hDataTemp1->GetStdDev());
+      hD2->SetBinContent(i+1, hDataTemp2->GetStdDev());
+      hM1->SetBinContent(i+1, hMCTemp1->GetStdDev());
+      hM2->SetBinContent(i+1, hMCTemp2->GetStdDev());
+      hD1->SetBinError(i+1, hDataTemp1->GetStdDevError());
+      hD2->SetBinError(i+1, hDataTemp2->GetStdDevError()); 
+      hM1->SetBinError(i+1, hMCTemp1->GetStdDevError()); 
+      hM2->SetBinError(i+1, hMCTemp2->GetStdDevError()); 
+    }
+    else {
+      hD1->SetBinContent(i+1, hDataTemp1->GetMean());
+      hD2->SetBinContent(i+1, hDataTemp2->GetMean());
+      hM1->SetBinContent(i+1, hMCTemp1->GetMean());
+      hM2->SetBinContent(i+1, hMCTemp2->GetMean());
+      hD1->SetBinError(i+1, hDataTemp1->GetMeanError());
+      hD2->SetBinError(i+1, hDataTemp2->GetMeanError());
+      hM1->SetBinError(i+1, hMCTemp1->GetMeanError());
+      hM2->SetBinError(i+1, hMCTemp2->GetMeanError());
+    }
+
+    delete hDataTemp1;
+    delete hDataTemp2;
+    delete hMCTemp1;
+    delete hMCTemp2;
+  }
+  
+  hD1->Draw("E");
+  hD2->Draw("SAME,E");
+  gPad->RedrawAxis();
+  vector<TH1D*> mVHData = {hD1, hD2};
+  vector<int> dataColors = {kBlack, kRed};
+  for (int i=0; i<mVHData.size(); i++) {
+    mVHData[i]->SetMarkerStyle(20);
+    mVHData[i]->SetMarkerColor(dataColors[i]);
+    mVHData[i]->SetLineColor(dataColors[i]);
+    mVHData[i]->SetLineWidth(2);
+    mVHData[i]->GetXaxis()->SetLabelOffset(999);
+    mVHData[i]->GetXaxis()->SetLabelSize(0);
+    mVHData[i]->GetYaxis()->SetTitle(y_label);
+    mVHData[i]->GetYaxis()->SetRangeUser(y_lim[0], y_lim[1]);
+  }
+
+  double fs = 0.04;
+  TLatex* cms = new TLatex(0.20, 0.93, "CMS Preliminary");
+  cms->SetTextSize(fs);
+  cms->SetNDC(kTRUE);
+  cms->Draw("SAME");
+
+  TLatex* lumi;
+  if (mLumi != -1) {
+    TString lumiText = Form("%.2f",mLumi);
+    lumiText += " fb^{-1} (13 TeV)";
+    lumi = new TLatex(0.66, 0.93, lumiText.Data());
+    lumi->SetTextSize(fs);
+    lumi->SetNDC(kTRUE);
+    lumi->Draw("SAME");
+  }
+  else {
+    lumi = new TLatex(0.73, 0.93, "(13 TeV)");
+    lumi->SetTextSize(fs);
+    lumi->SetNDC(kTRUE);
+    lumi->Draw("SAME");
+  }
+
+  if (mLumi == 4.8)
+    vInfo = {"2017 Run B"};
+  else if (mLumi == 13.5)
+    vInfo = {"2017 Run F"};
+  else if (mLumi == 9.76)
+    vInfo = {"2017 Run C"};
+  else if (mLumi == 13.74)
+    vInfo = {"2017 Runs D,E"};
+
+  vector<TLatex*> t(vInfo.size());
+  for(int i=0; i<vInfo.size(); i++) {
+    double j = i;
+    j *= 0.05;
+    t[i] = new TLatex(0.20, 0.85-j, vInfo[i]);
+    t[i]->SetTextSize(fs);
+    t[i]->SetNDC(kTRUE);
+    t[i]->Draw("SAME");
+  }
+
+  vector<TString> mVLegendLabels = {"All JECs", "Modified JECs"}; 
+  if (mVLegendLabels.size() > 0) {
+    double j = mVHData.size()*0.05;
+    TLegend* l1 = new TLegend(0.60, 0.77-j, 0.92, 0.89);
+    for (int i=0; i<mVHData.size(); i++)
+      l1->AddEntry(mVHData[i], mVLegendLabels[i], "lep");
+    //int idxMC = mVHData.size();
+    //for (int i=0; i<mVHMC.size(); i++) {
+    //  if (!mBothData) l1->AddEntry(mVHMC[i], mVLegendLabels[idxMC+i], "f");
+    //  else l1->AddEntry(mHMC, mVLegendLabels[idxMC], "lep");
+    //}
+    l1->SetBorderSize(0);
+    l1->Draw("SAME");
+  }
+
+  c1->cd();
+  TPad* ratPad = new TPad( "p_main", "p_main", 0.0, 0.0, 1.0, 0.3);
+  ratPad->SetBottomMargin(0.36);
+  ratPad->SetRightMargin(0.07);
+  ratPad->SetTopMargin(0.07);
+  ratPad->SetLeftMargin(0.12);
+  ratPad->Draw();
+  ratPad->cd();
+  ratPad->SetGridy();
+
+
+  vector<TH1D*> mVHRat;
+  vector<TH1D*> hMC = {hM1, hM2}; 
+  mVHRat.push_back((TH1D*)hD1->Clone("mVHRat0"));
+  mVHRat.push_back((TH1D*)hD2->Clone("mVHRat1"));
+  mVHRat[0]->SetTitle("");
+  mVHRat[0]->Divide(hMC[0]);
+  mVHRat[0]->GetYaxis()->SetRangeUser(0.5,1.5);
+  mVHRat[0]->GetYaxis()->SetLabelSize(0.08);
+  mVHRat[0]->GetXaxis()->SetLabelSize(0.08);
+  mVHRat[0]->GetYaxis()->SetNdivisions(5);
+
+  TString mRatLabel = "#frac{Data}{MC}";
+  mVHRat[0]->GetYaxis()->SetTitle(mRatLabel);
+  mVHRat[0]->GetYaxis()->SetTitleSize(0.08);
+  mVHRat[0]->GetYaxis()->SetTitleOffset(0.65);
+  mVHRat[0]->GetYaxis()->CenterTitle();
+
+  mVHRat[0]->GetXaxis()->SetTitle(x_label);
+  mVHRat[0]->GetXaxis()->SetTitleOffset(1.1);
+  mVHRat[0]->GetXaxis()->SetTitleSize(0.12);
+
+  mVHRat[0]->SetMarkerStyle(20);
+  //mVHRat[0]->SetMarkerSize(1);
+  mVHRat[0]->SetStats(0);
+  //mVHRat[0]->GetXaxis()->SetRange(mXBinRange[0], mXBinRange[1]);
+  mVHRat[0]->SetMarkerColor(dataColors[0]);
+  mVHRat[0]->SetLineColor(dataColors[0]);
+  mVHRat[0]->SetFillColor(dataColors[0]);
+
+  mVHRat[0]->Draw("e1x0");
+  mVHRat[0]->GetXaxis()->SetLabelOffset();
+  mVHRat[0]->GetXaxis()->SetLabelSize(0.07);
+
+
+  for (int i=1; i<mVHData.size(); i++) {
+    TString idx = Form("%d", i);
+    mVHRat.push_back((TH1D*)mVHData[i]->Clone("mVHRat"+idx));
+    mVHRat[i]->Divide(hMC[i]);
+    mVHRat[i]->SetMarkerStyle(20);
+    mVHRat[i]->SetMarkerColor(dataColors[i]);
+    mVHRat[i]->SetFillColor(dataColors[i]);
+    mVHRat[i]->SetLineColor(dataColors[i]);
+    mVHRat[i]->SetStats(0);
+    mVHRat[i]->Draw("e1x0, same");
+  }
+ 
+  if (idx == 0)
+    c1->Print((output_name+"(").c_str());
+  else if (idx == 1)
+    c1->Print((output_name).c_str());
+  else if (idx == 2)
+    c1->Print((output_name+")").c_str());
+  c1->Clear("D");
+
+  delete mainPad;
+  delete ratPad;
+  delete hD1;
+  delete hD2;
+  delete hM1;
+  delete hM2;
+}
+
 void make_double_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name1, TString hist_name2, TString label1, TString label2, TString x_label, double lumi, double scale, vector<TString> vInfo, bool data, int idx) {
   TH1D* h1;
   TH1D* h2;
@@ -324,11 +523,14 @@ int main(int argc, char* argv[])
   make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV9", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V9 JECs)", "#geq 1 Jets"}, 1); 
 
   make_plot(c1, histIdx, vFiles, output_name, "hZpT", "q_{T} [GeV]", lumi, -1, {}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPara", "u_{#parallel} [GeV]", lumi, -1, {"All JECs applied"});
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaMod", "u_{#parallel} [GeV]", lumi, -1, {"No JECs for p_{T} < 75 && 2.7 < |#eta| < 3.0", "#geq 1 Jets"});
-  make_plot(c1, histIdx, vFiles, output_name, "hUPerp", "u_{#perp} [GeV]", lumi, -1, {"All JECs applied"});
-  make_plot(c1, histIdx, vFiles, output_name, "hUPerpMod", "u_{#perp} [GeV]", lumi, -1, {"No JECs for p_{T} < 75 && 2.7 < |#eta| < 3.0", "#geq 1 Jets"});
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied"});
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"No JECs for p_{T} < 75 && 2.7 < |#eta| < 3.0", "#geq 1 Jets"}); 
+  make_plot(c1, histIdx, vFiles, output_name, "hUPara", "u_{#parallel} [GeV]", lumi, -1, {"All JECs applied"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaMod", "u_{#parallel} [GeV]", lumi, -1, {"Modified JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPerp", "u_{#perp}  [GeV]", lumi, -1, {"All JECs applied"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPerpMod", "u_{#perp}  [GeV]", lumi, -1, {"Modified JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"Modified JECs"},1); 
 
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPara", "hResParaMod", "", "", "q_{T}", "#sigma(u_{#parallel}) [GeV]", lumi, -1, {}, {20, 75}, 1);
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPerp", "hResPerpMod", "", "", "q_{T}", "#sigma(u_{#perp} ) [GeV]", lumi, -1, {}, {20, 50}, 1);
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponse", "hResponseMod", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {}, {0.6, 1.1}, 2);
 }

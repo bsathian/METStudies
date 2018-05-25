@@ -22,7 +22,7 @@ parser.add_argument("--reweight", help = "(Re)derive pileup weights", action="st
 args = parser.parse_args()
 
 #job_tag = "MET_v1" + args.eras
-job_tag = "MET_v3"
+job_tag = "MET_v6"
 
 eras = "B,C,D,E,F"
 eras = eras.split(",")

@@ -108,6 +108,14 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   vector<TH1D*> hT1CMET_NoECJECs_v7 = create_histogram_vector("hT1CMET_NoECJECs_v7", 80, 0, 400, nHists); // JEC pT > 75, eta in [2.5, 3.0]
   vector<TH1D*> hT1CMET_NoECJECs_v8 = create_histogram_vector("hT1CMET_NoECJECs_v8", 80, 0, 400, nHists); // JEC pT > 100, eta in [2.7, 3.0]
 
+  vector<TH1D*> hT1CMET_V6 = create_histogram_vector("hT1CMET_V6", 80, 0, 400, nHists);
+  vector<TH1D*> hT1CMET_V8 = create_histogram_vector("hT1CMET_V8", 80, 0, 400, nHists);
+  vector<TH1D*> hT1CMET_V9 = create_histogram_vector("hT1CMET_V9", 80, 0, 400, nHists);
+
+  vector<TH1D*> hT1CMETMod_V6 = create_histogram_vector("hT1CMETMod_V6", 80, 0, 400, nHists);
+  vector<TH1D*> hT1CMETMod_V8 = create_histogram_vector("hT1CMETMod_V8", 80, 0, 400, nHists);
+  vector<TH1D*> hT1CMETMod_V9 = create_histogram_vector("hT1CMETMod_V9", 80, 0, 400, nHists);
+
   vector<TH1D*> hT1CMET_NoResiduals = create_histogram_vector("hT1CMET_NoResiduals", 80, 0, 400, nHists);
   vector<TH1D*> hT1CMET_tightID = create_histogram_vector("hT1CMET_tightID", 80, 0, 400, nHists);
 
@@ -207,36 +215,109 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   // Scale & Resolution
   //vector<double> resolution_bins = {0, 25, 50, 75, 100, 150, 200, 250, 300, 400};
 
-  vector<TH1D*> hZpT = create_histogram_vector("hZpT", 100, 0, 400, nHists);
-  vector<TH1D*> hUPara = create_histogram_vector("hUPara", 200, -400, 400, nHists);
-  vector<TH1D*> hUPerp = create_histogram_vector("hUPerp", 100, -200, 200, nHists);
-  vector<TH1D*> hUParaPlusqT = create_histogram_vector("hUParaPlusqT", 100, -200, 200, nHists);
+  vector<TH1D*> hZpT_V6 = create_histogram_vector("hZpT_V6", 100, 0, 400, nHists);
+  vector<TH1D*> hUPara_V6 = create_histogram_vector("hUPara_V6", 200, -400, 400, nHists);
+  vector<TH1D*> hUPerp_V6 = create_histogram_vector("hUPerp_V6", 100, -200, 200, nHists);
+  vector<TH1D*> hUParaPlusqT_V6 = create_histogram_vector("hUParaPlusqT_V6", 100, -200, 200, nHists);
   //vector<TH1D*> hResponse = create_histogram_vector("hResponse", 
   //vector<TH1D*> hRes = create_histogram_vector("hRes", 100, -1, 1, nHists);  
 
   vector<double> resolution_bins = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200, 250, 300, 400};
-  vector<vector<TH1D*>> hResPara;
-  vector<vector<TH1D*>> hResPerp;
-  vector<vector<TH1D*>> hResponse;
+  vector<vector<TH1D*>> hResPara_V6;
+  vector<vector<TH1D*>> hResPerp_V6;
+  vector<vector<TH1D*>> hResponse_V6;
   for (int i = 0; i < resolution_bins.size(); i++) {
-    hResponse.push_back(create_histogram_vector("hResponse" + to_string(i), 100, -10, 10, nHists));
-    hResPara.push_back(create_histogram_vector("hResPara" + to_string(i), 200, -400, 400, nHists));
-    hResPerp.push_back(create_histogram_vector("hResPerp" + to_string(i), 100, -200, 200, nHists));
+    hResponse_V6.push_back(create_histogram_vector("hResponse_V6" + to_string(i), 100, -10, 10, nHists));
+    hResPara_V6.push_back(create_histogram_vector("hResPara_V6" + to_string(i), 200, -400, 400, nHists));
+    hResPerp_V6.push_back(create_histogram_vector("hResPerp_V6" + to_string(i), 100, -200, 200, nHists));
   }
 
-  vector<TH1D*> hUParaMod = create_histogram_vector("hUParaMod", 200, -400, 400, nHists);
-  vector<TH1D*> hUPerpMod = create_histogram_vector("hUPerpMod", 100, -200, 200, nHists);
-  vector<TH1D*> hUParaPlusqTMod = create_histogram_vector("hUParaPlusqTMod", 100, -200, 200, nHists);
+  vector<TH1D*> hUParaMod_V6 = create_histogram_vector("hUParaMod_V6", 200, -400, 400, nHists);
+  vector<TH1D*> hUPerpMod_V6 = create_histogram_vector("hUPerpMod_V6", 100, -200, 200, nHists);
+  vector<TH1D*> hUParaPlusqTMod_V6 = create_histogram_vector("hUParaPlusqTMod_V6", 100, -200, 200, nHists);
   //vector<TH1D*> hResponse = create_histogram_vector("hResponse",   
 
-  vector<vector<TH1D*>> hResParaMod;
-  vector<vector<TH1D*>> hResPerpMod;
-  vector<vector<TH1D*>> hResponseMod;
+  vector<vector<TH1D*>> hResParaMod_V6;
+  vector<vector<TH1D*>> hResPerpMod_V6;
+  vector<vector<TH1D*>> hResponseMod_V6;
   for (int i = 0; i < resolution_bins.size(); i++) {
-    hResponseMod.push_back(create_histogram_vector("hResponseMod" + to_string(i), 100, -10, 10, nHists));
-    hResParaMod.push_back(create_histogram_vector("hResParaMod" + to_string(i), 200, -400, 400, nHists));
-    hResPerpMod.push_back(create_histogram_vector("hResPerpMod" + to_string(i), 100, -200, 200, nHists));
+    hResponseMod_V6.push_back(create_histogram_vector("hResponseMod_V6" + to_string(i), 100, -10, 10, nHists));
+    hResParaMod_V6.push_back(create_histogram_vector("hResParaMod_V6" + to_string(i), 200, -400, 400, nHists));
+    hResPerpMod_V6.push_back(create_histogram_vector("hResPerpMod_V6" + to_string(i), 100, -200, 200, nHists));
   }
+
+
+  vector<TH1D*> hZpT_V8 = create_histogram_vector("hZpT_V8", 100, 0, 400, nHists);
+  vector<TH1D*> hUPara_V8 = create_histogram_vector("hUPara_V8", 200, -400, 400, nHists);
+  vector<TH1D*> hUPerp_V8 = create_histogram_vector("hUPerp_V8", 100, -200, 200, nHists);
+  vector<TH1D*> hUParaPlusqT_V8 = create_histogram_vector("hUParaPlusqT_V8", 100, -200, 200, nHists);
+  vector<TH1D*> hUParaPlusqT_highqT_V8 = create_histogram_vector("hUParaPlusqT_highqT_V8", 100, -200, 200, nHists);
+  //vector<TH1D*> hResponse = create_histogram_vector("hResponse", 
+  //vector<TH1D*> hRes = create_histogram_vector("hRes", 100, -1, 1, nHists);  
+
+  vector<vector<TH1D*>> hResPara_V8;
+  vector<vector<TH1D*>> hResPerp_V8;
+  vector<vector<TH1D*>> hResponse_V8;
+  vector<vector<TH1D*>> hResponseEE_V8;
+  vector<vector<TH1D*>> hResponseMM_V8;
+  for (int i = 0; i < resolution_bins.size(); i++) {
+    hResponse_V8.push_back(create_histogram_vector("hResponse_V8" + to_string(i), 100, -10, 10, nHists));
+    hResponseEE_V8.push_back(create_histogram_vector("hResponseEE_V8" + to_string(i), 100, -10, 10, nHists));
+    hResponseMM_V8.push_back(create_histogram_vector("hResponseMM_V8" + to_string(i), 100, -10, 10, nHists)); 
+    hResPara_V8.push_back(create_histogram_vector("hResPara_V8" + to_string(i), 200, -400, 400, nHists));
+    hResPerp_V8.push_back(create_histogram_vector("hResPerp_V8" + to_string(i), 100, -200, 200, nHists));
+  }
+
+  vector<TH1D*> hUParaMod_V8 = create_histogram_vector("hUParaMod_V8", 200, -400, 400, nHists);
+  vector<TH1D*> hUPerpMod_V8 = create_histogram_vector("hUPerpMod_V8", 100, -200, 200, nHists);
+  vector<TH1D*> hUParaPlusqTMod_V8 = create_histogram_vector("hUParaPlusqTMod_V8", 100, -200, 200, nHists);
+  vector<TH1D*> hUParaPlusqTMod_highqT_V8 = create_histogram_vector("hUParaPlusqTMod_highqT_V8", 100, -200, 200, nHists);
+  //vector<TH1D*> hResponse = create_histogram_vector("hResponse",   
+
+  vector<vector<TH1D*>> hResParaMod_V8;
+  vector<vector<TH1D*>> hResPerpMod_V8;
+  vector<vector<TH1D*>> hResponseMod_V8;
+  vector<vector<TH1D*>> hResponseModEE_V8;
+  vector<vector<TH1D*>> hResponseModMM_V8;
+  for (int i = 0; i < resolution_bins.size(); i++) {
+    hResponseMod_V8.push_back(create_histogram_vector("hResponseMod_V8" + to_string(i), 100, -10, 10, nHists));
+    hResponseModEE_V8.push_back(create_histogram_vector("hResponseModEE_V8" + to_string(i), 100, -10, 10, nHists));
+    hResponseModMM_V8.push_back(create_histogram_vector("hResponseModMM_V8" + to_string(i), 100, -10, 10, nHists));
+    hResParaMod_V8.push_back(create_histogram_vector("hResParaMod_V8" + to_string(i), 200, -400, 400, nHists));
+    hResPerpMod_V8.push_back(create_histogram_vector("hResPerpMod_V8" + to_string(i), 100, -200, 200, nHists));
+  }
+
+  vector<TH1D*> hZpT_V9 = create_histogram_vector("hZpT_V9", 100, 0, 400, nHists);
+  vector<TH1D*> hUPara_V9 = create_histogram_vector("hUPara_V9", 200, -400, 400, nHists);
+  vector<TH1D*> hUPerp_V9 = create_histogram_vector("hUPerp_V9", 100, -200, 200, nHists);
+  vector<TH1D*> hUParaPlusqT_V9 = create_histogram_vector("hUParaPlusqT_V9", 100, -200, 200, nHists);
+  //vector<TH1D*> hResponse = create_histogram_vector("hResponse", 
+  //vector<TH1D*> hRes = create_histogram_vector("hRes", 100, -1, 1, nHists);  
+
+  vector<vector<TH1D*>> hResPara_V9;
+  vector<vector<TH1D*>> hResPerp_V9;
+  vector<vector<TH1D*>> hResponse_V9;
+  for (int i = 0; i < resolution_bins.size(); i++) {
+    hResponse_V9.push_back(create_histogram_vector("hResponse_V9" + to_string(i), 100, -10, 10, nHists));
+    hResPara_V9.push_back(create_histogram_vector("hResPara_V9" + to_string(i), 200, -400, 400, nHists));
+    hResPerp_V9.push_back(create_histogram_vector("hResPerp_V9" + to_string(i), 100, -200, 200, nHists));
+  }
+
+  vector<TH1D*> hUParaMod_V9 = create_histogram_vector("hUParaMod_V9", 200, -400, 400, nHists);
+  vector<TH1D*> hUPerpMod_V9 = create_histogram_vector("hUPerpMod_V9", 100, -200, 200, nHists);
+  vector<TH1D*> hUParaPlusqTMod_V9 = create_histogram_vector("hUParaPlusqTMod_V9", 100, -200, 200, nHists);
+  //vector<TH1D*> hResponse = create_histogram_vector("hResponse",   
+
+  vector<vector<TH1D*>> hResParaMod_V9;
+  vector<vector<TH1D*>> hResPerpMod_V9;
+  vector<vector<TH1D*>> hResponseMod_V9;
+  for (int i = 0; i < resolution_bins.size(); i++) {
+    hResponseMod_V9.push_back(create_histogram_vector("hResponseMod_V9" + to_string(i), 100, -10, 10, nHists));
+    hResParaMod_V9.push_back(create_histogram_vector("hResParaMod_V9" + to_string(i), 200, -400, 400, nHists));
+    hResPerpMod_V9.push_back(create_histogram_vector("hResPerpMod_V9" + to_string(i), 100, -200, 200, nHists));
+  }
+ 
+
 
   double vtxBins[] = {0,5,10,15,20,25,30,35,40,45,100};
   int nVtxBins = (sizeof(vtxBins)/sizeof(vtxBins[0]))-1;
@@ -388,7 +469,13 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       }
 
       // Fill Z-Removed MET before cutting on it (if selection == 0)
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET = t1CMET(currentFileName);
+      //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET = t1CMET(currentFileName);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_V6 = t1CMET_configurable(currentFileName, "V6", "V6", 0., {0,0}, true);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_V8 = t1CMET_configurable(currentFileName, "V8", "V8", 0., {0,0}, true);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_V9 = t1CMET_configurable(currentFileName, "V9", "V8", 0., {0,0}, true);
+
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET = fT1CMET_V8;
+
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod = t1CMET_noHE(currentFileName, 15., {0., 0.}, false);
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v1 = t1CMET_noHE(currentFileName, 30., {2.5, 3.0}, false);
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v2 = t1CMET_noHE(currentFileName, 50., {2.5, 3.0}, false);
@@ -396,7 +483,11 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v4 = t1CMET_noHE(currentFileName, 50., {2.5, 3.0}, true);
 
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v5 = t1CMET_noHE(currentFileName, 25., {0.0,10.0}, true);
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v6 = t1CMET_noHE(currentFileName, 75., {2.7,3.0}, true);
+      //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v6 = t1CMET_noHE(currentFileName, 75., {2.7,3.0}, true);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_V6 = t1CMET_configurable(currentFileName, "V6", "V6", 75., {2.7,3.0}, true);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_V8 = t1CMET_configurable(currentFileName, "V8", "V8", 75., {2.7,3.0}, true);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_V9 = t1CMET_configurable(currentFileName, "V9", "V8", 75., {2.7,3.0}, true);
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v6 = fT1CMETMod_V8;
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v7 = t1CMET_noHE(currentFileName, 75., {2.5,3.0}, true);
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v8 = t1CMET_noHE(currentFileName, 100., {2.7,3.0}, true);
 
@@ -430,7 +521,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       //fill_histograms(hT1CMET_NoECJECs_v4,fT1CMETMod_v4.pt(), weight);
 
       //fill_histograms(hT1CMET_NoECJECs_v5,fT1CMETMod_v5.pt(), weight);
-      fill_histograms(hT1CMET_NoECJECs_v6,fT1CMETMod_v6.pt(), weight);
+      //fill_histograms(hT1CMET_NoECJECs_v6,fT1CMETMod_v6.pt(), weight);
       //fill_histograms(hT1CMET_NoECJECs_v7,fT1CMETMod_v7.pt(), weight);
       //fill_histograms(hT1CMET_NoECJECs_v8,fT1CMETMod_v8.pt(), weight);
 
@@ -441,7 +532,15 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       //fill_histograms(hT1CMET_RunFV8b, fT1CMET_RunFV8b.pt(), weight);
       //fill_histograms(hT1CMET_RunFV8c, fT1CMET_RunFV8c.pt(), weight);
       //fill_histograms(hT1CMET_RunFV8d, fT1CMET_RunFV8d.pt(), weight); 
-      fill_histograms(hT1CMET_RunFV9, fT1CMET_RunFV9.pt(), weight); 
+      //fill_histograms(hT1CMET_RunFV9, fT1CMET_RunFV9.pt(), weight); 
+
+      fill_histograms(hT1CMET_V6,fT1CMET_V6.pt(), weight);
+      fill_histograms(hT1CMET_V8,fT1CMET_V8.pt(), weight);
+      fill_histograms(hT1CMET_V9,fT1CMET_V9.pt(), weight);
+
+      fill_histograms(hT1CMETMod_V6,fT1CMETMod_V6.pt(), weight);
+      fill_histograms(hT1CMETMod_V8,fT1CMETMod_V8.pt(), weight);
+      fill_histograms(hT1CMETMod_V9,fT1CMETMod_V9.pt(), weight);
 
       fill_histograms(hNVtx,nvtx, weight);
       
@@ -452,36 +551,89 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       fill_histograms(hNJets,nJet, weight);
 
       // Scale and resolution
-      double u_para, u_perp, u_para_plus_qt;
-      double boson_pt = boson_pT(isElEvt, id1, id2, fT1CMET, u_para, u_perp, u_para_plus_qt);
+      // V6
+      double u_para_V6, u_perp_V6, u_para_plus_qt_V6;
+      double boson_pt_V6 = boson_pT(isElEvt, id1, id2, fT1CMET_V6, u_para_V6, u_perp_V6, u_para_plus_qt_V6);
 
-      double u_para_mod, u_perp_mod, u_para_plus_qt_mod;
-      double boson_pt_mod = boson_pT(isElEvt, id1, id2, fT1CMETMod_v6, u_para_mod, u_perp_mod, u_para_plus_qt_mod);
+      double u_para_mod_V6, u_perp_mod_V6, u_para_plus_qt_mod_V6;
+      double boson_pt_mod_V6 = boson_pT(isElEvt, id1, id2, fT1CMETMod_V6, u_para_mod_V6, u_perp_mod_V6, u_para_plus_qt_mod_V6);
 
-      int resolution_idx = find_index(resolution_bins, boson_pt);
+      int resolution_idx_V6 = find_index(resolution_bins, boson_pt_V6);
 
-      fill_histograms(hZpT, boson_pt, weight);
-      fill_histograms(hUPara, u_para, weight);     
-      fill_histograms(hUPerp, u_perp, weight);
-      fill_histograms(hUParaPlusqT, u_para_plus_qt, weight);
+      fill_histograms(hZpT_V6, boson_pt_V6, weight);
+      fill_histograms(hUPara_V6, u_para_V6, weight);     
+      fill_histograms(hUPerp_V6, u_perp_V6, weight);
+      fill_histograms(hUParaPlusqT_V6, u_para_plus_qt_V6, weight);
 
-      fill_histograms(hResponse[resolution_idx], -u_para/boson_pt, weight);
-      fill_histograms(hResPara[resolution_idx], u_para, weight);
-      fill_histograms(hResPerp[resolution_idx], u_perp, weight);
+      fill_histograms(hResponse_V6[resolution_idx_V6], -u_para_V6/boson_pt_V6, weight);
+      fill_histograms(hResPara_V6[resolution_idx_V6], u_para_V6, weight);
+      fill_histograms(hResPerp_V6[resolution_idx_V6], u_perp_V6, weight);
 
-      //cout << "u_parallel: " << u_para << endl;
-      //cout << "u_perp: " << u_perp << endl;
-      //cout << "u_para_plus_qt: " << u_para_plus_qt << endl;
-      //cout << 
-      //fill_histograms(hRes, (boson_pt - u_para) / boson_pt, weight);
-
-      fill_histograms(hUParaMod, u_para_mod, weight);
-      fill_histograms(hUPerpMod, u_perp_mod, weight);
-      fill_histograms(hUParaPlusqTMod, u_para_plus_qt_mod, weight);
+      fill_histograms(hUParaMod_V6, u_para_mod_V6, weight);
+      fill_histograms(hUPerpMod_V6, u_perp_mod_V6, weight);
+      fill_histograms(hUParaPlusqTMod_V6, u_para_plus_qt_mod_V6, weight);
  
-      fill_histograms(hResponseMod[resolution_idx], -u_para_mod/boson_pt, weight);
-      fill_histograms(hResParaMod[resolution_idx], u_para_mod, weight);
-      fill_histograms(hResPerpMod[resolution_idx], u_perp_mod, weight);
+      fill_histograms(hResponseMod_V6[resolution_idx_V6], -u_para_mod_V6/boson_pt_V6, weight);
+      fill_histograms(hResParaMod_V6[resolution_idx_V6], u_para_mod_V6, weight);
+      fill_histograms(hResPerpMod_V6[resolution_idx_V6], u_perp_mod_V6, weight);
+
+      // V8
+      double u_para_V8, u_perp_V8, u_para_plus_qt_V8;
+      double boson_pt_V8 = boson_pT(isElEvt, id1, id2, fT1CMET_V8, u_para_V8, u_perp_V8, u_para_plus_qt_V8);
+
+      double u_para_mod_V8, u_perp_mod_V8, u_para_plus_qt_mod_V8;
+      double boson_pt_mod_V8 = boson_pT(isElEvt, id1, id2, fT1CMETMod_V8, u_para_mod_V8, u_perp_mod_V8, u_para_plus_qt_mod_V8);
+
+      int resolution_idx_V8 = find_index(resolution_bins, boson_pt_V8);
+
+      fill_histograms(hZpT_V8, boson_pt_V8, weight);
+      fill_histograms(hUPara_V8, u_para_V8, weight);
+      fill_histograms(hUPerp_V8, u_perp_V8, weight);
+      fill_histograms(hUParaPlusqT_V8, u_para_plus_qt_V8, weight);
+      if (boson_pt_V8 > 130) fill_histograms(hUParaPlusqT_highqT_V8, u_para_plus_qt_V8, weight);
+
+      fill_histograms(hResponse_V8[resolution_idx_V8], -u_para_V8/boson_pt_V8, weight);
+      if (isElEvt) 	fill_histograms(hResponseEE_V8[resolution_idx_V8], -u_para_V8/boson_pt_V8, weight);
+      else		fill_histograms(hResponseMM_V8[resolution_idx_V8], -u_para_V8/boson_pt_V8, weight);
+      fill_histograms(hResPara_V8[resolution_idx_V8], u_para_V8, weight);
+      fill_histograms(hResPerp_V8[resolution_idx_V8], u_perp_V8, weight);
+
+      fill_histograms(hUParaMod_V8, u_para_mod_V8, weight);
+      fill_histograms(hUPerpMod_V8, u_perp_mod_V8, weight);
+      fill_histograms(hUParaPlusqTMod_V8, u_para_plus_qt_mod_V8, weight);
+      if (boson_pt_V8 > 130) fill_histograms(hUParaPlusqTMod_highqT_V8, u_para_plus_qt_mod_V8, weight);
+
+      fill_histograms(hResponseMod_V8[resolution_idx_V8], -u_para_mod_V8/boson_pt_V8, weight);
+      if (isElEvt)	fill_histograms(hResponseModEE_V8[resolution_idx_V8], -u_para_mod_V8/boson_pt_V8, weight);
+      else 		fill_histograms(hResponseModMM_V8[resolution_idx_V8], -u_para_mod_V8/boson_pt_V8, weight);
+      fill_histograms(hResParaMod_V8[resolution_idx_V8], u_para_mod_V8, weight);
+      fill_histograms(hResPerpMod_V8[resolution_idx_V8], u_perp_mod_V8, weight);
+      
+      // V9
+      double u_para_V9, u_perp_V9, u_para_plus_qt_V9;
+      double boson_pt_V9 = boson_pT(isElEvt, id1, id2, fT1CMET_V9, u_para_V9, u_perp_V9, u_para_plus_qt_V9);
+
+      double u_para_mod_V9, u_perp_mod_V9, u_para_plus_qt_mod_V9;
+      double boson_pt_mod_V9 = boson_pT(isElEvt, id1, id2, fT1CMETMod_V9, u_para_mod_V9, u_perp_mod_V9, u_para_plus_qt_mod_V9);
+
+      int resolution_idx_V9 = find_index(resolution_bins, boson_pt_V9);
+
+      fill_histograms(hZpT_V9, boson_pt_V9, weight);
+      fill_histograms(hUPara_V9, u_para_V9, weight);
+      fill_histograms(hUPerp_V9, u_perp_V9, weight);
+      fill_histograms(hUParaPlusqT_V9, u_para_plus_qt_V9, weight);
+
+      fill_histograms(hResponse_V9[resolution_idx_V9], -u_para_V9/boson_pt_V9, weight);
+      fill_histograms(hResPara_V9[resolution_idx_V9], u_para_V9, weight);
+      fill_histograms(hResPerp_V9[resolution_idx_V9], u_perp_V9, weight);
+
+      fill_histograms(hUParaMod_V9, u_para_mod_V9, weight);
+      fill_histograms(hUPerpMod_V9, u_perp_mod_V9, weight);
+      fill_histograms(hUParaPlusqTMod_V9, u_para_plus_qt_mod_V9, weight);
+
+      fill_histograms(hResponseMod_V9[resolution_idx_V9], -u_para_mod_V9/boson_pt_V9, weight);
+      fill_histograms(hResParaMod_V9[resolution_idx_V9], u_para_mod_V9, weight);
+      fill_histograms(hResPerpMod_V9[resolution_idx_V9], u_perp_mod_V9, weight);
 
       if (nJet == 0) {
         fill_histograms(hT1CMET_0Jets,fT1CMET.pt(), weight);
