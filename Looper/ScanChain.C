@@ -108,6 +108,8 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   vector<TH1D*> hT1CMET_NoECJECs_v7 = create_histogram_vector("hT1CMET_NoECJECs_v7", 80, 0, 400, nHists); // JEC pT > 75, eta in [2.5, 3.0]
   vector<TH1D*> hT1CMET_NoECJECs_v8 = create_histogram_vector("hT1CMET_NoECJECs_v8", 80, 0, 400, nHists); // JEC pT > 100, eta in [2.7, 3.0]
 
+  vector<TH1D*> hT1CMET_NoECJets = create_histogram_vector("hT1CMET_NoECJets", 80, 0, 400, nHists); // no Jets (or associated pf cands) with pT < 70, eta in [2.7, 3.0]
+
   vector<TH1D*> hT1CMET_V6 = create_histogram_vector("hT1CMET_V6", 80, 0, 400, nHists);
   vector<TH1D*> hT1CMET_V8 = create_histogram_vector("hT1CMET_V8", 80, 0, 400, nHists);
   vector<TH1D*> hT1CMET_V9 = create_histogram_vector("hT1CMET_V9", 80, 0, 400, nHists);
@@ -484,6 +486,9 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v5 = t1CMET_noHE(currentFileName, 25., {0.0,10.0}, true);
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_v6 = t1CMET_noHE(currentFileName, 75., {2.7,3.0}, true);
+
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_NoECJets = t1CMET_configurable(currentFileName, "V8", "V8", 0., {0.0, 0.0}, true, true);
+
       ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_V6 = t1CMET_configurable(currentFileName, "V6", "V6", 75., {2.7,3.0}, true);
       ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_V8 = t1CMET_configurable(currentFileName, "V8", "V8", 75., {2.7,3.0}, true);
       ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMETMod_V9 = t1CMET_configurable(currentFileName, "V9", "V8", 75., {2.7,3.0}, true);
@@ -498,7 +503,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_RunFV8b = t1CMET_version(currentFileName, "V8b");
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_RunFV8c = t1CMET_version(currentFileName, "V8c");
       //ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_RunFV8d = t1CMET_version(currentFileName, "V8d");
-      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_RunFV9 = t1CMET_version(currentFileName, "V9");
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_RunFV9 = fT1CMET_V9; 
 
       double dPhi2(0), dPhiRaw(0);
       if (selection == 0) {
@@ -533,6 +538,8 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       //fill_histograms(hT1CMET_RunFV8c, fT1CMET_RunFV8c.pt(), weight);
       //fill_histograms(hT1CMET_RunFV8d, fT1CMET_RunFV8d.pt(), weight); 
       //fill_histograms(hT1CMET_RunFV9, fT1CMET_RunFV9.pt(), weight); 
+
+      fill_histograms(hT1CMET_NoECJets, fT1CMET_NoECJets.pt(), weight);
 
       fill_histograms(hT1CMET_V6,fT1CMET_V6.pt(), weight);
       fill_histograms(hT1CMET_V8,fT1CMET_V8.pt(), weight);

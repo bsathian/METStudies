@@ -328,7 +328,7 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET(TString currentFi
   return fT1CMET;
 }
 
-ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TString currentFileName, string dataVersion, string mcVersion, double ptThresh, vector<double> etaExclusionRange, bool useHE) {
+ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TString currentFileName, string dataVersion, string mcVersion, double ptThresh, vector<double> etaExclusionRange, bool useHE, bool excludeJets = false) {
   std::pair<float, float> pT1CMET;
 
   std::vector<std::string> jetcorr_filenames_pfL1FastJetL2L3;
@@ -336,6 +336,12 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TStr
 
 
   FactorizedJetCorrector* jet_corrector(0);
+  if (dataVersion == "V8b" || dataVersion == "V8c" || dataVersion == "V8d" || dataVersion == "V9") {
+    if (currentFileName.Contains("2017B") || currentFileName.Contains("2017C") || currentFileName.Contains("2017D") || currentFileName.Contains("2017E")) {
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> dummy(0, 0, 0, 0);
+      return dummy; 
+    }
+  }
   if (currentFileName.Contains("2017B")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
@@ -380,7 +386,10 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TStr
 
   jet_corrector = makeJetCorrector(jetcorr_filenames_pfL1FastJetL2L3);
 
-  pT1CMET = getT1CHSMET_fromMINIAOD_noECJECs(jet_corrector, NULL, 0, !useHE, 0, useHE, ptThresh, etaExclusionRange);
+  if (excludeJets)
+    pT1CMET = getT1CHSMET_fromMINIAOD_noECJECs(jet_corrector, NULL, 0, true, 0, useHE, ptThresh, etaExclusionRange, true);
+  else
+    pT1CMET = getT1CHSMET_fromMINIAOD_noECJECs(jet_corrector, NULL, 0, !useHE, 0, useHE, ptThresh, etaExclusionRange);
 
   float metX = pT1CMET.first * cos(pT1CMET.second);
   float metY = pT1CMET.first * sin(pT1CMET.second);
@@ -658,7 +667,7 @@ vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> correctedJets(TS
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_V8_MC_L2Relative_AK4PFchs.txt");
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_V8_MC_L3Absolute_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017_V8_MC_Uncertainty_AK4PFchs.txt";
-   }
+  } 
   else {
     cout << "Did not grab JECs" << endl; // should not happen
   }

@@ -16,7 +16,7 @@ void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_na
   else if (lumi == 23.5)
     c->give_info({"2017 Runs C,D,E"});
   else if (lumi == 13.5)
-    c->give_info({"2017 Run F"});
+    c->give_info({"2017 Run F (09May2018 ReReco)"});
   else if (lumi == 9.76)
     c->give_info({"2017 Run C"});
   else if (lumi == 13.74)
@@ -122,7 +122,9 @@ void make_resolution_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, strin
     delete hMCTemp1;
     delete hMCTemp2;
   }
-  
+ 
+  bool resolution_plot = !(hist_name1.Contains("Perp") || hist_name1.Contains("Para"));
+ 
   hD1->Draw("E");
   hD2->Draw("SAME,E");
   gPad->RedrawAxis();
@@ -137,6 +139,13 @@ void make_resolution_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, strin
     mVHData[i]->GetXaxis()->SetLabelSize(0);
     mVHData[i]->GetYaxis()->SetTitle(y_label);
     mVHData[i]->GetYaxis()->SetRangeUser(y_lim[0], y_lim[1]);
+  }
+
+  TLine* h_line = new TLine(0, 1, 400, 1);
+  if (resolution_plot) {
+    h_line->SetLineWidth(2);
+    h_line->SetLineStyle(2);
+    h_line->Draw("SAME");
   }
 
   double fs = 0.04;
@@ -162,13 +171,13 @@ void make_resolution_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, strin
   }
 
   if (mLumi == 4.8)
-    vInfo = {"2017 Run B"};
+    vInfo.push_back("2017 Run B");
   else if (mLumi == 13.5)
-    vInfo = {"2017 Run F"};
+    vInfo.push_back("2017 Run F (09May2018 ReReco)");
   else if (mLumi == 9.76)
-    vInfo = {"2017 Run C"};
+    vInfo.push_back("2017 Run C");
   else if (mLumi == 13.74)
-    vInfo = {"2017 Runs D,E"};
+    vInfo.push_back("2017 Runs D,E");
 
   vector<TLatex*> t(vInfo.size());
   for(int i=0; i<vInfo.size(); i++) {
@@ -260,6 +269,7 @@ void make_resolution_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, strin
     c1->Print((output_name+")").c_str());
   c1->Clear("D");
 
+  delete h_line;
   delete mainPad;
   delete ratPad;
   delete hD1;
@@ -289,7 +299,7 @@ void make_double_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string ou
   else if (lumi == 23.5)
     c->give_info({"2017 Runs C,D,E"});
   else if (lumi == 13.5)
-    c->give_info({"2017 Run F"});
+    c->give_info({"2017 Run F"}); 
   else if (lumi == 9.76)
     c->give_info({"2017 Run C"});
   else if (lumi == 13.74)
@@ -357,7 +367,8 @@ int main(int argc, char* argv[])
   if (eras == "B") 	histIdx = 0;
   if (eras == "C")	histIdx = 1;
   if (eras == "D,E")	histIdx = 2;
-  if (eras == "F")	histIdx = 3;
+  if (eras == "F" || eras == "Fv2")	histIdx = 3;
+
 
   TFile* fData = new TFile("../histograms/Zll_histograms_" + eras + ".root");
   TFile* fDY = new TFile("../histograms/Zll_histograms_Drell-Yan.root");
@@ -522,15 +533,59 @@ int main(int argc, char* argv[])
   make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_RunFV9", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V9 JECs)", "0 Jets"}, 1);
   make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV9", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V9 JECs)", "#geq 1 Jets"}, 1); 
 
-  make_plot(c1, histIdx, vFiles, output_name, "hZpT", "q_{T} [GeV]", lumi, -1, {}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPara", "u_{#parallel} [GeV]", lumi, -1, {"All JECs applied"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaMod", "u_{#parallel} [GeV]", lumi, -1, {"Modified JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPerp", "u_{#perp}  [GeV]", lumi, -1, {"All JECs applied"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPerpMod", "u_{#perp}  [GeV]", lumi, -1, {"Modified JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"Modified JECs"},1); 
 
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPara", "hResParaMod", "", "", "q_{T}", "#sigma(u_{#parallel}) [GeV]", lumi, -1, {}, {20, 75}, 1);
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPerp", "hResPerpMod", "", "", "q_{T}", "#sigma(u_{#perp} ) [GeV]", lumi, -1, {}, {20, 50}, 1);
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponse", "hResponseMod", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {}, {0.6, 1.1}, 2);
+  // Scale & Resolution
+  // V8
+  make_plot(c1, histIdx, vFiles, output_name, "hZpT_V8", "q_{T} [GeV]", lumi, -1, {"V8 JECs"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPara_V8", "u_{#parallel} [GeV]", lumi, -1, {"All JECs applied", "V8 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaMod_V8", "u_{#parallel} [GeV]", lumi, -1, {"Modified JECs", "V8 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPerp_V8", "u_{#perp}  [GeV]", lumi, -1, {"All JECs applied", "V8 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPerpMod_V8", "u_{#perp}  [GeV]", lumi, -1, {"Modified JECs", "V8 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT_V8", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied", "V8 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod_V8", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"Modified JECs", "V8 JECs"},1); 
+
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPara_V8", "hResParaMod_V8", "", "", "q_{T}", "#sigma(u_{#parallel}) [GeV]", lumi, -1, {"V8 JECs"}, {20, 75}, 1);
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPerp_V8", "hResPerpMod_V8", "", "", "q_{T}", "#sigma(u_{#perp} ) [GeV]", lumi, -1, {"V8 JECs"}, {20, 50}, 1);
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponse_V8", "hResponseMod_V8", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {"V8 JECs"}, {0.6, 1.25}, 1);
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponseEE_V8", "hResponseModEE_V8", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {"V8 JECs", "Z #rightarrow ee events"}, {0.6, 1.25}, 1);
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponseMM_V8", "hResponseModMM_V8", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {"V8 JECs", "Z #rightarrow #mu#mu events"}, {0.6, 1.25}, 1);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_V8", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V8 JECs"}, 1);
+
+  // extras for V8
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT_highqT_V8", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied", "V8 JECs", "q_{T} > 130 GeV"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod_highqT_V8", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"Modified JECs", "V8 JECs", "q_{T} > 130 GeV"},1);
+
+  // V6
+  make_plot(c1, histIdx, vFiles, output_name, "hZpT_V6", "q_{T} [GeV]", lumi, -1, {"V6 JECs"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPara_V6", "u_{#parallel} [GeV]", lumi, -1, {"All JECs applied", "V6 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaMod_V6", "u_{#parallel} [GeV]", lumi, -1, {"Modified JECs", "V6 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPerp_V6", "u_{#perp}  [GeV]", lumi, -1, {"All JECs applied", "V6 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPerpMod_V6", "u_{#perp}  [GeV]", lumi, -1, {"Modified JECs", "V6 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT_V6", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied", "V6 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod_V6", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"Modified JECs", "V6 JECs"},1);
+
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPara_V6", "hResParaMod_V6", "", "", "q_{T}", "#sigma(u_{#parallel}) [GeV]", lumi, -1, {"V6 JECs"}, {20, 75}, 1);
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPerp_V6", "hResPerpMod_V6", "", "", "q_{T}", "#sigma(u_{#perp} ) [GeV]", lumi, -1, {"V6 JECs"}, {20, 50}, 1);
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponse_V6", "hResponseMod_V6", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {"V6 JECs"}, {0.6, 1.25}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_V6", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V6 JECs"}, 1);
+
+  // V9
+  make_plot(c1, histIdx, vFiles, output_name, "hZpT_V9", "q_{T} [GeV]", lumi, -1, {"V9 JECs"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPara_V9", "u_{#parallel} [GeV]", lumi, -1, {"All JECs applied", "V9 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaMod_V9", "u_{#parallel} [GeV]", lumi, -1, {"Modified JECs", "V9 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPerp_V9", "u_{#perp}  [GeV]", lumi, -1, {"All JECs applied", "V9 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUPerpMod_V9", "u_{#perp}  [GeV]", lumi, -1, {"Modified JECs", "V9 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT_V9", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied", "V9 JECs"},1);
+  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod_V9", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"Modified JECs", "V9 JECs"},1);
+
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPara_V9", "hResParaMod_V9", "", "", "q_{T}", "#sigma(u_{#parallel}) [GeV]", lumi, -1, {"V9 JECs"}, {20, 75}, 1);
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPerp_V9", "hResPerpMod_V9", "", "", "q_{T}", "#sigma(u_{#perp} ) [GeV]", lumi, -1, {"V9 JECs"}, {20, 50}, 1);
+  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponse_V9", "hResponseMod_V9", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {"V9 JECs"}, {0.6, 1.25}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_V9", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V9 JECs"}, 1);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMETMod_V6", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V6 JECs", "No JECs for p_{T} < 75", "          && 2.7 < |#eta| < 3.0"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMETMod_V8", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V8 JECs", "No JECs for p_{T} < 75", "          && 2.7 < |#eta| < 3.0"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMETMod_V9", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V9 JECs", "No JECs for p_{T} < 75", "          && 2.7 < |#eta| < 3.0"}, 2);
+  
 }

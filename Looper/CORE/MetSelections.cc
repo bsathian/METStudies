@@ -687,7 +687,7 @@ pair <float, float> getT1CHSMET_fromMINIAOD_tightID( FactorizedJetCorrector * je
 
 
 
-pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * jet_corrector, JetCorrectionUncertainty* jecUnc, bool uncUp, bool recompute_raw_met , int use_cleaned_met , bool useHE , double ptThresh, vector<double> etaExclusionRange){
+pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * jet_corrector, JetCorrectionUncertainty* jecUnc, bool uncUp, bool recompute_raw_met , int use_cleaned_met , bool useHE , double ptThresh, vector<double> etaExclusionRange, bool excludeJets = false){
 
   float T1_met    = cms3.evt_pfmet_raw();
   float T1_metPhi = cms3.evt_pfmetPhi_raw();
@@ -709,6 +709,23 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
 	if (abs(cms3.pfcands_p4().at(pfind).eta()) > 2.5 && abs(cms3.pfcands_particleId().at(pfind)) == 22)
           continue;
       }
+      if (excludeJets) {
+	bool keep_cand = false;
+	// If pf cand is outside 2.7 < |eta| < 3.0, keep it
+	if (!(abs(cms3.pfcands_p4().at(pfind).eta()) > 2.7 && abs(cms3.pfcands_p4().at(pfind).eta()) < 3.0)) {
+	  keep_cand = true;
+	}
+	// Otherwise, check if it overlaps with a jet with pT > 70
+	else {
+	  for(unsigned int iJet = 0; iJet < cms3.pfjets_p4().size(); iJet++){
+	    if ((abs(cms3.pfjets_p4().at(iJet).eta() - cms3.pfcands_p4().at(pfind).eta()) < 0.4) && cms3.pfjets_p4().at(iJet).pt() > 70.)
+	      keep_cand = true;
+	  }
+	}
+	// If not, throw away
+	if (!keep_cand)
+	  continue;
+      }
       met_raw_OTF -= cms3.pfcands_p4().at(pfind);
     }
     T1_met    = met_raw_OTF.pt();
@@ -721,6 +738,11 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
   LorentzVector jetp4_shifted_vsum(0,0,0,0);
 
   for(unsigned int iJet = 0; iJet < cms3.pfjets_p4().size(); iJet++){
+
+    if (excludeJets) {
+      if (abs(cms3.pfjets_p4().at(iJet).eta()) > 2.7 && abs(cms3.pfjets_p4().at(iJet).eta()) < 3.0 && cms3.pfjets_p4().at(iJet).pt() < 70)
+        continue;
+    }
 
     LorentzVector jetp4_uncorr = cms3.pfjets_p4().at(iJet)*cms3.pfjets_undoJEC().at(iJet);
 
@@ -757,6 +779,11 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
   }
 
   for(unsigned int iJet = 0; iJet < cms3.pfjets_p4().size(); iJet++){
+
+    if (excludeJets) {
+      if (abs(cms3.pfjets_p4().at(iJet).eta()) > 2.7 && abs(cms3.pfjets_p4().at(iJet).eta()) < 3.0 && cms3.pfjets_p4().at(iJet).pt() < 70)
+        continue;
+    }
 
     // // get uncorrected jet p4 to use as input for corrections
     LorentzVector jetp4_uncorr = cms3.pfjets_p4().at(iJet)*cms3.pfjets_undoJEC().at(iJet);
