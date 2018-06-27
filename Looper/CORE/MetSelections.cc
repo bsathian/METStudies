@@ -636,7 +636,7 @@ pair <float, float> getT1CHSMET_fromMINIAOD_tightID( FactorizedJetCorrector * je
       LorentzVector p1 = jetp4_uncorr;
       LorentzVector p2 = cms3.pfcands_p4().at(pfind);
       double dphi = acos( cos( p1.phi() - p2.phi() ) );
-      double dR = sqrt( (p1.eta() - p2.eta())*(p1.eta() - p2.eta())+ dphi*dphi );
+      double dR = sqrt( (p1.eta() - p2.eta())*(p1.eta() - p2.eta())+ (dphi*dphi) );
       if (dR > 0.4) continue;
       else {
         nConstituents++;
@@ -687,8 +687,8 @@ pair <float, float> getT1CHSMET_fromMINIAOD_tightID( FactorizedJetCorrector * je
 
 
 
-pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * jet_corrector, JetCorrectionUncertainty* jecUnc, bool uncUp, bool recompute_raw_met , int use_cleaned_met , bool useHE , double ptThresh, vector<double> etaExclusionRange, bool excludeJets = false){
-
+pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * jet_corrector, JetCorrectionUncertainty* jecUnc, bool uncUp, bool recompute_raw_met , int use_cleaned_met , bool useHE , double ptThresh, vector<double> etaExclusionRange, bool excludeJets = false, double ptThresh_2 = 75.){
+   
   float T1_met    = cms3.evt_pfmet_raw();
   float T1_metPhi = cms3.evt_pfmetPhi_raw();
   //use option use_cleaned_met to select alternate met collections
@@ -712,14 +712,49 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
       if (excludeJets) {
 	bool keep_cand = false;
 	// If pf cand is outside 2.7 < |eta| < 3.0, keep it
-	if (!(abs(cms3.pfcands_p4().at(pfind).eta()) > 2.7 && abs(cms3.pfcands_p4().at(pfind).eta()) < 3.0)) {
+	if (!(abs(cms3.pfcands_p4().at(pfind).eta()) > etaExclusionRange[0] && abs(cms3.pfcands_p4().at(pfind).eta()) < etaExclusionRange[1])) {
 	  keep_cand = true;
 	}
-	// Otherwise, check if it overlaps with a jet with pT > 70
+	// Otherwise, check if it overlaps with a jet with pT > ptThresh_2
 	else {
 	  for(unsigned int iJet = 0; iJet < cms3.pfjets_p4().size(); iJet++){
-	    if ((abs(cms3.pfjets_p4().at(iJet).eta() - cms3.pfcands_p4().at(pfind).eta()) < 0.4) && cms3.pfjets_p4().at(iJet).pt() > 70.)
-	      keep_cand = true;
+	    if (abs(cms3.pfjets_p4().at(iJet).eta()) < etaExclusionRange[0] - 0.4)
+	      continue;
+	    if (abs(cms3.pfjets_p4().at(iJet).phi() - cms3.pfcands_p4().at(pfind).phi()) > 0.4)
+	      continue;
+	    LorentzVector p1 = cms3.pfjets_p4().at(iJet);
+            LorentzVector p2 = cms3.pfcands_p4().at(pfind);
+            double dphi = acos( cos( p1.phi() - p2.phi() ) );
+            double dR = sqrt( (p1.eta() - p2.eta())*(p1.eta() - p2.eta())+ (dphi*dphi) );
+            if (dR > 0.4)
+	      continue;
+
+	    LorentzVector jetp4_uncorr = cms3.pfjets_p4().at(iJet)*cms3.pfjets_undoJEC().at(iJet);
+	    for (unsigned int iCand = 0; iCand < cms3.pfcands_p4().size(); iCand++) {
+	      if (abs(cms3.pfcands_particleId().at(iCand)) != 13)
+		continue;
+	      LorentzVector p2 = cms3.pfcands_p4().at(iCand);
+	      double dphi = acos( cos( jetp4_uncorr.phi() - p2.phi() ) );
+	      double dR = sqrt( (jetp4_uncorr.eta() - p2.eta())*(jetp4_uncorr.eta() - p2.eta())+ (dphi*dphi) );
+	      if (dR >= 0.4)
+		continue;
+	      jetp4_uncorr -= p2;
+	    }
+	    jet_corrector->setRho   ( cms3.evt_fixgridfastjet_all_rho()      );
+	    jet_corrector->setJetA  ( cms3.pfjets_area().at(iJet) );
+	    //jet_corrector->setJetPt ( jetp4_uncorr.pt() - muon_energy );
+	    jet_corrector->setJetPt ( jetp4_uncorr.pt()                      );
+	    jet_corrector->setJetEta( jetp4_uncorr.eta()                     );
+
+	    //Note the subcorrections are stored with corr_vals(N) = corr(N)*corr(N-1)*...*corr(1)
+	    vector<float> corr_vals = jet_corrector->getSubCorrections();
+
+	    double corr             = corr_vals.at(corr_vals.size()-1); // All corrections
+
+	    if (corr * jetp4_uncorr.pt() < ptThresh_2)
+	      continue;
+	    else  
+              keep_cand = true;
 	  }
 	}
 	// If not, throw away
@@ -739,16 +774,25 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
 
   for(unsigned int iJet = 0; iJet < cms3.pfjets_p4().size(); iJet++){
 
-    if (excludeJets) {
-      if (abs(cms3.pfjets_p4().at(iJet).eta()) > 2.7 && abs(cms3.pfjets_p4().at(iJet).eta()) < 3.0 && cms3.pfjets_p4().at(iJet).pt() < 70)
+    LorentzVector jetp4_uncorr = cms3.pfjets_p4().at(iJet)*cms3.pfjets_undoJEC().at(iJet);
+
+    for (unsigned int iCand = 0; iCand < cms3.pfcands_p4().size(); iCand++) {
+      if (abs(cms3.pfcands_particleId().at(iCand)) != 13)
         continue;
+      LorentzVector p2 = cms3.pfcands_p4().at(iCand);
+      double dphi = acos( cos( jetp4_uncorr.phi() - p2.phi() ) );
+      double dR = sqrt( (jetp4_uncorr.eta() - p2.eta())*(jetp4_uncorr.eta() - p2.eta())+ (dphi*dphi) );
+      if (dR >= 0.4)
+	continue;
+      jetp4_uncorr -= p2;
+      //muon_energy += cms3.pfcands_p4().at(iCand).pt();
     }
 
-    LorentzVector jetp4_uncorr = cms3.pfjets_p4().at(iJet)*cms3.pfjets_undoJEC().at(iJet);
 
     // get L1FastL2L3 total correction
     jet_corrector->setRho   ( cms3.evt_fixgridfastjet_all_rho()      );
     jet_corrector->setJetA  ( cms3.pfjets_area().at(iJet) );
+    //jet_corrector->setJetPt ( jetp4_uncorr.pt() - muon_energy );
     jet_corrector->setJetPt ( jetp4_uncorr.pt()                      );
     jet_corrector->setJetEta( jetp4_uncorr.eta()                     );
 
@@ -756,6 +800,12 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
     vector<float> corr_vals = jet_corrector->getSubCorrections();
 
     double corr             = corr_vals.at(corr_vals.size()-1); // All corrections
+
+    if (excludeJets) {
+      if (abs(cms3.pfjets_p4().at(iJet).eta()) > etaExclusionRange[0] && abs(cms3.pfjets_p4().at(iJet).eta()) < etaExclusionRange[1] && corr * jetp4_uncorr.pt() < ptThresh_2)
+        continue;
+    }
+
 
     double shift = 0.0;
     if (jecUnc != 0) {
@@ -771,7 +821,7 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
       else  totalshift      -= shift;
     }
 
-    if ( corr * jetp4_uncorr.pt() > 15. && (jetp4_uncorr.pt() > ptThresh || !(abs(jetp4_uncorr.eta()) > etaExclusionRange[0] && abs(jetp4_uncorr.eta()) < etaExclusionRange[1]))){
+    if ( corr * jetp4_uncorr.pt() > 15. && (corr * jetp4_uncorr.pt() > ptThresh || !(abs(jetp4_uncorr.eta()) > etaExclusionRange[0] && abs(jetp4_uncorr.eta()) < etaExclusionRange[1]))){
       jetp4_unshift_vsum += jetp4_uncorr*corr;
       jetp4_shifted_vsum += jetp4_uncorr*corr*totalshift;
     }
@@ -780,11 +830,6 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
 
   for(unsigned int iJet = 0; iJet < cms3.pfjets_p4().size(); iJet++){
 
-    if (excludeJets) {
-      if (abs(cms3.pfjets_p4().at(iJet).eta()) > 2.7 && abs(cms3.pfjets_p4().at(iJet).eta()) < 3.0 && cms3.pfjets_p4().at(iJet).pt() < 70)
-        continue;
-    }
-
     // // get uncorrected jet p4 to use as input for corrections
     LorentzVector jetp4_uncorr = cms3.pfjets_p4().at(iJet)*cms3.pfjets_undoJEC().at(iJet);
     float emfrac = (cms3.pfjets_chargedEmE().at(iJet) + cms3.pfjets_neutralEmE().at(iJet)) / jetp4_uncorr.E();
@@ -792,9 +837,22 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
     if (emfrac > 0.9                  ) continue; // veto events with EM fraction > 0.9
     if( abs(jetp4_uncorr.eta()) > 9.9 ) continue; // veto jets with eta > 9.9
 
+    for (unsigned int iCand = 0; iCand < cms3.pfcands_p4().size(); iCand++) {
+      if (abs(cms3.pfcands_particleId().at(iCand)) != 13)
+        continue;
+      LorentzVector p2 = cms3.pfcands_p4().at(iCand);
+      double dphi = acos( cos( jetp4_uncorr.phi() - p2.phi() ) );
+      double dR = sqrt( (jetp4_uncorr.eta() - p2.eta())*(jetp4_uncorr.eta() - p2.eta())+ (dphi*dphi) );
+      if (dR >= 0.4)
+        continue;
+      jetp4_uncorr -= p2;
+      //muon_energy += cms3.pfcands_p4().at(iCand).pt();
+    }
+
     // get L1FastL2L3 total correction
     jet_corrector->setRho   ( cms3.evt_fixgridfastjet_all_rho()      );
     jet_corrector->setJetA  ( cms3.pfjets_area().at(iJet) );
+    //jet_corrector->setJetPt ( jetp4_uncorr.pt() - muon_energy );
     jet_corrector->setJetPt ( jetp4_uncorr.pt()                      );
     jet_corrector->setJetEta( jetp4_uncorr.eta()                     );
 
@@ -803,6 +861,11 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
 
     double corr             = corr_vals.at(corr_vals.size()-1); // All corrections
     double corr_l1          = corr_vals.at(0);                  // offset correction
+
+    if (excludeJets) {
+      if (abs(cms3.pfjets_p4().at(iJet).eta()) > etaExclusionRange[0] && abs(cms3.pfjets_p4().at(iJet).eta()) < etaExclusionRange[1] && corr * jetp4_uncorr.pt() < ptThresh_2)
+        continue;
+    }
 
     //  
     // remove SA or global muons from jets before correcting
@@ -816,7 +879,7 @@ pair <float, float> getT1CHSMET_fromMINIAOD_noECJECs( FactorizedJetCorrector * j
       }
     } */
 
-    if ( corr * jetp4_uncorr.pt() > 15. && (jetp4_uncorr.pt() > ptThresh || !(abs(jetp4_uncorr.eta()) > etaExclusionRange[0] && abs(jetp4_uncorr.eta()) < etaExclusionRange[1]))){
+    if ( corr * jetp4_uncorr.pt() > 15. && (jetp4_uncorr.pt() * corr > ptThresh || !(abs(jetp4_uncorr.eta()) > etaExclusionRange[0] && abs(jetp4_uncorr.eta()) < etaExclusionRange[1]))){
       T1_metx += jetp4_uncorr.px() * ( corr_l1 - corr );
       T1_mety += jetp4_uncorr.py() * ( corr_l1 - corr );
     }

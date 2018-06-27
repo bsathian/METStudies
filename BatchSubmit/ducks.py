@@ -22,18 +22,20 @@ parser.add_argument("--reweight", help = "(Re)derive pileup weights", action="st
 args = parser.parse_args()
 
 #job_tag = "MET_v1" + args.eras
-job_tag = "MET_v6"
+job_tag = "MET_v9"
 
-eras = "B,C,D,E,F"
+eras = "B,C,D,E,F,Fv2"
 eras = eras.split(",")
 
 data = {"B" : ["/DoubleEG_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/", "/DoubleMuon_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/"], 
 	"C" : ["/DoubleEG_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/", "/DoubleMuon_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/"], 
 	"D" : ["/DoubleEG_Run2017D-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/", "/DoubleMuon_Run2017D-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/"], 
 	"E": ["/DoubleMuon_Run2017E-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/", "/DoubleEG_Run2017E-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/"], 
-	"F" : ["/DoubleEG_Run2017F-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/", "/DoubleMuon_Run2017F-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/"]}
+	"F" : ["/DoubleEG_Run2017F-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/", "/DoubleMuon_Run2017F-17Nov2017-v1_MINIAOD_CMS4_V00-00-06_allPfCands/"],
+	"Fv2" : ["/DoubleEG_Run2017F-09May2018-v1_MINIAOD_CMS4_V00-00-06_allPfCands/", "/DoubleMuon_Run2017F-09May2018-v1_MINIAOD_CMS4_V00-00-06_allPfCands/"]}
 
-mc = {"Drell-Yan" : [["/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/", "/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10_ext1-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 7181.0, 212922560.0, 0.161, 1],
+mc = {"Drell-Yan" : [["/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/", "/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10_ext1-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 5765.4, 212922560.0, 0.161, 1],
+	"Drell-Yan_v2" : [["/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAODv2-PU2017RECOPF_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 5765.4, 4999851, 0.161, 1],
 	"WW" : [["/WW_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 63.21, 7547722.0, 0.0, 5],
 	"WZ" : [["/WZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 22.82, 3928630.0, 0.0, 1],
 	"ZZ" : [["/ZZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 10.32, 1949768.0, 0.0, 1],
@@ -46,7 +48,8 @@ mc = {"Drell-Yan" : [["/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunII
 	"ST_t_antitop" : [["/ST_t-channel_antitop_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 80.95, 3891190.0, 0.0, 5],
 	"ST_tW_top": [["/ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 34.91, 7558006.0, 0.0, 5],
 	"ST_tW_antitop": [["/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 34.91, 6620324.0, 0.0, 5],
-	"TTJets": [["/TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 831.76, 153596015.0, 0.314, 5], 
+	#"TTJets": [["/TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 831.76, 153596015.0, 0.314, 5],
+	"TTJets": [["/TTTo2L2Nu_TuneCP5_PSweights_13TeV-powheg-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V00-00-06_allPfCands/"], 87.31, 69705626, 0.0, 5], 
 }
 
 basepath = "/hadoop/cms/store/user/smay/ProjectMetis"
@@ -132,5 +135,6 @@ while True:
     break
   #StatsParser(data=total_summary, webdir="~/public_html/dump/Zll_MetStudies/").do()
   #os.system("chmod -R 755 ~/public_html/dump/Zll_MetStudies")
+  os.system("python ../delete_bad_files.py")
   print "Sleeping 300 seconds ..."
   time.sleep(300)

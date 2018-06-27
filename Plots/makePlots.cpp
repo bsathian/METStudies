@@ -3,11 +3,30 @@
 const int nEtaRegions = 6;
 const int nCandCats = 4;
 
-void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name, TString x_label, double lumi, double scale, vector<TString> vInfo, int idx) {
-  TH1D* hData = (TH1D*)vFiles[0]->Get(hist_name + "0");
+const double met_bins[] = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 150, 160, 170, 180, 195, 210, 230, 255, 285, 335, 400};
+const int n_met_bins = (sizeof(met_bins) / sizeof(met_bins[0])) - 1;
+
+void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name, TString x_label, double lumi, double scale, vector<TString> vInfo, int idx, bool rebin = false) {
+  TH1D* hDataTemp = (TH1D*)vFiles[0]->Get(hist_name + "0");
+  TH1D* hData;
+  if (rebin)
+    hData = (TH1D*)hDataTemp->Rebin(n_met_bins, hist_name + "0" + "rebin", met_bins);
+  else
+    hData = (TH1D*)hDataTemp->Clone(hist_name + "0" + "rebin");
   vector<TH1D*> hMC;
-  for (int i = 1; i < vFiles.size(); i++) 
-    hMC.push_back((TH1D*)vFiles[i]->Get(hist_name + to_string(histIdx)));
+  for (int i = 1; i < vFiles.size(); i++) {
+    TH1D* hMCTemp1 = (TH1D*)vFiles[i]->Get(hist_name + to_string(histIdx)); 
+    TH1D* hMCTemp2;
+    if (rebin)
+      hMCTemp2 = (TH1D*)hMCTemp1->Rebin(n_met_bins, hist_name + to_string(histIdx) + "rebin", met_bins);
+    else
+      hMCTemp2 = (TH1D*)hMCTemp1->Clone(hist_name + to_string(histIdx) + "rebin");
+    hMC.push_back(hMCTemp2);
+    delete hMCTemp1;
+    //hMC.push_back((TH1D*)vFiles[i]->Get(hist_name + to_string(histIdx)));
+    //if (rebin)
+    //  hMC[i-1]->Rebin(n_met_bins, "", met_bins);
+  }
   if (hist_name == "hT1CMET" || hist_name == "hT1CMET_tightID")
     cout << hMC[0]->Integral(41,80) << endl;
   Comparison* c = new Comparison(c1, hData, hMC);
@@ -15,22 +34,30 @@ void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_na
     c->give_info({"2017 Run B"});
   else if (lumi == 23.5)
     c->give_info({"2017 Runs C,D,E"});
-  else if (lumi == 13.5)
-    c->give_info({"2017 Run F (09May2018 ReReco)"});
+  else if (lumi == 13.5) {
+    TString name = output_name;
+    if (name.Contains("v2"))
+      c->give_info({"2017 Run F (09May2018 ReReco)"});
+    else
+      c->give_info({"2017 Run F"});
+  }
   else if (lumi == 9.76)
     c->give_info({"2017 Run C"});
   else if (lumi == 13.74)
     c->give_info({"2017 Runs D,E"});
   c->set_filename(output_name);
   c->set_rat_label("#frac{Data}{MC}");
-  c->set_legend_labels({"2017 Data", "Drell-Yan", "DiBoson", "TriBoson", "Top"});
+  //c->set_legend_labels({"2017 Data", "Drell-Yan", "DiBoson", "TriBoson", "Top"});
+  c->set_legend_labels({"2017 Data", "Drell-Yan", "DiBoson", "Top"});
   c->set_x_label(x_label);
   c->set_y_label("Events");
   c->set_data_drawOpt("E");
   c->set_lumi(lumi);
   c->set_scale(scale);
-  if (hist_name.Contains("T1CMET"))
-    c->set_x_bin_range({1,70});
+  if (rebin)
+    c->set_x_bin_range({1, n_met_bins});
+  //if (hist_name.Contains("T1CMET"))
+  //  c->set_x_bin_range({1,70});
 
   if (hist_name == "hT1CMET" || hist_name == "hT1CMET_tightID")
     cout << hMC[0]->Integral(41,80) << endl;
@@ -42,6 +69,137 @@ void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_na
     delete hMC[i];
   delete c;
 } 
+
+void make_plot_rat_unc(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name, TString hist_name_up, TString hist_name_down, TString x_label, double lumi, double scale, vector<TString> vInfo, int idx, bool rebin = false) {
+  TH1D* hDataTemp = (TH1D*)vFiles[0]->Get(hist_name + "0");
+  TH1D* hData;
+
+  TH1D* hDataUpTemp = (TH1D*)vFiles[0]->Get(hist_name_up + "0");
+  TH1D* hDataUp;
+
+  TH1D* hDataDownTemp = (TH1D*)vFiles[0]->Get(hist_name_down + "0");
+  TH1D* hDataDown;
+
+  if (rebin) {
+    hData = (TH1D*)hDataTemp->Rebin(n_met_bins, hist_name + "0" + "rebin", met_bins);
+    hDataUp = (TH1D*)hDataUpTemp->Rebin(n_met_bins, hist_name_up + "0" + "rebin", met_bins);
+    hDataDown = (TH1D*)hDataDownTemp->Rebin(n_met_bins, hist_name_down + "0" + "rebin", met_bins);
+  }
+  else {
+    hData = (TH1D*)hDataTemp->Clone(hist_name + "0" + "rebin");
+    hDataUp = (TH1D*)hDataUpTemp->Clone(hist_name_up + "0" + "rebin");
+    hDataDown = (TH1D*)hDataDownTemp->Clone(hist_name_down + "0" + "rebin");
+  }
+
+  vector<TH1D*> hMC;
+  vector<TH1D*> hMCUp;
+  vector<TH1D*> hMCDown;
+  for (int i = 1; i < vFiles.size(); i++) {
+    TH1D* hMCTemp1 = (TH1D*)vFiles[i]->Get(hist_name + to_string(histIdx));
+    TH1D* hMCTemp2;
+
+    TH1D* hMCUpTemp1 = (TH1D*)vFiles[i]->Get(hist_name_up + to_string(histIdx));
+    TH1D* hMCUpTemp2;
+
+    TH1D* hMCDownTemp1 = (TH1D*)vFiles[i]->Get(hist_name_down + to_string(histIdx));
+    TH1D* hMCDownTemp2;
+
+    if (rebin) {
+      hMCTemp2 = (TH1D*)hMCTemp1->Rebin(n_met_bins, hist_name + to_string(histIdx) + "rebin", met_bins);
+      hMCUpTemp2 = (TH1D*)hMCUpTemp1->Rebin(n_met_bins, hist_name_up + to_string(histIdx) + "rebin", met_bins);
+      hMCDownTemp2 = (TH1D*)hMCDownTemp1->Rebin(n_met_bins, hist_name_down + to_string(histIdx) + "rebin", met_bins);
+    }
+    else {
+      hMCTemp2 = (TH1D*)hMCTemp1->Clone(hist_name + to_string(histIdx) + "rebin");
+      hMCUpTemp2 = (TH1D*)hMCUpTemp1->Clone(hist_name_up + to_string(histIdx) + "rebin");
+      hMCDownTemp2 = (TH1D*)hMCDownTemp1->Clone(hist_name_down + to_string(histIdx) + "rebin");    
+    }
+    hMC.push_back(hMCTemp2);
+    hMCUp.push_back(hMCUpTemp2);
+    hMCDown.push_back(hMCDownTemp2);
+
+    delete hMCTemp1;
+    delete hMCUpTemp1;
+    delete hMCDownTemp1;
+    //hMC.push_back((TH1D*)vFiles[i]->Get(hist_name + to_string(histIdx)));
+    //if (rebin)
+    //  hMC[i-1]->Rebin(n_met_bins, "", met_bins);
+  }
+
+  TH1D* hRatUnc = (TH1D*)hData->Clone("rat_unc");
+  TH1D* hMCSumUp = (TH1D*)hMCUp[0]->Clone("mc_unc_up");
+  TH1D* hMCSumDown = (TH1D*)hMCDown[0]->Clone("mc_unc_down");
+  for (int i = 1; i < hMC.size(); i++) {
+    hMCSumUp->Add(hMCUp[i]);
+    hMCSumDown->Add(hMCDown[i]);
+  }
+  hMCSumUp->Scale(scale);
+  hMCSumDown->Scale(scale);
+
+  TH1D* hRatUp = (TH1D*)hDataUp->Clone("rat_up");
+  TH1D* hRatDown = (TH1D*)hDataDown->Clone("rat_down");
+  hRatUp->Divide(hMCSumUp);
+  hRatDown->Divide(hMCSumDown);
+  for (int i = 0; i < hRatUnc->GetNbinsX() + 1; i++) {
+    hRatUnc->SetBinContent(i, 1);
+    hRatUnc->SetBinError(i, abs(hRatUp->GetBinContent(i) - hRatDown->GetBinContent(i)));
+  }
+
+  if (hist_name == "hT1CMET" || hist_name == "hT1CMET_tightID")
+    cout << hMC[0]->Integral(41,80) << endl;
+  //Comparison* c = new Comparison(c1, hData, hMC);
+  Comparison* c = new Comparison(c1, hData, hMC, hRatUnc);
+  if (lumi == 4.8)
+    c->give_info({"2017 Run B"});
+  else if (lumi == 23.5)
+    c->give_info({"2017 Runs C,D,E"});
+  else if (lumi == 13.5) {
+    TString name = output_name;
+    if (name.Contains("v2"))
+      c->give_info({"2017 Run F (09May2018 ReReco)"});
+    else
+      c->give_info({"2017 Run F"});
+  }
+  else if (lumi == 9.76)
+    c->give_info({"2017 Run C"});
+  else if (lumi == 13.74)
+    c->give_info({"2017 Runs D,E"});
+  c->set_filename(output_name);
+  c->set_rat_label("#frac{Data}{MC}");
+  //c->set_legend_labels({"2017 Data", "Drell-Yan", "DiBoson", "TriBoson", "Top"});
+  c->set_legend_labels({"2017 Data", "Drell-Yan", "DiBoson", "Top"});
+  c->set_x_label(x_label);
+  c->set_y_label("Events");
+  c->set_data_drawOpt("E");
+  c->set_lumi(lumi);
+  c->set_scale(scale);
+  c->set_rat_unc_label("JEC Unc.");
+  if (rebin)
+    c->set_x_bin_range({1, n_met_bins});
+  //if (hist_name.Contains("T1CMET"))
+  //  c->set_x_bin_range({1,70});
+
+  if (hist_name == "hT1CMET" || hist_name == "hT1CMET_tightID")
+    cout << hMC[0]->Integral(41,80) << endl;
+  for (int i = 0; i < vInfo.size(); i++)
+    c->give_info(vInfo[i]);
+  c->plot(idx);
+  delete hData;
+  for (int i = 0; i < hMC.size(); i++) {
+    delete hMC[i];
+    delete hMCUp[i];
+    delete hMCDown[i];
+  }
+
+  delete hRatUnc;
+  delete hMCSumUp;
+  delete hMCSumDown;
+  delete hRatUp;
+  delete hRatDown;
+
+  delete c;
+}
+
 
 void make_2Dplot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name, TString x_label, TString y_label, double lumi, double scale, vector<TString> vInfo, int idx) {
   TH2D* hData = (TH2D*)vFiles[0]->Get(hist_name + "0");
@@ -69,7 +227,7 @@ void make_2Dplot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_
   delete c;
 }
 
-void make_resolution_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name1, TString hist_name2, TString label1, TString label2, TString x_label, TString y_label, double mLumi, double scale, vector<TString> vInfo, vector<double> y_lim, int idx) {
+void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, vector<TString> hist_names, double lumi, double scale, vector<TString> vInfo, vector<TString> vLabels, int idx) {
   c1->cd();
   TPad* mainPad = new TPad("p_main", "p_main", 0.0, 0.3, 1.0, 1.0);
   mainPad->SetBottomMargin(0.02);
@@ -79,204 +237,190 @@ void make_resolution_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, strin
   mainPad->Draw();
   mainPad->cd();
 
-  double resolution_bins[] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200, 250, 300, 400};
+  double resolution_bins[] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 220, 240, 260, 280, 300, 325, 350, 375, 400, 450, 500};
   int n_resolution_bins = (sizeof(resolution_bins)/sizeof(resolution_bins[0]))-1;
 
-  TH1D* hD1 = new TH1D("hD1", "", n_resolution_bins, resolution_bins);
-  TH1D* hD2 = new TH1D("hD2", "", n_resolution_bins, resolution_bins);
-  TH1D* hM1 = new TH1D("hM1", "", n_resolution_bins, resolution_bins);
-  TH1D* hM2 = new TH1D("hM2", "", n_resolution_bins, resolution_bins);  
-  
+  vector<TH1D*> vHData_response;
+  vector<TH1D*> vHMC_response;
+  vector<TH1D*> vHData_responseEE;
+  vector<TH1D*> vHMC_responseEE;
+  vector<TH1D*> vHData_responseMM;
+  vector<TH1D*> vHMC_responseMM;
+  vector<TH1D*> vHData_res_para;
+  vector<TH1D*> vHMC_res_para;
+  vector<TH1D*> vHData_res_perp;
+  vector<TH1D*> vHMC_res_perp;
+  for (int i = 0; i < hist_names.size(); i++) {
+    vHData_response.push_back(new TH1D(("hData_response" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_response.push_back(new TH1D(("hMC_response" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHData_responseEE.push_back(new TH1D(("hData_responseEE" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_responseEE.push_back(new TH1D(("hMC_responseEE" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHData_responseMM.push_back(new TH1D(("hData_responseMM" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_responseMM.push_back(new TH1D(("hMC_responseMM" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHData_res_para.push_back(new TH1D(("hData_res_para" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_res_para.push_back(new TH1D(("hMC_res_para" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHData_res_perp.push_back(new TH1D(("hData_res_perp" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_res_perp.push_back(new TH1D(("hMC_res_perp" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+  }  
+
   for (int i = 0; i < n_resolution_bins; i++) {
-    TH1D* hDataTemp1 = (TH1D*)vFiles[0]->Get(hist_name1 + to_string(i+1) + "0");
-    TH1D* hDataTemp2 = (TH1D*)vFiles[0]->Get(hist_name2 + to_string(i+1) + "0");
-    TH1D* hMCTemp1 = (TH1D*)vFiles[1]->Get(hist_name1 + to_string(i+1) + to_string(histIdx));
-    TH1D* hMCTemp2 = (TH1D*)vFiles[1]->Get(hist_name2 + to_string(i+1) + to_string(histIdx));
-    for (int j = 2; j < vFiles.size(); j++) {
-      hMCTemp1->Add((TH1D*)vFiles[j]->Get(hist_name1 + to_string(i+1) + to_string(histIdx)));
-      hMCTemp2->Add((TH1D*)vFiles[j]->Get(hist_name2 + to_string(i+1) + to_string(histIdx)));
-    }
-    if (hist_name1.Contains("Perp") || hist_name1.Contains("Para")) {
-      hD1->SetBinContent(i+1, hDataTemp1->GetStdDev());
-      hD2->SetBinContent(i+1, hDataTemp2->GetStdDev());
-      hM1->SetBinContent(i+1, hMCTemp1->GetStdDev());
-      hM2->SetBinContent(i+1, hMCTemp2->GetStdDev());
-      hD1->SetBinError(i+1, hDataTemp1->GetStdDevError());
-      hD2->SetBinError(i+1, hDataTemp2->GetStdDevError()); 
-      hM1->SetBinError(i+1, hMCTemp1->GetStdDevError()); 
-      hM2->SetBinError(i+1, hMCTemp2->GetStdDevError()); 
-    }
-    else {
-      hD1->SetBinContent(i+1, hDataTemp1->GetMean());
-      hD2->SetBinContent(i+1, hDataTemp2->GetMean());
-      hM1->SetBinContent(i+1, hMCTemp1->GetMean());
-      hM2->SetBinContent(i+1, hMCTemp2->GetMean());
-      hD1->SetBinError(i+1, hDataTemp1->GetMeanError());
-      hD2->SetBinError(i+1, hDataTemp2->GetMeanError());
-      hM1->SetBinError(i+1, hMCTemp1->GetMeanError());
-      hM2->SetBinError(i+1, hMCTemp2->GetMeanError());
-    }
+    for (int j = 0; j <  hist_names.size(); j++) {
+      TH1D* hDataTemp = (TH1D*)vFiles[0]->Get("hT1CMET_Response" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTemp = (TH1D*)vFiles[1]->Get("hT1CMET_Response" + hist_names[j] + to_string(i+1) + to_string(histIdx));
+      TH1D* hDataTempEE = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseEE" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTempEE = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseEE" + hist_names[j] + to_string(i+1) + to_string(histIdx));
+      TH1D* hDataTempMM = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseMM" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTempMM = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseMM" + hist_names[j] + to_string(i+1) + to_string(histIdx));
 
-    delete hDataTemp1;
-    delete hDataTemp2;
-    delete hMCTemp1;
-    delete hMCTemp2;
+      for (int k = 2; k < vFiles.size(); k++) {
+        hMCTemp->Add((TH1D*)vFiles[k]->Get("hT1CMET_Response" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
+	hMCTempEE->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseEE" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
+	hMCTempMM->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseMM" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
+      }
+   
+      vHData_response[j]->SetBinContent(i+1, hDataTemp->GetMean());
+      vHData_response[j]->SetBinError(i+1, hDataTemp->GetMeanError());
+      vHMC_response[j]->SetBinContent(i+1, hMCTemp->GetMean());
+      vHMC_response[j]->SetBinError(i+1, hMCTemp->GetMeanError());
+      
+      vHData_responseEE[j]->SetBinContent(i+1, hDataTempEE->GetMean());
+      vHData_responseEE[j]->SetBinError(i+1, hDataTempEE->GetMeanError());
+      vHMC_responseEE[j]->SetBinContent(i+1, hMCTempEE->GetMean());
+      vHMC_responseEE[j]->SetBinError(i+1, hMCTempEE->GetMeanError());
+
+      vHData_responseMM[j]->SetBinContent(i+1, hDataTempMM->GetMean());
+      vHData_responseMM[j]->SetBinError(i+1, hDataTempMM->GetMeanError());
+      vHMC_responseMM[j]->SetBinContent(i+1, hMCTempMM->GetMean());
+      vHMC_responseMM[j]->SetBinError(i+1, hMCTempMM->GetMeanError()); 
+
+      delete hDataTemp;
+      delete hMCTemp;
+      delete hDataTempEE;
+      delete hMCTempEE;
+      delete hDataTempMM;
+      delete hMCTempMM;
+    }   
   }
+
+  for (int i = 0; i < n_resolution_bins; i++) {
+    for (int j = 0; j <  hist_names.size(); j++) {
+      TH1D* hDataTempPara = (TH1D*)vFiles[0]->Get("hT1CMET_ResPara" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTempPara = (TH1D*)vFiles[1]->Get("hT1CMET_ResPara" + hist_names[j] + to_string(i+1) + to_string(histIdx));
+      TH1D* hDataTempPerp = (TH1D*)vFiles[0]->Get("hT1CMET_ResPerp" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTempPerp = (TH1D*)vFiles[1]->Get("hT1CMET_ResPerp" + hist_names[j] + to_string(i+1) + to_string(histIdx));
+      for (int k = 2; k < vFiles.size(); k++) {
+        hMCTempPara->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResPara" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
+	hMCTempPerp->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResPerp" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
+      }
+
+      vHData_res_para[j]->SetBinContent(i+1, hDataTempPara->GetStdDev() / vHData_response[j]->GetBinContent(i+1));
+      vHMC_res_para[j]->SetBinContent(i+1, hMCTempPara->GetStdDev() / vHMC_response[j]->GetBinContent(i+1));
+      vHData_res_perp[j]->SetBinContent(i+1, hDataTempPerp->GetStdDev() / vHData_response[j]->GetBinContent(i+1));
+      vHMC_res_perp[j]->SetBinContent(i+1, hMCTempPerp->GetStdDev() / vHMC_response[j]->GetBinContent(i+1));  
+
+      vHData_res_para[j]->SetBinError(i+1, hDataTempPara->GetStdDevError() / vHData_response[j]->GetBinContent(i+1));
+      vHMC_res_para[j]->SetBinError(i+1, hMCTempPara->GetStdDevError() / vHMC_response[j]->GetBinContent(i+1));
+      vHData_res_perp[j]->SetBinError(i+1, hDataTempPerp->GetStdDevError() / vHData_response[j]->GetBinContent(i+1));
+      vHMC_res_perp[j]->SetBinError(i+1, hMCTempPerp->GetStdDevError() / vHMC_response[j]->GetBinContent(i+1));
  
-  bool resolution_plot = !(hist_name1.Contains("Perp") || hist_name1.Contains("Para"));
- 
-  hD1->Draw("E");
-  hD2->Draw("SAME,E");
-  gPad->RedrawAxis();
-  vector<TH1D*> mVHData = {hD1, hD2};
-  vector<int> dataColors = {kBlack, kRed};
-  for (int i=0; i<mVHData.size(); i++) {
-    mVHData[i]->SetMarkerStyle(20);
-    mVHData[i]->SetMarkerColor(dataColors[i]);
-    mVHData[i]->SetLineColor(dataColors[i]);
-    mVHData[i]->SetLineWidth(2);
-    mVHData[i]->GetXaxis()->SetLabelOffset(999);
-    mVHData[i]->GetXaxis()->SetLabelSize(0);
-    mVHData[i]->GetYaxis()->SetTitle(y_label);
-    mVHData[i]->GetYaxis()->SetRangeUser(y_lim[0], y_lim[1]);
-  }
+      delete hDataTempPara;
+      delete hMCTempPara;
+      delete hDataTempPerp;
+      delete hMCTempPerp;
+    }
+  } 
 
-  TLine* h_line = new TLine(0, 1, 400, 1);
-  if (resolution_plot) {
-    h_line->SetLineWidth(2);
-    h_line->SetLineStyle(2);
-    h_line->Draw("SAME");
-  }
+  Comparison* c_response = new Comparison(c1, vHData_response, vHMC_response);
+  c_response->set_filename(output_name);
+  c_response->set_y_lim_range({0.7, 1.1});
+  //c_response->give_hlines({1});
+  c_response->set_info(vInfo);
+  c_response->set_lumi(lumi);
+  c_response->set_multiple_comparisons();
+  c_response->set_no_log();
+  c_response->set_legend_labels(vLabels);
+  c_response->set_scale(1);
+  c_response->set_x_label("q_{T} [GeV]");
+  c_response->set_y_label("-<u_{#parallel}>/q_{T}");
+  c_response->set_rat_label("#frac{Data}{MC}");
+  c_response->set_rat_lim_range({0.75, 1.25});
+  c_response->set_legend_lower_right();
+  c_response->plot(idx == 0 ? 0 : 1);
 
-  double fs = 0.04;
-  TLatex* cms = new TLatex(0.20, 0.93, "CMS Preliminary");
-  cms->SetTextSize(fs);
-  cms->SetNDC(kTRUE);
-  cms->Draw("SAME");
+  Comparison* c_responseEE = new Comparison(c1, vHData_responseEE, vHMC_responseEE);
+  c_responseEE->set_filename(output_name);
+  c_responseEE->set_y_lim_range({0.7, 1.1});
+  //c_responseEE->give_hlines({1});
+  c_responseEE->set_info(vInfo);
+  c_responseEE->set_lumi(lumi);
+  c_responseEE->set_multiple_comparisons();
+  c_responseEE->set_no_log();
+  c_responseEE->set_legend_labels(vLabels);
+  c_responseEE->set_scale(1);
+  c_responseEE->set_x_label("q_{T} [GeV]");
+  c_responseEE->set_y_label("-<u_{#parallel}>/q_{T}");
+  c_responseEE->set_rat_label("#frac{Data}{MC}");
+  c_responseEE->set_rat_lim_range({0.75, 1.25});
+  c_responseEE->give_info("Z #rightarrow ee Events");
+  c_responseEE->set_legend_lower_right();
+  c_responseEE->plot(1);
 
-  TLatex* lumi;
-  if (mLumi != -1) {
-    TString lumiText = Form("%.2f",mLumi);
-    lumiText += " fb^{-1} (13 TeV)";
-    lumi = new TLatex(0.66, 0.93, lumiText.Data());
-    lumi->SetTextSize(fs);
-    lumi->SetNDC(kTRUE);
-    lumi->Draw("SAME");
-  }
-  else {
-    lumi = new TLatex(0.73, 0.93, "(13 TeV)");
-    lumi->SetTextSize(fs);
-    lumi->SetNDC(kTRUE);
-    lumi->Draw("SAME");
-  }
+  Comparison* c_responseMM = new Comparison(c1, vHData_responseMM, vHMC_responseMM);
+  c_responseMM->set_filename(output_name);
+  c_responseMM->set_y_lim_range({0.7, 1.1});
+  //c_responseMM->give_hlines({1});
+  c_responseMM->set_info(vInfo);
+  c_responseMM->set_lumi(lumi);
+  c_responseMM->set_multiple_comparisons();
+  c_responseMM->set_no_log();
+  c_responseMM->set_legend_labels(vLabels);
+  c_responseMM->set_scale(1);
+  c_responseMM->set_x_label("q_{T} [GeV]");
+  c_responseMM->set_y_label("-<u_{#parallel}>/q_{T}");
+  c_responseMM->set_rat_label("#frac{Data}{MC}");
+  c_responseMM->set_rat_lim_range({0.75, 1.25});
+  c_responseMM->give_info("Z #rightarrow #mu#mu Events");
+  c_responseMM->set_legend_lower_right();
+  c_responseMM->plot(1);
 
-  if (mLumi == 4.8)
-    vInfo.push_back("2017 Run B");
-  else if (mLumi == 13.5)
-    vInfo.push_back("2017 Run F (09May2018 ReReco)");
-  else if (mLumi == 9.76)
-    vInfo.push_back("2017 Run C");
-  else if (mLumi == 13.74)
-    vInfo.push_back("2017 Runs D,E");
+  Comparison* c_res_para = new Comparison(c1, vHData_res_para, vHMC_res_para);
+  c_res_para->set_filename(output_name);  
+  c_res_para->set_x_bin_range({6, 23});
+  c_res_para->set_y_lim_range({25, 60});
+  c_res_para->set_no_flow();
+  c_res_para->set_info(vInfo);
+  c_res_para->set_lumi(lumi);
+  c_res_para->set_multiple_comparisons();
+  c_res_para->set_no_log();
+  c_res_para->set_legend_labels(vLabels);
+  c_res_para->set_scale(1);
+  c_res_para->set_x_label("q_{T} [GeV]");
+  c_res_para->set_y_label("#sigma(u_{#parallel}) [GeV]");
+  c_res_para->set_rat_label("#frac{Data}{MC}");
+  c_res_para->give_info("Response corrected");
+  c_res_para->set_rat_lim_range({0.75, 1.25});
+  c_res_para->plot(1);
 
-  vector<TLatex*> t(vInfo.size());
-  for(int i=0; i<vInfo.size(); i++) {
-    double j = i;
-    j *= 0.05;
-    t[i] = new TLatex(0.20, 0.85-j, vInfo[i]);
-    t[i]->SetTextSize(fs);
-    t[i]->SetNDC(kTRUE);
-    t[i]->Draw("SAME");
-  }
+  Comparison* c_res_perp = new Comparison(c1, vHData_res_perp, vHMC_res_perp);
+  c_res_perp->set_filename(output_name);
+  c_res_perp->set_x_bin_range({6, 23});
+  c_res_perp->set_y_lim_range({25, 60});
+  c_res_perp->set_no_flow();
+  c_res_perp->set_info(vInfo);
+  c_res_perp->set_lumi(lumi);
+  c_res_perp->set_multiple_comparisons();
+  c_res_perp->set_no_log();
+  c_res_perp->set_legend_labels(vLabels);
+  c_res_perp->set_scale(1);
+  c_res_perp->set_x_label("q_{T} [GeV]");
+  c_res_perp->set_y_label("#sigma(u_{#perp}) [GeV]");
+  c_res_perp->set_rat_label("#frac{Data}{MC}");
+  c_res_perp->give_info("Response corrected");
+  c_res_perp->set_rat_lim_range({0.75, 1.25});
+  c_res_perp->plot(idx == 2 ? 2 : 1);
 
-  vector<TString> mVLegendLabels = {"All JECs", "Modified JECs"}; 
-  if (mVLegendLabels.size() > 0) {
-    double j = mVHData.size()*0.05;
-    TLegend* l1 = new TLegend(0.60, 0.77-j, 0.92, 0.89);
-    for (int i=0; i<mVHData.size(); i++)
-      l1->AddEntry(mVHData[i], mVLegendLabels[i], "lep");
-    //int idxMC = mVHData.size();
-    //for (int i=0; i<mVHMC.size(); i++) {
-    //  if (!mBothData) l1->AddEntry(mVHMC[i], mVLegendLabels[idxMC+i], "f");
-    //  else l1->AddEntry(mHMC, mVLegendLabels[idxMC], "lep");
-    //}
-    l1->SetBorderSize(0);
-    l1->Draw("SAME");
-  }
-
-  c1->cd();
-  TPad* ratPad = new TPad( "p_main", "p_main", 0.0, 0.0, 1.0, 0.3);
-  ratPad->SetBottomMargin(0.36);
-  ratPad->SetRightMargin(0.07);
-  ratPad->SetTopMargin(0.07);
-  ratPad->SetLeftMargin(0.12);
-  ratPad->Draw();
-  ratPad->cd();
-  ratPad->SetGridy();
-
-
-  vector<TH1D*> mVHRat;
-  vector<TH1D*> hMC = {hM1, hM2}; 
-  mVHRat.push_back((TH1D*)hD1->Clone("mVHRat0"));
-  mVHRat.push_back((TH1D*)hD2->Clone("mVHRat1"));
-  mVHRat[0]->SetTitle("");
-  mVHRat[0]->Divide(hMC[0]);
-  mVHRat[0]->GetYaxis()->SetRangeUser(0.5,1.5);
-  mVHRat[0]->GetYaxis()->SetLabelSize(0.08);
-  mVHRat[0]->GetXaxis()->SetLabelSize(0.08);
-  mVHRat[0]->GetYaxis()->SetNdivisions(5);
-
-  TString mRatLabel = "#frac{Data}{MC}";
-  mVHRat[0]->GetYaxis()->SetTitle(mRatLabel);
-  mVHRat[0]->GetYaxis()->SetTitleSize(0.08);
-  mVHRat[0]->GetYaxis()->SetTitleOffset(0.65);
-  mVHRat[0]->GetYaxis()->CenterTitle();
-
-  mVHRat[0]->GetXaxis()->SetTitle(x_label);
-  mVHRat[0]->GetXaxis()->SetTitleOffset(1.1);
-  mVHRat[0]->GetXaxis()->SetTitleSize(0.12);
-
-  mVHRat[0]->SetMarkerStyle(20);
-  //mVHRat[0]->SetMarkerSize(1);
-  mVHRat[0]->SetStats(0);
-  //mVHRat[0]->GetXaxis()->SetRange(mXBinRange[0], mXBinRange[1]);
-  mVHRat[0]->SetMarkerColor(dataColors[0]);
-  mVHRat[0]->SetLineColor(dataColors[0]);
-  mVHRat[0]->SetFillColor(dataColors[0]);
-
-  mVHRat[0]->Draw("e1x0");
-  mVHRat[0]->GetXaxis()->SetLabelOffset();
-  mVHRat[0]->GetXaxis()->SetLabelSize(0.07);
-
-
-  for (int i=1; i<mVHData.size(); i++) {
-    TString idx = Form("%d", i);
-    mVHRat.push_back((TH1D*)mVHData[i]->Clone("mVHRat"+idx));
-    mVHRat[i]->Divide(hMC[i]);
-    mVHRat[i]->SetMarkerStyle(20);
-    mVHRat[i]->SetMarkerColor(dataColors[i]);
-    mVHRat[i]->SetFillColor(dataColors[i]);
-    mVHRat[i]->SetLineColor(dataColors[i]);
-    mVHRat[i]->SetStats(0);
-    mVHRat[i]->Draw("e1x0, same");
-  }
- 
-  if (idx == 0)
-    c1->Print((output_name+"(").c_str());
-  else if (idx == 1)
-    c1->Print((output_name).c_str());
-  else if (idx == 2)
-    c1->Print((output_name+")").c_str());
-  c1->Clear("D");
-
-  delete h_line;
-  delete mainPad;
-  delete ratPad;
-  delete hD1;
-  delete hD2;
-  delete hM1;
-  delete hM2;
 }
+
 
 void make_double_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name1, TString hist_name2, TString label1, TString label2, TString x_label, double lumi, double scale, vector<TString> vInfo, bool data, int idx) {
   TH1D* h1;
@@ -343,6 +487,52 @@ double get_scaleMC(vector<TFile*> vFiles, TString hist_name, int histIdx, double
   return scale; 
 }
 
+void make_met_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString name, double lumi, double scale, vector<TString> vInfo, int idx) {
+  //make_plot(c1, histIdx, vFiles, output_name, "hT1CMET" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo, idx == 0 ? 0 : 1, true);
+  make_plot_rat_unc(c1, histIdx, vFiles, output_name, "hT1CMET" + name, "hT1CMET_up" + name, "hT1CMET_down" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo, idx == 0 ? 0 : 1, true); 
+  vector<TString> vInfo_up = vInfo;
+  vInfo_up.push_back("JEC Varied Up");
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_up" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_up, 1, true);
+  vector<TString> vInfo_down = vInfo;
+  vInfo_down.push_back("JEC Varied Down");
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_down" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_down, 1, true);
+  
+  vector<TString> vInfo_0Jets = vInfo;
+  vInfo_0Jets.push_back("0 Jets");
+  //make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_0Jets, idx == 0 ? 0 : 1, true);
+  make_plot_rat_unc(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets" + name, "hT1CMET_0Jets_up" + name, "hT1CMET_0Jets_down" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_0Jets, idx == 0 ? 0 : 1, true);
+  vector<TString> vInfo_0Jets_up = vInfo_0Jets;
+  vInfo_0Jets_up.push_back("JEC Varied Up");
+  //vInfo_0Jets_up.push_back("0 Jets");
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_up" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_0Jets_up, 1, true);
+  vector<TString> vInfo_0Jets_down = vInfo_0Jets;
+  vInfo_0Jets_down.push_back("JEC Varied Down");
+  //vInfo_0Jets_down.push_back("0 Jets");
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_down" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_0Jets_down, 1, true); 
+
+  vector<TString> vInfo_1pJets = vInfo;
+  vInfo_1pJets.push_back("#geq 1 Jets");
+  make_plot_rat_unc(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets" + name, "hT1CMET_1pJets_up" + name, "hT1CMET_1pJets_down" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_1pJets, idx == 0 ? 0 : 1, true);
+  //make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_1pJets, idx == 0 ? 0 : 1, true);
+  vector<TString> vInfo_1pJets_up = vInfo_1pJets;
+  vInfo_1pJets_up.push_back("JEC Varied Up");
+  //vInfo_1pJets_up.push_back("#geq 1 Jets");
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_up" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_1pJets_up, 1, true);
+  vector<TString> vInfo_1pJets_down = vInfo_1pJets;
+  vInfo_1pJets_down.push_back("JEC Varied Down");
+  //vInfo_1pJets_down.push_back("#geq 1 Jets");
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_down" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_1pJets_down, 1, true);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hJetPt" + name, "Jet p_{T} [GeV]", lumi, scale, vInfo, 1);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hZpT" + name, "q_{T} [GeV]", lumi, scale, vInfo, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_UPara" + name, "u_{#parallel} [GeV]", lumi, scale, vInfo, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_UPerp" + name, "u_{#perp}  [GeV]", lumi, scale, vInfo, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_UParaPlusqT" + name, "u_{#parallel} + q_{T} [GeV]", lumi, scale, vInfo, idx == 2 ? 2 : 1);
+
+} 
+
+
 int main(int argc, char* argv[])
 {
   // Style options
@@ -350,7 +540,7 @@ int main(int argc, char* argv[])
   gStyle->SetPalette(kRainBow,0);
   gStyle->SetPaintTextFormat(".2f");
   gStyle->SetTickLength(0.01);
-  gStyle->SetErrorX(0);
+  //gStyle->SetErrorX(0);
   gStyle->SetPadTickX(1);
   gStyle->SetPadTickY(1);
   gStyle->SetTitleAlign(33);
@@ -369,223 +559,43 @@ int main(int argc, char* argv[])
   if (eras == "D,E")	histIdx = 2;
   if (eras == "F" || eras == "Fv2")	histIdx = 3;
 
+  TString era_info;
+  if (eras == "B") 	era_info = "2017 Run B";
+  if (eras == "C")      era_info = "2017 Run C";
+  if (eras == "D,E")      era_info = "2017 Runs D,E";
+  if (eras == "F")      era_info = "2017 Run F";
+  if (eras == "Fv2")      era_info = "2017 Run F (09May2018 ReReco)";
+
 
   TFile* fData = new TFile("../histograms/Zll_histograms_" + eras + ".root");
-  TFile* fDY = new TFile("../histograms/Zll_histograms_Drell-Yan.root");
+  TFile* fDY;
+  if (eras == "Fv2") 
+    fDY = new TFile("../histograms/Zll_histograms_Drell-Yan_v2.root");
+  else
+    fDY = new TFile("../histograms/Zll_histograms_Drell-Yan.root");
   TFile* fDiBoson = new TFile("../histograms/Zll_histograms_DiBoson.root");
   TFile* fTriBoson = new TFile("../histograms/Zll_histograms_TriBoson.root");
   TFile* fTop = new TFile("../histograms/Zll_histograms_Top.root");
-  vector<TFile*> vFiles = {fData, fDY, fDiBoson, fTriBoson, fTop};
+  //vector<TFile*> vFiles = {fData, fDY, fDiBoson, fTriBoson, fTop};
+  vector<TFile*> vFiles = {fData, fDY, fDiBoson, fTop};
 
   TCanvas* c1 = new TCanvas("c1", "histos", 600, 800);
-  double scaleMC = get_scaleMC(vFiles, "hT1CMET", histIdx, lumi);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET"}, 0); 
-  make_plot(c1, histIdx, vFiles, output_name, "hNJets", "N_{jets}", lumi, -1, {""}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hCCpT", "p_{T} [GeV]", lumi, -1, {"Charged Candidates"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hPhotonpT", "p_{T} [GeV]", lumi, -1, {"Photon Candidates"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hNeutpT", "p_{T} [GeV]", lumi, -1, {"Neutral Hadron Candidates"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hCCeta", "|#eta|", lumi, -1, {"Charged Candidates"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hPhotoneta", "|#eta|", lumi, -1, {"Photon Candidates"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hNeuteta", "|#eta|", lumi, -1, {"Neutral Hadron Candidates"}, 1); 
+  double scaleMC = get_scaleMC(vFiles, "hDilepMass", histIdx, lumi);
+  //double scaleMC = lumi; 
 
+  make_met_plots(c1, histIdx, vFiles, output_name, "V8_std", lumi, scaleMC, {"V8 JECs"}, 0);
+  make_met_plots(c1, histIdx, vFiles, output_name, "V8_v1", lumi, scaleMC, {"V8 JECs", "Modified v1 Type-1 MET"}, 1);  
+  make_resolution_plots(c1, histIdx, vFiles, output_name, {"V8_std", "V8_v1"}, lumi, scaleMC, {era_info, "V8 JECs"}, {"Std. Type-1 MET", "Mod. v1 Type-1 MET"}, 1);
 
-  // Pf Cand Quantities, split by eta and type
-  vector<TString> vEta = {"0 < |#eta| < 1.3", "1.3 < |#eta| < 1.6", "1.6 < |#eta| < 2.5", "2.5 < |#eta| < 3.0", "|#eta| > 3.0", "All #eta"};
-  vector<TString> vCands = {"Charged Candidates", "Photon Candidates", "Neutral Hadrons"};
-  for (int i=0; i<nEtaRegions-1; i++) {
-    TString etaIdx = to_string(i);
-    for (int j=0; j<nCandCats-1; j++) {
-      TString candIdx = to_string(j);
-      vector<TString> v1;
-      v1.push_back(vCands[j]);
-      v1.push_back(vEta[i]);
-      TString base = "h_eta" + etaIdx + "_cand"+ candIdx;
-      make_plot(c1, histIdx, vFiles, output_name, base + "MET", "E_{T}^{miss} [GeV]", lumi, scaleMC, v1, 1);
-      make_plot(c1, histIdx, vFiles, output_name, base + "SumET", "Sum E_{T} [GeV]", lumi, scaleMC, v1, 1);
-      make_plot(c1, histIdx, vFiles, output_name, base + "METPhi", "E_{T}^{miss} #phi", lumi, scaleMC, v1, 1);
-    }
-  }
-
-  // Pf Cand Quantities, split by eta, inclusive in type
-  for (int i=0; i<nEtaRegions; i++) {
-    TString etaIdx = to_string(i);
-    vector<TString> v1;
-    v1.push_back("All Candidates");
-    v1.push_back(vEta[i]);
-    TString base = "h_eta" + etaIdx + "_cand3";
-    make_plot(c1, histIdx, vFiles, output_name, base + "MET", "E_{T}^{miss} [GeV]", lumi, scaleMC, v1, 1);
-    make_plot(c1, histIdx, vFiles, output_name, base + "SumET", "Sum E_{T} [GeV]", lumi, scaleMC, v1, 1);
-    make_plot(c1, histIdx, vFiles, output_name, base + "METPhi", "E_{T}^{miss} #phi", lumi, scaleMC, v1, 1);
-  }
-
-  make_plot(c1, histIdx, vFiles, output_name, "hNCands", "Candidate Multiplicity", lumi, -1, {"All Candidates"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hNCCands", "Candidate Multiplicity", lumi, -1, {"Charged Candidates"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hNPCands", "Candidate Multiplicity", lumi, -1, {"Photon Candidates"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hNNCands", "Candidate Multiplicity", lumi, -1, {"Neutral Hadron Candidates"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hSumETEndcapPhotonsClustered", "Sum E_{T} [GeV]", lumi, -1, {"Clustered Photon Candidates", "2.5 < |#eta| < 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hSumETEndcapPhotonsUnclustered", "Sum E_{T} [GeV]", lumi, -1, {"Unclustered Photon Candidates", "2.5 < |#eta| < 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hPhotonpTEndcap", "p_{T} [GeV]", lumi, -1, {"Photon Candidates", "2.3 < |#eta| < 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hNVtx", "N_{vtx}", lumi, -1, {""}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hRawMETMod_v2", "E_{T}^{miss} [GeV]", lumi, -1, {"Raw MET (No Low pT HE)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hRawMETMod", "E_{T}^{miss} [GeV]", lumi, -1, {"Raw MET (No Neutral EC)"}, 1);  
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMETMod", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No Neutral EC)"}, 1); 
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoECJECs_v1", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoECJECs_v2", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoECJECs_v3", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoECJECs_v4", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hLeadJetPt", "p_{T} [GeV]", lumi, -1, {"Lead jet p_{T}"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJetPt", "p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T}"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hLeadJetEta", "#eta [GeV]", lumi, -1, {"Lead jet #eta"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJetEta", "#eta [GeV]", lumi, scaleMC, {"Jet #eta"}, 1);
-
-  // 0-1 Jet Bins
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0JetsMod", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "0 Jets"}, 1); 
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v1", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v2", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v3", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v4", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
-  
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJetsMod", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v1", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v2", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Neutral EC)", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v3", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "No JECs for p_{T} < 30 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v4", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET", "No JECs for p_{T} < 50 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
-
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoResiduals", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (No Resdiuals)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_tightID", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (Tight Jet ID)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoResiduals", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Resdiuals)", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_tightID", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (Tight Jet ID)", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoResiduals", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (No Resdiuals)", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_tightID", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (Tight Jet ID)", "#geq 1 Jets"}, 1);
-
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Emfrac", "Jet EM Fraction", lumi, -1, {""}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Emfrac", "Jet Neutral EM Fraction", lumi, -1, {""}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Hadfrac", "Jet Neutral Hadronic Fraction", lumi, -1, {""}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Charged_Hadfrac", "Jet Charged Hadronic Fraction", lumi, -1, {""}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Emfrac_hf", "Jet Neutral EM Fraction (HF)", lumi, -1, {""}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Hadfrac_hf", "Jet Neutral Hadronic Fraction (HF)", lumi, -1, {""}, 1);
-
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_RunFV6", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (V6 JECs)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJetPt_RunFV6", "Jet p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T} (V6 JECs)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_RunFV6", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V6 JECs)", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV6", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V6 JECs)", "#geq 1 Jets"}, 1);
-  
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_RunFV8b", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (V8b JECs)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJetPt_RunFV8b", "Jet p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T} (V8b JECs)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_RunFV8b", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8b JECs)", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV8b", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8b JECs)", "#geq 1 Jets"}, 1);
-
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_RunFV8c", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (V8c JECs)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJetPt_RunFV8c", "Jet p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T} (V8c JECs)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_RunFV8c", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8c JECs)", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV8c", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8c JECs)", "#geq 1 Jets"}, 1);
-
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_RunFV8d", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (V8d JECs)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJetPt_RunFV8d", "Jet p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T} (V8d JECs)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_RunFV8d", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8d JECs)", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV8d", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V8d JECs)", "#geq 1 Jets"}, 1);
-
-  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET", "h_eta5_cand3MET", "Type-1 MET", "Raw MET", "E_{T}^{miss} [GeV]", lumi, -1, {""}, true, 1);
-  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET", "h_eta5_cand3MET", "Type-1 MET", "Raw MET","E_{T}^{miss} [GeV]", lumi, -1, {""}, false, 1);
-
-  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoResiduals", "h_eta5_cand3MET", "Type-1 MET (No Residuals)", "Raw MET", "E_{T}^{miss} [GeV]", lumi, -1, {""}, true, 1);
-  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoResiduals", "h_eta5_cand3MET", "Type-1 MET (No Residuals)", "Raw MET", "E_{T}^{miss} [GeV]", lumi, -1, {""}, false, 1);
-
-  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET", "hT1CMET_NoResiduals", "Type-1 MET", "Type-1 MET (No Residuals)", "E_{T}^{miss} [GeV]", lumi, -1, {""}, true, 1);
-  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET", "hT1CMET_NoResiduals", "Type-1 MET", "Type-1 MET (No Residuals)", "E_{T}^{miss} [GeV]", lumi, -1, {""}, false, 1);
-
-  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET_tightID", "hT1CMET", "Type-1 MET (Tight ID)", "Type-1 MET", "E_{T}^{miss} [GeV]", lumi, -1, {""}, true, 1);
-  make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET_tightID", "hT1CMET", "Type-1 MET (Tight ID)", "Type-1 MET", "E_{T}^{miss} [GeV]", lumi, -1, {""}, false, 1);
-
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Emfrac_central", "Jet Neutral EM Fraction", lumi, -1, {"|#eta| <= 2.7"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Hadfrac_central", "Jet Neutral Hadronic Fraction", lumi, -1, {"|#eta| <= 2.7"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Emfrac_forward", "Jet Neutral EM Fraction", lumi, -1, {"2.7 < |#eta| <= 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Hadfrac_forward", "Jet Neutral Hadronic Fraction", lumi, -1, {"2.7 < |#eta| <= 3.0"}, 1);
+  make_met_plots(c1, histIdx, vFiles, output_name, "V11_std", lumi, scaleMC, {"V11 JECs"}, 1);
+  make_met_plots(c1, histIdx, vFiles, output_name, "V11_v1", lumi, scaleMC, {"V11 JECs", "Modified v1 Type-1 MET"}, 1);
+  make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2C", lumi, scaleMC, {"V11C JECs", "Modified v2C Type-1 MET"}, 1);
+  make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2D", lumi, scaleMC, {"V11D JECs", "Modified v2D Type-1 MET"}, 1);
  
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Emfrac_central", "Jet Neutral EM Fraction", lumi, scaleMC, {"|#eta| <= 2.7"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Hadfrac_central", "Jet Neutral Hadronic Fraction", lumi, scaleMC, {"|#eta| <= 2.7"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Emfrac_forward", "Jet Neutral EM Fraction", lumi, scaleMC, {"2.7 < |#eta| <= 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Hadfrac_forward", "Jet Neutral Hadronic Fraction", lumi, scaleMC, {"2.7 < |#eta| <= 3.0"}, 1);
- 
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoECJECs_v5", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 25"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoECJECs_v6", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 75 && 2.7 < |#eta| < 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoECJECs_v7", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 75 && 2.5 < |#eta| < 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_NoECJECs_v8", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 100 && 2.7 < |#eta| < 3.0"}, 1);
+  make_resolution_plots(c1, histIdx, vFiles, output_name, {"V11_std", "V11_v1", "V11_v2C", "V11_v2D"}, lumi, scaleMC, {era_info, "V11 JECs"}, {"Std. Type-1 MET", "Mod. v1 Type-1 MET", "Mod. v2C Type-1 MET", "Mod. v2D Type-1 MET"}, 1);
+  make_resolution_plots(c1, histIdx, vFiles, output_name, {"V11_std", "V11_v1"}, lumi, scaleMC, {era_info, "V11 JECs"}, {"Std. Type-1 MET", "Mod. v1 Type-1 MET"}, 1);
+  make_resolution_plots(c1, histIdx, vFiles, output_name, {"V11_std", "V11_v2C"}, lumi, scaleMC, {era_info, "V11 JECs"}, {"Std. Type-1 MET", "Mod. v2C Type-1 MET"}, 2);
 
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v5", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 25", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v6", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 75 && 2.7 < |#eta| < 3.0", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v7", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 75 && 2.5 < |#eta| < 3.0", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_NoECJECs_v8", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 100 && 2.7 < |#eta| < 3.0", "0 Jets"}, 1);
+  //make_plot_rat_unc(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name, TString hist_name_up, TString hist_name_down, TString x_label, double lumi, double scale, vector<TString> vInfo, int idx, bool rebin = false)
 
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v5", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 25", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v6", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 75 && 2.7 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v7", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 75 && 2.5 < |#eta| < 3.0", "#geq 1 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_NoECJECs_v8", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "No JECs for p_{T} < 100 && 2.7 < |#eta| < 3.0", "#geq 1 Jets"}, 1); 
-
-  make_2Dplot(c1, histIdx, vFiles, output_name, "hJetEtaPhi", "Jet #eta", "Jet #phi", lumi, -1, {}, 1);
-  make_2Dplot(c1, histIdx, vFiles, output_name, "hJetPtEta", "Jet p_{T} [GeV]", "Jet #eta", lumi, -1, {}, 1);
-  make_2Dplot(c1, histIdx, vFiles, output_name, "hJetPtPhi", "Jet p_{T} [GeV]", "Jet #phi", lumi, -1, {}, 1);
-
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_RunFV9", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET (V9 JECs)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hJetPt_RunFV9", "Jet p_{T} [GeV]", lumi, scaleMC, {"Jet p_{T} (V9 JECs)"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_0Jets_RunFV9", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V9 JECs)", "0 Jets"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets_RunFV9", "E_{T}^{miss} [GeV]", lumi, scaleMC, {"T1-Corrected MET (V9 JECs)", "#geq 1 Jets"}, 1); 
-
-
-  // Scale & Resolution
-  // V8
-  make_plot(c1, histIdx, vFiles, output_name, "hZpT_V8", "q_{T} [GeV]", lumi, -1, {"V8 JECs"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPara_V8", "u_{#parallel} [GeV]", lumi, -1, {"All JECs applied", "V8 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaMod_V8", "u_{#parallel} [GeV]", lumi, -1, {"Modified JECs", "V8 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPerp_V8", "u_{#perp}  [GeV]", lumi, -1, {"All JECs applied", "V8 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPerpMod_V8", "u_{#perp}  [GeV]", lumi, -1, {"Modified JECs", "V8 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT_V8", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied", "V8 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod_V8", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"Modified JECs", "V8 JECs"},1); 
-
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPara_V8", "hResParaMod_V8", "", "", "q_{T}", "#sigma(u_{#parallel}) [GeV]", lumi, -1, {"V8 JECs"}, {20, 75}, 1);
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPerp_V8", "hResPerpMod_V8", "", "", "q_{T}", "#sigma(u_{#perp} ) [GeV]", lumi, -1, {"V8 JECs"}, {20, 50}, 1);
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponse_V8", "hResponseMod_V8", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {"V8 JECs"}, {0.6, 1.25}, 1);
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponseEE_V8", "hResponseModEE_V8", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {"V8 JECs", "Z #rightarrow ee events"}, {0.6, 1.25}, 1);
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponseMM_V8", "hResponseModMM_V8", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {"V8 JECs", "Z #rightarrow #mu#mu events"}, {0.6, 1.25}, 1);
-
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_V8", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V8 JECs"}, 1);
-
-  // extras for V8
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT_highqT_V8", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied", "V8 JECs", "q_{T} > 130 GeV"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod_highqT_V8", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"Modified JECs", "V8 JECs", "q_{T} > 130 GeV"},1);
-
-  // V6
-  make_plot(c1, histIdx, vFiles, output_name, "hZpT_V6", "q_{T} [GeV]", lumi, -1, {"V6 JECs"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPara_V6", "u_{#parallel} [GeV]", lumi, -1, {"All JECs applied", "V6 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaMod_V6", "u_{#parallel} [GeV]", lumi, -1, {"Modified JECs", "V6 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPerp_V6", "u_{#perp}  [GeV]", lumi, -1, {"All JECs applied", "V6 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPerpMod_V6", "u_{#perp}  [GeV]", lumi, -1, {"Modified JECs", "V6 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT_V6", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied", "V6 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod_V6", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"Modified JECs", "V6 JECs"},1);
-
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPara_V6", "hResParaMod_V6", "", "", "q_{T}", "#sigma(u_{#parallel}) [GeV]", lumi, -1, {"V6 JECs"}, {20, 75}, 1);
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPerp_V6", "hResPerpMod_V6", "", "", "q_{T}", "#sigma(u_{#perp} ) [GeV]", lumi, -1, {"V6 JECs"}, {20, 50}, 1);
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponse_V6", "hResponseMod_V6", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {"V6 JECs"}, {0.6, 1.25}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_V6", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V6 JECs"}, 1);
-
-  // V9
-  make_plot(c1, histIdx, vFiles, output_name, "hZpT_V9", "q_{T} [GeV]", lumi, -1, {"V9 JECs"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPara_V9", "u_{#parallel} [GeV]", lumi, -1, {"All JECs applied", "V9 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaMod_V9", "u_{#parallel} [GeV]", lumi, -1, {"Modified JECs", "V9 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPerp_V9", "u_{#perp}  [GeV]", lumi, -1, {"All JECs applied", "V9 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUPerpMod_V9", "u_{#perp}  [GeV]", lumi, -1, {"Modified JECs", "V9 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqT_V9", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"All JECs applied", "V9 JECs"},1);
-  make_plot(c1, histIdx, vFiles, output_name, "hUParaPlusqTMod_V9", "u_{#parallel} + q_{T} [GeV]", lumi, -1, {"Modified JECs", "V9 JECs"},1);
-
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPara_V9", "hResParaMod_V9", "", "", "q_{T}", "#sigma(u_{#parallel}) [GeV]", lumi, -1, {"V9 JECs"}, {20, 75}, 1);
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResPerp_V9", "hResPerpMod_V9", "", "", "q_{T}", "#sigma(u_{#perp} ) [GeV]", lumi, -1, {"V9 JECs"}, {20, 50}, 1);
-  make_resolution_plot(c1, histIdx, vFiles, output_name, "hResponse_V9", "hResponseMod_V9", "", "", "q_{T}", "-<u_{#parallel}>/q_{T}", lumi, -1, {"V9 JECs"}, {0.6, 1.25}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_V9", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V9 JECs"}, 1);
-
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMETMod_V6", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V6 JECs", "No JECs for p_{T} < 75", "          && 2.7 < |#eta| < 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMETMod_V8", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V8 JECs", "No JECs for p_{T} < 75", "          && 2.7 < |#eta| < 3.0"}, 1);
-  make_plot(c1, histIdx, vFiles, output_name, "hT1CMETMod_V9", "E_{T}^{miss} [GeV]", lumi, -1, {"T1-Corrected MET", "V9 JECs", "No JECs for p_{T} < 75", "          && 2.7 < |#eta| < 3.0"}, 2);
-  
 }

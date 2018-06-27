@@ -28,8 +28,8 @@ def find_corrupt_files(paths):
           fnames.append("/hadoop"+fname)
   return fnames
 
-path = "/hadoop/cms/store/user/smay/ProjectMetis/"
-corrupt_files = find_corrupt_files(path)
-for file in corrupt_files:
-  print("Files %s is corrupt, removing it" % file)
+#path = "/hadoop/cms/store/user/smay/ProjectMetis/"
+#corrupt_files = find_corrupt_files(path)
+#for file in corrupt_files:
+#  print("Files %s is corrupt, removing it" % file)
   #os.system("rm %s" %file)

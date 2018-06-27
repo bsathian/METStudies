@@ -35,8 +35,11 @@ class Comparison
   public:
     Comparison(TCanvas* c1, TH1D* hData, TH1D* hMC);
     Comparison(TCanvas* c1, vector<TH1D*> hData, TH1D* hMC);
+    Comparison(TCanvas* c1, vector<TH1D*> hData, vector<TH1D*> hMC);
     Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC);
     Comparison(TCanvas* c1, TH2D* hData, TH2D* hMC);
+    Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC, TH1D* hRatUnc);
+    //Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC, TH1D* hDataUp, TH1D* hDataDown, vector<TH1D*> hMCUp, vector<TH1D*> hMCDown);
   
     ~Comparison();
 
@@ -65,6 +68,9 @@ class Comparison
     void set_no_lumi() {mLumi = -1;}
     void set_2DdrawOpt(TString drawOpt) {m2DDrawOpt = drawOpt;}
     void set_data_drawOpt(TString drawOpt) {mDataDrawOpt = drawOpt;}
+    void set_multiple_comparisons() {mMultipleComparisons = true;}
+    void set_legend_lower_right() {mLegendLowerRight = true;} 
+    void set_rat_unc_label(TString label) {mRatUncLabel = label;} 
 
     void give_hlines(vector<double> vHLines) {mVHLines = vHLines;}
     void give_vlines(vector<double> vVLines) {mVVLines = vVLines;}
@@ -100,6 +106,7 @@ class Comparison
     vector<TH1D*> mVHMC;
     TH1D* mHRat;
     vector<TH1D*> mVHRat;
+    TH1D* mHRatUnc;
 
     THStack* mStack;
 
@@ -111,6 +118,8 @@ class Comparison
 
     bool m2D;
     bool mMultipleData;
+    bool mMultipleComparisons;
+
 
     bool mCustomXRange;
     vector<int> mXBinRange;
@@ -130,6 +139,7 @@ class Comparison
     TString mRatLabel;
     vector<TString> mVInfo;
     vector<TString> mVLegendLabels;
+    bool mLegendLowerRight;
 
     double mScale;
     bool mScaled;    
@@ -142,9 +152,13 @@ class Comparison
     bool mBothData;
     bool mRatio;
 
+    bool mRatioUnc;
+
     int mColor1;
     int mColor2;
     vector<int> mColorData;
+
+    TString mRatUncLabel;
 
     const double topSpace = 0.15;
     const double botSpace = 0.05;
@@ -163,6 +177,8 @@ Comparison::~Comparison()
     delete mHMC;  
     for (int i = 0; i < mVHMC.size(); i++)
       delete mVHMC[i];
+    if (mRatioUnc)
+      delete mHRatUnc;
   }
   else {
     delete mH2DData;
@@ -194,6 +210,30 @@ Comparison::Comparison(TCanvas* c1, vector<TH1D*> hData, TH1D* hMC)
   mHMC = (TH1D*)hMC->Clone("mHMC");
 }
 
+inline
+Comparison::Comparison(TCanvas* c1, vector<TH1D*> hData, vector<TH1D*> hMC)
+{
+  default_options(c1);
+
+  int nDataHists = hData.size();
+  for (int i=0; i<nDataHists; i++) {
+    TString idx = Form("%d", i);
+    mVHData.push_back((TH1D*)hData[i]->Clone("mHData"+idx));
+    //mVHRat.push_back((TH1D*)hData[i]->Clone("mHRat"+idx));
+  }
+
+
+  int nMCHists = hMC.size();
+  for (int i=0; i<nMCHists; i++) {
+    TString idx = Form("%d", i);
+    mVHMC.push_back((TH1D*)hMC[i]->Clone("mHMC"+idx));
+    //mVHRat.push_back((TH1D*)hData[i]->Clone("mHRat"+idx));
+  }
+
+  mHMC = (TH1D*)hMC[0]->Clone("mHMC");
+  for (int i=1; i<nMCHists; i++)
+    mHMC->Add(hMC[i]);
+}
 
 inline
 Comparison::Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC)
@@ -211,6 +251,27 @@ Comparison::Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC)
   mHMC = (TH1D*)hMC[0]->Clone("mHMC");
   for (int i=1; i<nMCHists; i++)
     mHMC->Add(hMC[i]);
+}
+
+inline
+Comparison::Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC, TH1D* hRatUnc)
+{
+  default_options(c1);
+  mVHData.push_back((TH1D*)hData->Clone("mHData"));
+
+  int nMCHists = hMC.size();
+  for (int i=0; i<nMCHists; i++) {
+    TString idx = Form("%d", i);
+    mVHMC.push_back((TH1D*)hMC[i]->Clone("mHMC"+idx));
+    //mVHRat.push_back((TH1D*)hData[i]->Clone("mHRat"+idx));
+  }
+
+  mHMC = (TH1D*)hMC[0]->Clone("mHMC");
+  for (int i=1; i<nMCHists; i++)
+    mHMC->Add(hMC[i]);
+
+  mRatioUnc = true;
+  mHRatUnc = (TH1D*)hRatUnc->Clone("mHRatUnc");
 }
 
 
@@ -252,8 +313,12 @@ void Comparison::default_options(TCanvas* c1)
   mYLabel = "Events";
   mYLabelFontSize = 0.04;
   mRatLabel = "#frac{2017 Data}{2016 Data}";
+  mRatioUnc = false;
+  mRatUncLabel = "Syst. Unc.";
 
   mDataDrawOpt = "E";
+  mMultipleComparisons = false;
+  mLegendLowerRight = false;
 }
 
 inline
@@ -380,14 +445,16 @@ void Comparison::compute_limits(bool customXRange, bool customYRange)
   
   if (!customYRange) { // calculate y limits 
     double minContent(1.5*pow(10,308)), maxContent(0), avgContent(0);
-    for (int i=mXBinRange[0]; i<=mXBinRange[1]; i++) {
-      double binContent = mVHData[0]->GetBinContent(i);
-      avgContent += binContent/float(mXBinRange[1] - mXBinRange[0]);
-      if ((binContent < minContent) && binContent > 0)  minContent = binContent;
-      if (binContent > maxContent) maxContent = binContent;
-      //binContent = (mHMC->GetBinContent(i))*mScale;
-      //if ((binContent < minContent) && binContent > 0)  minContent = binContent;
-      //if (binContent > maxContent) maxContent = binContent;
+    for (int j = 0; j < mVHData.size(); j++) {
+      for (int i=mXBinRange[0]; i<=mXBinRange[1]; i++) {
+	double binContent = mVHData[j]->GetBinContent(i);
+	avgContent += binContent/float(mXBinRange[1] - mXBinRange[0]);
+	if ((binContent < minContent) && binContent > 0)  minContent = binContent;
+	if (binContent > maxContent) maxContent = binContent;
+	//binContent = (mHMC->GetBinContent(i))*mScale;
+	//if ((binContent < minContent) && binContent > 0)  minContent = binContent;
+	//if (binContent > maxContent) maxContent = binContent;
+      }
     }
     //if (minContent < avgContent/1000) minContent = avgContent/1000;
     double range;
@@ -466,9 +533,15 @@ void Comparison::set_histogram_options(int color1, int color2)
     mVHData[i]->SetLineWidth(2);
     mVHData[i]->GetXaxis()->SetLabelOffset(999);
     mVHData[i]->GetXaxis()->SetLabelSize(0);
+    if (mMultipleComparisons) {
+      if (i != 0) continue;
+      mVHData[i]->GetYaxis()->SetTitle(mYLabel);
+      mVHData[i]->GetYaxis()->SetTitleSize(mYLabelFontSize);
+      mVHData[i]->GetYaxis()->SetTitleOffset(1.2);
+    }
   }
 
-  vector<int> vDefaultColors = {kRed - 7, kAzure+1, kViolet -4, kCyan-7, kOrange+1, kGreen-3, kTeal+3, kBlue-6};
+  vector<int> vDefaultColors = {kRed - 7, kAzure+1, kCyan-7, kViolet -4, kOrange+1, kGreen-3, kTeal+3, kBlue-6};
   for (int i=0; i<mVHMC.size(); i++) {
     mVHMC[i]->SetFillColor(vDefaultColors[i]);
     mVHMC[i]->SetLineColor(vDefaultColors[i]);
@@ -482,8 +555,10 @@ void Comparison::set_histogram_options(int color1, int color2)
     mVHMC[i]->GetXaxis()->SetLabelSize(0);
   }
   if (!mBothData) { 
-    mStack->GetXaxis()->SetLabelOffset(999);
-    mStack->GetXaxis()->SetLabelSize(0);
+    if (!mMultipleComparisons) {
+      mStack->GetXaxis()->SetLabelOffset(999);
+      mStack->GetXaxis()->SetLabelSize(0);
+    }
   }
 }
 
@@ -524,8 +599,10 @@ void Comparison::draw_main_histograms()
     else
      mVHData[i]->Draw("SAME, " + mDataDrawOpt);
   }
-  if (!mBothData) mStack->Draw("SAME, HIST");
-  else mHMC->Draw("SAME, E");
+  if (!mMultipleComparisons) {
+    if (!mBothData) mStack->Draw("SAME, HIST");
+    else mHMC->Draw("SAME, E");
+  }
   //mStack->GetXaxis()->SetRange(mXBinRange[0],mXBinRange[1]);
   //mStack->SetMinimum(mYLimRange[0]);
   //mStack->SetMinimum(mYLimRange[0]);
@@ -698,11 +775,16 @@ void Comparison::annotate_plot()
 
   if (mVLegendLabels.size() > 0) {
     double j = mVHData.size()*0.05;
-    TLegend* l1 = new TLegend(0.72, 0.75-j, 0.92, 0.89);
+    TLegend* l1;
+    if (!mLegendLowerRight)
+      l1 = new TLegend(0.70, 0.75-j, 0.92, 0.89);
+    else
+      l1 = new TLegend(0.70, 0.12, 0.92, 0.29+j); 
     for (int i=0; i<mVHData.size(); i++)
       l1->AddEntry(mVHData[i], mVLegendLabels[i], "lep");
     int idxMC = mVHData.size();
     for (int i=0; i<mVHMC.size(); i++) {
+      if (mMultipleComparisons) break;
       if (!mBothData) l1->AddEntry(mVHMC[i], mVLegendLabels[idxMC+i], "f");
       else l1->AddEntry(mHMC, mVLegendLabels[idxMC], "lep");
     }
@@ -761,21 +843,43 @@ void Comparison::make_rat_histogram(TH1D* hData, TH1D* hMC)
   mVHRat[0]->SetLineColor(dataColors[0]);
   mVHRat[0]->SetFillColor(dataColors[0]);
 
-  mVHRat[0]->Draw("e1x0");
+
+  mVHRat[0]->Draw("e1");
+  mVHRat[0]->Draw("e1 SAME");
   mVHRat[0]->GetXaxis()->SetLabelOffset();
   mVHRat[0]->GetXaxis()->SetLabelSize(0.07);
 
+  if (mRatioUnc) {
+    mHRatUnc->SetFillStyle(1001);
+    mHRatUnc->SetFillColor(kGray+0);
+    mHRatUnc->SetMarkerColor(kGray+0);
+    mHRatUnc->SetLineColor(kGray+0);
+    mHRatUnc->Draw("E2, SAME");
+  }
+
+  mVHRat[0]->Draw("e1 SAME");
 
   for (int i=1; i<mVHData.size(); i++) {
     TString idx = Form("%d", i);
     mVHRat.push_back((TH1D*)mVHData[i]->Clone("mVHRat"+idx));
-    mVHRat[i]->Divide(hMC);
+    if (!mMultipleComparisons)
+      mVHRat[i]->Divide(hMC);
+    else
+      mVHRat[i]->Divide(mVHMC[i]);
     mVHRat[i]->SetMarkerStyle(20);
     mVHRat[i]->SetMarkerColor(dataColors[i]);
     mVHRat[i]->SetFillColor(dataColors[i]);
     mVHRat[i]->SetLineColor(dataColors[i]);
     mVHRat[i]->SetStats(0);
     mVHRat[i]->Draw("e1x0, same");
+  }
+  gPad->RedrawAxis();
+
+  if (mRatioUnc) {
+    TLegend* legend = new TLegend(0.14, 0.38, 0.34, 0.48);
+    legend->AddEntry(mHRatUnc, mRatUncLabel, "f");
+    legend->SetBorderSize(0);
+    legend->Draw("SAME");
   }
 }
 

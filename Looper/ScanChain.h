@@ -33,6 +33,15 @@ bool lepsPassPOG(bool isElEvt, int &id1, int &id2) {
   return (nGoodLeps == 2);
 }
 
+bool opposite_sign(bool isElEvt, int id1, int id2) {
+  double charge_product;
+  if (isElEvt)
+    charge_product = els_charge().at(id1)*els_charge().at(id2);
+  else
+    charge_product = mus_charge().at(id1)*mus_charge().at(id2);
+  return (charge_product < 0); 
+}
+
 double dilepMass(bool isElEvt, int id1, int id2, double &ZpT) {
   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fZ;
   if (isElEvt)
@@ -85,15 +94,17 @@ bool lepsPassOther(bool isElEvt, int id1, int id2) {
 }
 
 bool lepsPassOtherLenient(bool isElEvt, int id1, int id2) {
+  double lead_pt = 45;
+  double sublead_pt = 40;
   if (isElEvt) {
-    if ((els_p4().at(id1)).Pt() >= 50 && (els_p4().at(id2)).Pt() >= 35
+    if ((els_p4().at(id1)).Pt() >= lead_pt && (els_p4().at(id2)).Pt() >= sublead_pt
           && abs((els_p4().at(id1)).eta()) < 2.4 && abs((els_p4().at(id2)).eta()) < 2.4
           && (abs((els_p4().at(id1)).eta()) < 1.4 || abs((els_p4().at(id1)).eta()) > 1.6)
           && (abs((els_p4().at(id2)).eta()) < 1.4 || abs((els_p4().at(id2)).eta()) > 1.6)) { return true; }
     else { return false; }
   }
   else {
-    if ((mus_p4().at(id1)).Pt() >= 50 && (mus_p4().at(id2)).Pt() >= 35
+    if ((mus_p4().at(id1)).Pt() >= lead_pt && (mus_p4().at(id2)).Pt() >= sublead_pt
           && abs((mus_p4().at(id1)).eta()) < 2.4 && abs((mus_p4().at(id2)).eta()) < 2.4) { return true; }
     else { return false; }
   }
@@ -177,6 +188,8 @@ double boson_pT(bool isElEvt, int id1, int id2, ROOT::Math::LorentzVector<ROOT::
   else {
     fLep1 = mus_p4().at(id1);
     fLep2 = mus_p4().at(id2);
+    //cout << "Mus pt: " << fLep1.pt() << endl;
+    //cout << "Mus pt: " << fLep2.pt() << endl;
   }
 
   fZ += fLep1;
@@ -328,7 +341,7 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET(TString currentFi
   return fT1CMET;
 }
 
-ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TString currentFileName, string dataVersion, string mcVersion, double ptThresh, vector<double> etaExclusionRange, bool useHE, bool excludeJets = false) {
+ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TString currentFileName, string dataVersion, string mcVersion, double ptThresh, vector<double> etaExclusionRange, bool useHE, bool excludeJets = false, double ptThresh2 = 75., int unc = 0) {
   std::pair<float, float> pT1CMET;
 
   std::vector<std::string> jetcorr_filenames_pfL1FastJetL2L3;
@@ -336,10 +349,17 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TStr
 
 
   FactorizedJetCorrector* jet_corrector(0);
-  if (dataVersion == "V8b" || dataVersion == "V8c" || dataVersion == "V8d" || dataVersion == "V9") {
+  JetCorrectionUncertainty jet_uncertainty;
+  if (dataVersion == "V8b" || dataVersion == "V8c" || dataVersion == "V8d" || dataVersion == "V9") { 
     if (currentFileName.Contains("2017B") || currentFileName.Contains("2017C") || currentFileName.Contains("2017D") || currentFileName.Contains("2017E")) {
       ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> dummy(0, 0, 0, 0);
       return dummy; 
+    }
+  }
+  else if (dataVersion == "V11C" || dataVersion == "V11D") {
+    if (currentFileName.Contains("2017B") || currentFileName.Contains("2017C") || currentFileName.Contains("2017D") || currentFileName.Contains("2017E")) {
+      dataVersion = "V11";
+      mcVersion = "V11";
     }
   }
   if (currentFileName.Contains("2017B")) {
@@ -348,30 +368,35 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TStr
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017B_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
   }else if (currentFileName.Contains("2017C")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
   }else if (currentFileName.Contains("2017D")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
   }else if (currentFileName.Contains("2017E")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
   }else if (currentFileName.Contains("2017F")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
   }
   else if (currentFileName.Contains("Fall17")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
@@ -385,11 +410,14 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TStr
   }
 
   jet_corrector = makeJetCorrector(jetcorr_filenames_pfL1FastJetL2L3);
+  jet_uncertainty.setParameters(jetcorr_uncertainty_filename);
+
+  bool uncUp = unc == 1;
 
   if (excludeJets)
-    pT1CMET = getT1CHSMET_fromMINIAOD_noECJECs(jet_corrector, NULL, 0, true, 0, useHE, ptThresh, etaExclusionRange, true);
+    pT1CMET = getT1CHSMET_fromMINIAOD_noECJECs(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, true, 0, useHE, ptThresh, etaExclusionRange, true, ptThresh2);
   else
-    pT1CMET = getT1CHSMET_fromMINIAOD_noECJECs(jet_corrector, NULL, 0, !useHE, 0, useHE, ptThresh, etaExclusionRange);
+    pT1CMET = getT1CHSMET_fromMINIAOD_noECJECs(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, !useHE, uncUp, useHE, ptThresh, etaExclusionRange);
 
   float metX = pT1CMET.first * cos(pT1CMET.second);
   float metY = pT1CMET.first * sin(pT1CMET.second);
@@ -643,7 +671,7 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_version(TString c
   return fT1CMET;
 }
 
-vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> correctedJets(TString currentFileName, string version) {
+vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> correctedJets(TString currentFileName, string version, string version_mc) {
 
   std::vector<std::string> jetcorr_filenames_pfL1FastJetL2L3;
   std::string jetcorr_uncertainty_filename;
@@ -663,10 +691,10 @@ vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> correctedJets(TS
   }
   else if (currentFileName.Contains("Fall17")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
-    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_V8_MC_L1FastJet_AK4PFchs.txt");
-    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_V8_MC_L2Relative_AK4PFchs.txt");
-    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_V8_MC_L3Absolute_AK4PFchs.txt");
-    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017_V8_MC_Uncertainty_AK4PFchs.txt";
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_" + version_mc + "_MC_L1FastJet_AK4PFchs.txt");
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_" + version_mc + "_MC_L2Relative_AK4PFchs.txt");
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_" + version_mc + "_MC_L3Absolute_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017_" + version_mc + "_MC_Uncertainty_AK4PFchs.txt";
   } 
   else {
     cout << "Did not grab JECs" << endl; // should not happen
@@ -839,16 +867,79 @@ vector<vector<vector<vector<TH1D*>>>> create_met_histograms_vector(int nEtaRegio
   return vhMET;
 }
 
-
-
 /*
-vector<vector<vector<vector<TH1D*>>>> create_met_histograms_vector(int nEtaRegions, int nCandCats, int nHists) {
-  vector<vector<vector<vector<TH1D*>>>> vHists;
-  for (int i = 0; i < nHists; i++) {
-    vHists.push_back(create_met_histograms(nEtaRegions, nCandCats, to_string(i)));
-  } 
-  return vHists;
-}
+const vector<double> resolution_bins = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 220, 240, 260, 280, 300, 325, 350, 375, 400, 450, 500};
+
+void create_T1CMET_histogram_vectors(TString name, int nHists) {
+  const int nBins = 80;
+  const double x_low = 0;
+  const double x_high = 400;
+
+  vector<TH1D*> hT1CMET = create_histogram_vector("hT1CMET" + name, nBins, x_low, x_high, nHists);
+  vector<TH1D*> hT1CMET_up = create_histogram_vector("hT1CMET_up" + name, nBins, x_low, x_high, nHists);
+  vector<TH1D*> hT1CMET_down = create_histogram_vector("hT1CMET_down" + name, nBins, x_low, x_high, nHists);
+
+  vector<TH1D*> hT1CMET_0Jets = create_histogram_vector("hT1CMET_0Jets" + name, nBins, x_low, x_high, nHists);
+  vector<TH1D*> hT1CMET_0Jets_up = create_histogram_vector("hT1CMET_0Jets_up" + name, nBins, x_low, x_high, nHists);
+  vector<TH1D*> hT1CMET_0Jets_down = create_histogram_vector("hT1CMET_0Jets_down" + name, nBins, x_low, x_high, nHists);
+
+  vector<TH1D*> hT1CMET_1pJets = create_histogram_vector("hT1CMET_1pJets" + name, nBins, x_low, x_high, nHists);
+  vector<TH1D*> hT1CMET_1pJets_up = create_histogram_vector("hT1CMET_1pJets_up" + name, nBins, x_low, x_high, nHists);
+  vector<TH1D*> hT1CMET_1pJets_down = create_histogram_vector("hT1CMET_1pJets_down" + name, nBins, x_low, x_high, nHists);
+
+  vector<TH1D*> hJetPt = create_histogram_vector("hJetPt" + name, nBins, x_low, x_high, nHists);
+
+  vector<TH1D*> hZpT = create_histogram_vector("hZpT" + name, 100, 0, 400, nHists);
+  vector<TH1D*> hT1CMET_UPara = create_histogram_vector("hT1CMET_UPara" + name, 200, -400, 400, nHists);
+  vector<TH1D*> hT1CMET_UPerp = create_histogram_vector("hT1CMET_UPerp" + name, 100, -200, 200, nHists);
+  vector<TH1D*> hT1CMET_UParaPlusqT = create_histogram_vector("hT1CMET_UParaPlusqT" + name, 100, -200, 200, nHists);
+
+  vector<vector<TH1D*>> hResPara;
+  vector<vector<TH1D*>> hResPerp;
+  vector<vector<TH1D*>> hResponse;
+  vector<vector<TH1D*>> hResponseEE;
+  vector<vector<TH1D*>> hResponseMM;
+  for (int i = 0; i < resolution_bins.size(); i++) {
+    hResponse.push_back(create_histogram_vector("hT1CMET_Response" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseEE.push_back(create_histogram_vector("hT1CMET_ResponseEE" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseMM.push_back(create_histogram_vector("hT1CMET_ResponseMM" + name + to_string(i), 100, -10, 10, nHists));
+    hResPara.push_back(create_histogram_vector("hT1CMET_ResPara" + name + to_string(i), 200, -400, 400, nHists));
+    hResPerp.push_back(create_histogram_vector("hT1CMET_ResPerp" + name + to_string(i), 100, -200, 200, nHists));
+  }   
+} 
+
+void fill_T1CMET_histogram_vectors(TString name, int histIdx, TString currentFileName, TString jec_version_data, TString jec_version_mc, int nJets, int type) {
+  ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET, fT1CMET_up, fT1CMET_down;
+  
+  double pt_jec_thresh(0), pt_thresh(0);
+  vector<double> eta_exclusion_range = {0, 0};
+  bool exclude_jets = false
+  if (type == 0) // standard, do nothing
+  else if (type == 1) { // modified
+    pt_jec_thresh = 75;
+    eta_exclusion_range = {2.65, 3.139};
+  }
+  else if (type == 2) { // modified C 
+    pt_thresh = 75;
+    eta_exclusion_range = {2.65, 3.139};
+    exclude_jets = true;
+  }
+  else if (type == 3) { // modified D
+    pt_thresh = 99999999999;
+    eta_exclusion_range = {2.65, 3.139};
+    exclude_jets = true;
+  }
+
+  fT1CMET = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 0);
+  fT1CMET_up = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 1);
+  fT1CMET_down = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 1);
+
+  
+
+  vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> vCorrectedJets = correctedJets(currentFileName, jec_version_data);  
+
+} 
+
 */
 
 float sgn(float x) {
