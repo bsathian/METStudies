@@ -11,7 +11,7 @@
 #include "TH2D.h"
 
 // CMS3
-#include "CMS3.cc"
+#include "CORE/CMS3.cc"
 #include "CORE/Base.cc"
 #include "CORE/TriggerSelections.cc"
 #include "CORE/IsolationTools.cc"
@@ -94,16 +94,17 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   vector<TH1D*> hSumETEndcapPhotonsClustered = create_histogram_vector("hSumETEndcapPhotonsClustered", 100, 0, 1000, nHists); 
 
   // Type-1 MET variations
-  MetHelper* mV8_std = new MetHelper("V8_std", nHists, "V8", "V8", 0);
-  mV8_std->create_raw_met_histograms();
-  MetHelper* mV8_v1 = new MetHelper("V8_v1", nHists, "V8", "V8", 1);
+  //MetHelper* mV8_std = new MetHelper("V8_std", nHists, "V8", "V8", 0);
+  //mV8_std->create_raw_met_histograms();
+  //MetHelper* mV8_v1 = new MetHelper("V8_v1", nHists, "V8", "V8", 1);
   //MetHelper* mV8_v2C = new MetHelper("V8_v2C", nHists, "V8", "V8", 2);
   //MetHelper* mV8_v2D = new MetHelper("V8_v2D", nHists, "V8", "V8", 3);
 
   MetHelper* mV11_std = new MetHelper("V11_std", nHists, "V11", "V11", 0);
-  MetHelper* mV11_v1 = new MetHelper("V11_v1", nHists, "V11", "V11", 1);
+  mV11_std->create_raw_met_histograms();
+  //MetHelper* mV11_v1 = new MetHelper("V11_v1", nHists, "V11", "V11", 1);
   MetHelper* mV11_v2C = new MetHelper("V11_v2C", nHists, "V11C", "V11C", 2);
-  MetHelper* mV11_v2D = new MetHelper("V11_v2D", nHists, "V11D", "V11D", 3);
+  //MetHelper* mV11_v2D = new MetHelper("V11_v2D", nHists, "V11D", "V11D", 3);
 
   // Jets
   vector<TH1D*> hLeadJetPt = create_histogram_vector("hLeadJetPt", 100, 0, 500, nHists);
@@ -116,14 +117,17 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   vector<TH2D*> hJetPtEta = create_2Dhistogram_vector("hJetPtEta", 50, 0, 500, 50, -5, 5, nHists);
   vector<TH2D*> hJetPtPhi = create_2Dhistogram_vector("hJetPtPhi", 50, 0, 500, 50, -3.142, 3.142, nHists);
 
+  vector<TH1D*> hJetUncorrPt = create_histogram_vector("hJetUncorrPt", 100, 0, 500, nHists);
+
+  vector<TH2D*> hJetUncorrPtEta = create_2Dhistogram_vector("hJetUncorrPtEta", 50, 0, 500, 50, -5, 5, nHists);
+  vector<TH2D*> hJetUncorrPtPhi = create_2Dhistogram_vector("hJetUncorrPtPhi", 50, 0, 500, 50, -3.142, 3.142, nHists);
+
   vector<TH1D*> hJet_Emfrac = create_histogram_vector("hJet_Emfrac", 100, 0, 1, nHists);
   vector<TH1D*> hJet_Neutral_Emfrac = create_histogram_vector("hJet_Neutral_Emfrac", 100, 0, 1, nHists);
   vector<TH1D*> hJet_Neutral_Hadfrac = create_histogram_vector("hJet_Neutral_Hadfrac", 100, 0, 1, nHists);
   vector<TH1D*> hJet_Charged_Hadfrac = create_histogram_vector("hJet_Charged_Hadfrac", 100, 0, 1, nHists);
   vector<TH1D*> hJet_Neutral_Emfrac_hf = create_histogram_vector("hJet_Neutral_Emfrac_hf", 100, 0, 1, nHists);
   vector<TH1D*> hJet_Neutral_Hadfrac_hf = create_histogram_vector("hJet_Neutral_Hadfrac_hf", 100, 0, 1, nHists);
-
-  vector<TH1D*> hJetPt_RunFV8 = create_histogram_vector("hJetPt_RunFV8", 80, 0, 400, nHists);
 
   vector<TH1D*> hJet_Neutral_Emfrac_central = create_histogram_vector("hJet_Neutral_Emfrac_central", 100, 0, 1, nHists);
   vector<TH1D*> hJet_Neutral_Hadfrac_central = create_histogram_vector("hJet_Neutral_Hadfrac_central", 100, 0, 1, nHists);
@@ -170,7 +174,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       set_goodrun_file(json_file);
     }
     else {
-      json_file = "Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON_snt.txt"; // FIXME: update to rereco json file
+      json_file = "Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_snt.txt"; 
       set_goodrun_file(json_file);
     }
     
@@ -299,16 +303,17 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
       // Done with selection, now fill histograms
       int nJet = nJets(isElEvt, id1, id2);
-      mV8_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
-      mV8_std->fill_raw_met_histograms(isElEvt, id1, id2, nJet, weight);
-      mV8_v1->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      //mV8_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      //mV8_std->fill_raw_met_histograms(isElEvt, id1, id2, nJet, weight);
+      //mV8_v1->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       //mV8_v2C->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       //mV8_v2D->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
       mV11_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
-      mV11_v1->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      mV11_std->fill_raw_met_histograms(isElEvt, id1, id2, nJet, weight);
+      //mV11_v1->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       mV11_v2C->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
-      mV11_v2D->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      //mV11_v2D->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
 
       int nCands = pfcands_p4().size();
@@ -324,7 +329,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
       int nCCands(0), nPCands(0), nNCands(0);
 
-      vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> vCorrectedJets_V8 = correctedJets(currentFileName, "V8", "V8");
+      vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> vCorrectedJets_V11 = correctedJets(currentFileName, "V11", "V11");
 
       for (int i = 0; i < cms3.pfjets_p4().size(); i++) {
 	ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> jet_p4 = cms3.pfjets_p4().at(i)*cms3.pfjets_undoJEC().at(i);	
@@ -335,11 +340,16 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 	}
 	fill_histograms(hJetPt, jet_p4.pt(), weight);
 	fill_histograms(hJetEta, abs(cms3.pfjets_p4().at(i).eta()), weight);
-        fill_histograms(hJetPt_RunFV8, vCorrectedJets_V8[i].pt(), weight);
  
 	fill_histograms2D(hJetEtaPhi, cms3.pfjets_p4().at(i).eta(), cms3.pfjets_p4().at(i).phi(), weight);
-	fill_histograms2D(hJetPtEta, vCorrectedJets_V8[i].pt(), cms3.pfjets_p4().at(i).eta(), weight);
-        fill_histograms2D(hJetPtPhi, vCorrectedJets_V8[i].pt(), cms3.pfjets_p4().at(i).phi(), weight);
+	fill_histograms2D(hJetPtEta, vCorrectedJets_V11[i].pt(), cms3.pfjets_p4().at(i).eta(), weight);
+        fill_histograms2D(hJetPtPhi, vCorrectedJets_V11[i].pt(), cms3.pfjets_p4().at(i).phi(), weight);
+
+        fill_histograms(hJetUncorrPt, jet_p4.pt(), weight);
+
+        fill_histograms2D(hJetUncorrPtEta, jet_p4.pt(), cms3.pfjets_p4().at(i).eta(), weight);
+        fill_histograms2D(hJetUncorrPtPhi, jet_p4.pt(), cms3.pfjets_p4().at(i).phi(), weight);
+
  
         float emfrac = (cms3.pfjets_chargedEmE().at(i) + cms3.pfjets_neutralEmE().at(i)) / jet_p4.E();
 	float neutral_emfrac = cms3.pfjets_neutralEmE().at(i) / jet_p4.E();
