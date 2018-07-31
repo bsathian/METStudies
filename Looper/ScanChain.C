@@ -59,6 +59,10 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   vector<vector<vector<vector<TH1D*>>>> vhMET = create_met_histograms_vector(nEtaRegions, nCandCats, nHists);
 
   // MET
+  vector<TH1D*> hpfMET_recipe = create_histogram_vector("hpfMET_recipe", 80, 0, 400, nHists);
+  vector<TH1D*> hpfMET_myImplementation = create_histogram_vector("hpfMET_myImplementation", 80, 0, 400, nHists);
+  vector<TH1D*> hpfModifiedMET_recipe = create_histogram_vector("hpfModifiedMET_recipe", 80, 0, 400, nHists);
+  vector<TH1D*> hpfModifiedMET_myImplementation = create_histogram_vector("hpfModifiedMET_myImplementation", 80, 0, 400, nHists);
   vector<TH1D*> hpfMET = create_histogram_vector("hpfMET", 80, 0, 400, nHists);
   vector<TH1D*> hpfMETraw = create_histogram_vector("hpfMETraw", 80, 0, 400, nHists); 
   vector<TH1D*> hT1CMET = create_histogram_vector("hT1CMET", 80, 0, 400, nHists);
@@ -103,7 +107,8 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   MetHelper* mV11_std = new MetHelper("V11_std", nHists, "V11", "V11", 0);
   mV11_std->create_raw_met_histograms();
   //MetHelper* mV11_v1 = new MetHelper("V11_v1", nHists, "V11", "V11", 1);
-  MetHelper* mV11_v2C = new MetHelper("V11_v2C", nHists, "V11C", "V11C", 2);
+  MetHelper* mV11_v2C = new MetHelper("V11_v2C", nHists, "V11", "V11", 2);
+  MetHelper* mV11_v2C_corr = new MetHelper("V11_v2C_corr", nHists, "V11", "V11", 2, true);
   //MetHelper* mV11_v2D = new MetHelper("V11_v2D", nHists, "V11D", "V11D", 3);
 
   // Jets
@@ -116,6 +121,8 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   vector<TH2D*> hJetEtaPhi = create_2Dhistogram_vector("hJetEtaPhi", 50, -5, 5, 50, -3.142, 3.142, nHists);
   vector<TH2D*> hJetPtEta = create_2Dhistogram_vector("hJetPtEta", 50, 0, 500, 50, -5, 5, nHists);
   vector<TH2D*> hJetPtPhi = create_2Dhistogram_vector("hJetPtPhi", 50, 0, 500, 50, -3.142, 3.142, nHists);
+  vector<TH2D*> hT1CMETvT1CMETMod = create_2Dhistogram_vector("hT1CMETvT1CMETMod", 80, 0, 400, 80, 0, 400, nHists);
+  vector<TH2D*> hT1CMETModvT1CMETModCorr = create_2Dhistogram_vector("hT1CMETModvT1CMETModCorr", 80, 0, 400, 80, 0, 400, nHists); 
 
   vector<TH1D*> hJetUncorrPt = create_histogram_vector("hJetUncorrPt", 100, 0, 500, nHists);
 
@@ -193,6 +200,19 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
           cout << "Jet number " << i << ": " << vCorrectedJets[i].pt() << endl;
       }
 
+      if (selection == 4) {
+        //if (dMass < 81 || dMass > 101)                                                  continue;
+        double t1met_base = evt_pfmet();
+        double t1met = t1CMET_configurable(currentFileName, "V11", "V11", 0, {0,0}, true, false, 0, 0).pt();
+        if (!(t1met > 120 && t1met < 170)) continue;
+        double t1met_mod = t1CMET_configurable(currentFileName, "V11", "V11", 0, {2.65, 3.139}, true, true, 75., 0).pt();
+	double t1met_mod_corr = t1CMET_configurable(currentFileName, "V11", "V11", 0, {2.65, 3.139}, true, true, 75., 0, true).pt();
+        //cout << evt_run() << " " << evt_lumiBlock() << " " << evt_event() << " " << t1met << " " << t1met_base << endl;
+        //cout << evt_run() << " " << evt_lumiBlock() << " " << evt_event() << " " << t1met << " " << t1met_mod << endl;
+        cout << t1met << " " << t1met_mod << " " << t1met_mod_corr << endl; 
+        continue;
+      }
+
       // Check golden json 
       if (evt_isRealData()) {
         if (!goodrun(evt_run(), evt_lumiBlock())) {  continue; }
@@ -222,7 +242,10 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       if (!filt_hbheNoise())             	continue;
       if (!filt_hbheNoiseIso())          	continue; 
       if (!filt_ecalTP())			continue;
-      if (!filt_eeBadSc())			continue;
+      if (evt_isRealData()) { if (!filt_eeBadSc()) continue; } // only for data
+      if (!filt_BadPFMuonFilter())		continue;
+      if (!filt_BadChargedCandidateFilter())	continue;
+      if (!filt_ecalBadCalibFilter())		continue;
 
       // Check if leps pass POG IDs
       if (!lepsPassPOG(isElEvt, id1, id2)) 						continue;
@@ -246,7 +269,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       }
 
       // Check pT/eta requirements
-      if (selection == 1) { // regular Z->ll
+      if (selection == 1 || selection == 5) { // regular Z->ll
         if (!lepsPassOtherLenient(isElEvt, id1, id2)) 					continue;
       }
       else if (selection == 0) { // Z-Removed MET selection
@@ -276,7 +299,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       else
 	fill_histograms(hDilepMassMuMu,dMass, weight);
 
-      if (selection == 1) { // regular Z->ll
+      if (selection == 1 || selection == 5) { // regular Z->ll
         if (dMass < 81 || dMass > 101)							continue;
       }
       
@@ -285,7 +308,16 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
         if (ZpT < 200)									continue;
       }
 
-      
+      if (selection == 4) {
+	if (dMass < 81 || dMass > 101)                                                  continue;
+        double t1met_base = evt_pfmet();
+        double t1met = t1CMET_configurable(currentFileName, "V6", "V6", 0, {0,0}, true, false, 0, 0).pt();
+        if (!(t1met > 120 && t1met < 170)) continue;
+        //double t1met_mod = t1CMET_configurable(currentFileName, "V11", "V11", 0, {2.65, 3.139}, true, true, 75., 0).pt();
+        cout << evt_run() << " " << evt_lumiBlock() << " " << evt_event() << " " << t1met << " " << t1met_base << endl;
+        continue;
+      }
+ 
 
       double dPhi2(0), dPhiRaw(0);
       if (selection == 0) {
@@ -301,6 +333,21 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
       cout << event << " / " << nEventsTree << endl;
 
+      if (selection == 5) {
+        cout << event << " / " << nEventsTree << endl;
+        double t1met_recipe = evt_pfmet();
+        double t1met_mod_recipe = evt_mod_pfmet();
+        double t1met = t1CMET_configurable(currentFileName, "V6", "V6", 0, {0,0}, true, false, 0, 0).pt();
+        double t1met_mod = t1CMET_configurable(currentFileName, "V6", "V6", 0, {2.65, 3.139}, true, true, 75., 0).pt();
+
+        fill_histograms(hpfMET_recipe, t1met_recipe, {1});
+        fill_histograms(hpfModifiedMET_recipe, t1met_mod_recipe, {1});
+
+        fill_histograms(hpfMET_myImplementation, t1met, {1});
+        fill_histograms(hpfModifiedMET_myImplementation, t1met_mod, {1});
+        continue;
+      } 
+
       // Done with selection, now fill histograms
       int nJet = nJets(isElEvt, id1, id2);
       //mV8_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
@@ -313,8 +360,16 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       mV11_std->fill_raw_met_histograms(isElEvt, id1, id2, nJet, weight);
       //mV11_v1->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       mV11_v2C->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      mV11_v2C_corr->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       //mV11_v2D->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
+      double t1_met(0), t1_met_mod(0), t1_met_mod_corr(0);
+      t1_met = mV11_std->get_t1met();
+      t1_met_mod = mV11_v2C->get_t1met();
+      t1_met_mod_corr = mV11_v2C_corr->get_t1met(); 
+
+      fill_histograms2D(hT1CMETvT1CMETMod, t1_met, t1_met_mod, weight);
+      fill_histograms2D(hT1CMETModvT1CMETModCorr, t1_met_mod, t1_met_mod_corr, weight);
 
       int nCands = pfcands_p4().size();
       fill_histograms(hNCands,nCands, weight);
@@ -333,6 +388,12 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
       for (int i = 0; i < cms3.pfjets_p4().size(); i++) {
 	ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> jet_p4 = cms3.pfjets_p4().at(i)*cms3.pfjets_undoJEC().at(i);	
+	//cout << cms3.pfjets_p4().at(i).pt() << endl;
+	//for (int j = 0; j < cms3.pfjets_pfcandIndicies()[i].size(); j++)
+	//  cout << cms3.pfjets_pfcandIndicies()[i][j] << endl;
+	//cout << jet_p4.pt() << endl;
+        //cout << vCorrectedJets_V11[i].pt() << endl;
+        //cout << endl;
 	if (!(jet_p4.pt() > 0)) continue;
 	if (i == 0) {
 	  fill_histograms(hLeadJetPt, jet_p4.pt(), weight);
@@ -345,7 +406,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 	fill_histograms2D(hJetPtEta, vCorrectedJets_V11[i].pt(), cms3.pfjets_p4().at(i).eta(), weight);
         fill_histograms2D(hJetPtPhi, vCorrectedJets_V11[i].pt(), cms3.pfjets_p4().at(i).phi(), weight);
 
-        fill_histograms(hJetUncorrPt, jet_p4.pt(), weight);
+        //fill_histograms(hJetUncorrPt, jet_p4.pt(), weight);
 
         fill_histograms2D(hJetUncorrPtEta, jet_p4.pt(), cms3.pfjets_p4().at(i).eta(), weight);
         fill_histograms2D(hJetUncorrPtPhi, jet_p4.pt(), cms3.pfjets_p4().at(i).phi(), weight);

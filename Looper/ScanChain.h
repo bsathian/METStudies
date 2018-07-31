@@ -341,7 +341,7 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET(TString currentFi
   return fT1CMET;
 }
 
-ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TString currentFileName, string dataVersion, string mcVersion, double ptThresh, vector<double> etaExclusionRange, bool useHE, bool excludeJets = false, double ptThresh2 = 75., int unc = 0) {
+ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TString currentFileName, string dataVersion, string mcVersion, double ptThresh, vector<double> etaExclusionRange, bool useHE, bool excludeJets = false, double ptThresh2 = 75., int unc = 0, bool corr = false) {
   std::pair<float, float> pT1CMET;
 
   std::vector<std::string> jetcorr_filenames_pfL1FastJetL2L3;
@@ -415,9 +415,9 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TStr
   bool uncUp = unc == 1;
 
   if (excludeJets)
-    pT1CMET = getT1CHSMET_fromMINIAOD_configurable(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, true, 0, useHE, ptThresh, etaExclusionRange, true, ptThresh2);
+    pT1CMET = getT1CHSMET_fromMINIAOD_configurable(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, true, 0, useHE, ptThresh, etaExclusionRange, true, ptThresh2, corr);
   else
-    pT1CMET = getT1CHSMET_fromMINIAOD_configurable(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, !useHE, 0, useHE, ptThresh, etaExclusionRange);
+    pT1CMET = getT1CHSMET_fromMINIAOD_configurable(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, !useHE, 0, useHE, ptThresh, etaExclusionRange, corr);
 
   float metX = pT1CMET.first * cos(pT1CMET.second);
   float metY = pT1CMET.first * sin(pT1CMET.second);

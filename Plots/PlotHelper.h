@@ -63,6 +63,7 @@ class Comparison
     void set_no_log() { mLog = false; }
     void set_log_x() { mLogX = true; }
     void set_log_y() { mLogY = true; }
+    void set_log_rat() { mLogRat = true; }
     void set_both_data() { mBothData = true; }
     void set_lumi(double lumi) {mLumi = lumi;}
     void set_no_lumi() {mLumi = -1;}
@@ -148,6 +149,7 @@ class Comparison
     bool mLog;
     bool mLogX;
     bool mLogY;
+    bool mLogRat;
     bool mFlow;
     bool mBothData;
     bool mRatio;
@@ -231,8 +233,8 @@ Comparison::Comparison(TCanvas* c1, vector<TH1D*> hData, vector<TH1D*> hMC)
   }
 
   mHMC = (TH1D*)hMC[0]->Clone("mHMC");
-  for (int i=1; i<nMCHists; i++)
-    mHMC->Add(hMC[i]);
+  //for (int i=1; i<nMCHists; i++)
+  //  mHMC->Add(hMC[i]);
 }
 
 inline
@@ -297,6 +299,7 @@ void Comparison::default_options(TCanvas* c1)
 
   mLog = true;
   mLogX = false;
+  mLogRat = false;
   mFlow = true;
   mBothData = false;
   mCustomXRange = false;
@@ -397,6 +400,7 @@ void Comparison::set_rat_pad(TPad* ratPad)
   ratPad->cd();
   ratPad->SetGridy();
   if (mLogX) ratPad->SetLogx();
+  if (mLogRat) ratPad->SetLogy();
 }
 
 inline
@@ -477,6 +481,14 @@ void Comparison::compute_limits(bool customXRange, bool customYRange)
 
 inline
 void Comparison::compute_limits(bool customXRange, bool customYRange, bool customZRange) {  
+  if (mCustomXRange) {
+    mH2DData->GetXaxis()->SetRange(mXBinRange[0],mXBinRange[1]);
+    mH2DMC->GetXaxis()->SetRange(mXBinRange[0],mXBinRange[1]);
+  }
+  if (mCustomYRange) {
+    mH2DData->GetYaxis()->SetRange(mX2BinRange[0],mX2BinRange[1]);
+    mH2DMC->GetYaxis()->SetRange(mX2BinRange[0],mX2BinRange[1]);
+  } 
 
 } 
 
@@ -767,7 +779,7 @@ void Comparison::annotate_plot()
   for(int i=0; i<mVInfo.size(); i++) {
     double j = i;
     j *= 0.05;
-    t[i] = new TLatex(0.20, 0.85-j, mVInfo[i]);
+    t[i] = new TLatex(0.15, 0.85-j, mVInfo[i]);
     t[i]->SetTextSize(fs);
     t[i]->SetNDC(kTRUE);
     t[i]->Draw("SAME");
@@ -797,7 +809,7 @@ void Comparison::annotate_plot()
     //cout << mXBinRange[0] << " " << mXBinRange[1] << endl;
     //cout << mHMC->GetBinLowEdge(mXBinRange[0]) << " " << mHMC->GetBinLowEdge(mXBinRange[1]+1) << endl;
     vLH[i] = new TLine(mHMC->GetBinLowEdge(mXBinRange[0]), mVHLines[i], mHMC->GetBinLowEdge(mXBinRange[1]+1), mVHLines[i]);
-    vLH[i]->SetLineWidth(2);
+    vLH[i]->SetLineWidth(1);
     vLH[i]->SetLineStyle(2);
     vLH[i]->Draw("SAME");
   }
@@ -871,7 +883,7 @@ void Comparison::make_rat_histogram(TH1D* hData, TH1D* hMC)
     mVHRat[i]->SetFillColor(dataColors[i]);
     mVHRat[i]->SetLineColor(dataColors[i]);
     mVHRat[i]->SetStats(0);
-    mVHRat[i]->Draw("e1x0, same");
+    mVHRat[i]->Draw("e1, same");
   }
   gPad->RedrawAxis();
 

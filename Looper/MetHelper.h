@@ -6,7 +6,7 @@
 class MetHelper
 {
   public:
-    MetHelper(TString name_, int nHists_, string jec_version_data_, string jec_version_mc_, int type_);
+    MetHelper(TString name_, int nHists_, string jec_version_data_, string jec_version_mc_, int type_, bool corr_ = false);
     //~MetHelper();
 
     void create_histograms();
@@ -14,13 +14,17 @@ class MetHelper
     void fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights);
     void fill_raw_met_histograms(bool isElEvt, int id1, int id2, int nJets, vector<double> weights);
 
+    double get_t1met() { return t1met; }
   private:
+    bool mCorr; // whether to use raw or corrected pT as threshold for noisy EE jets
     TString name;
     int nHists;
     int histIdx;
     string jec_version_data;
     string jec_version_mc;
     int type;
+
+    double t1met; // store most recently calculated t1met
 
     const vector<double> resolution_bins = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 220, 240, 260, 280, 300, 325, 350, 375, 400, 450, 500};
     const int nBins = 80;
@@ -71,12 +75,14 @@ class MetHelper
 };
 
 inline
-MetHelper::MetHelper(TString name_, int nHists_, string jec_version_data_, string jec_version_mc_, int type_){
+MetHelper::MetHelper(TString name_, int nHists_, string jec_version_data_, string jec_version_mc_, int type_, bool corr_){
   name = name_;
   nHists = nHists_;
   jec_version_data = jec_version_data_;
   jec_version_mc = jec_version_mc_;
   type = type_;
+  mCorr = corr_;
+  t1met = -1;
 
   create_histograms();
 }
@@ -196,13 +202,15 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
     fill_histograms(hJetPt, vCorrectedJets[i].pt(), weights);
   }
 
-  fT1CMET = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 0);
-  fT1CMET_up = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 1);
-  fT1CMET_down = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 2);
+  fT1CMET = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 0, mCorr);
+  fT1CMET_up = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 1, mCorr);
+  fT1CMET_down = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 2, mCorr);
 
-  if (type == 2 || type == 3) {
+  if (type == 2) {
     cout << fT1CMET.pt() << endl;
   }
+
+  t1met = fT1CMET.pt();
 
   fill_histograms(hT1CMET, fT1CMET.pt(), weights);
   fill_histograms(hT1CMET_up, fT1CMET_up.pt(), weights);

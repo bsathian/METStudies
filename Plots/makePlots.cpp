@@ -3,10 +3,10 @@
 const int nEtaRegions = 6;
 const int nCandCats = 4;
 
-const double met_bins[] = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 150, 160, 170, 180, 195, 210, 230, 255, 285, 335, 400};
+const double met_bins[] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 195, 210, 230, 255, 285, 335, 400};
 const int n_met_bins = (sizeof(met_bins) / sizeof(met_bins[0])) - 1;
 
-void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name, TString x_label, double lumi, double scale, vector<TString> vInfo, int idx, bool rebin = false) {
+void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name, TString x_label, double lumi, double scale, vector<TString> vInfo, int idx, bool rebin = false, vector<double> rat_range = {}) {
   TH1D* hDataTemp = (TH1D*)vFiles[0]->Get(hist_name + "0");
   TH1D* hData;
   if (rebin)
@@ -27,15 +27,13 @@ void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_na
     //if (rebin)
     //  hMC[i-1]->Rebin(n_met_bins, "", met_bins);
   }
-  if (hist_name == "hT1CMET" || hist_name == "hT1CMET_tightID")
-    cout << hMC[0]->Integral(41,80) << endl;
+  TString name = output_name;
   Comparison* c = new Comparison(c1, hData, hMC);
   if (lumi == 4.8)
     c->give_info({"2017 Run B"});
   else if (lumi == 23.5)
     c->give_info({"2017 Runs C,D,E"});
   else if (lumi == 13.5) {
-    TString name = output_name;
     if (name.Contains("v2"))
       c->give_info({"2017 Run F (09May2018 ReReco)"});
     else
@@ -48,19 +46,29 @@ void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_na
   c->set_filename(output_name);
   c->set_rat_label("#frac{Data}{MC}");
   //c->set_legend_labels({"2017 Data", "Drell-Yan", "DiBoson", "TriBoson", "Top"});
-  c->set_legend_labels({"2017 Data", "Drell-Yan", "DiBoson", "Top"});
+ 
+  if (name.Contains("v2") && !name.Contains("nominal"))
+    c->set_legend_labels({"2017 Data", "Drell-Yan (12Apr2018)", "DiBoson", "Top"});
+  else
+    c->set_legend_labels({"2017 Data", "Drell-Yan", "DiBoson", "Top"});
   c->set_x_label(x_label);
   c->set_y_label("Events");
   c->set_data_drawOpt("E");
   c->set_lumi(lumi);
   c->set_scale(scale);
+  if (rat_range.size() > 0) {
+    c->set_rat_lim_range(rat_range);
+    c->set_log_rat();
+  }
   if (rebin)
     c->set_x_bin_range({1, n_met_bins});
   //if (hist_name.Contains("T1CMET"))
   //  c->set_x_bin_range({1,70});
 
-  if (hist_name == "hT1CMET" || hist_name == "hT1CMET_tightID")
+  if (hist_name == "hT1CMET" || hist_name == "hT1CMET_tightID" || hist_name == "h_eta5_cand3MET") {
+    cout << hist_name + to_string(histIdx) << endl;
     cout << hMC[0]->Integral(41,80) << endl;
+  }
   for (int i = 0; i < vInfo.size(); i++)
     c->give_info(vInfo[i]);
   c->plot(idx);
@@ -217,6 +225,9 @@ void make_2Dplot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_
   c->set_y_label(y_label);
   c->set_lumi(lumi);
   c->set_scale(scale);
+  if (hist_name.Contains("Uncorr"))
+    c->set_x_bin_range({3,50});
+
   for (int i = 0; i < vInfo.size(); i++)
     c->give_info(vInfo[i]);
   c->plot(idx);
@@ -332,8 +343,10 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
 
   Comparison* c_response = new Comparison(c1, vHData_response, vHMC_response);
   c_response->set_filename(output_name);
-  c_response->set_y_lim_range({0.7, 1.1});
-  //c_response->give_hlines({1});
+  c_response->set_y_lim_range({0.85, 1.1});
+  //c_response->give_hlines({0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08});
+  c_response->give_hlines({1});
+  //c_response->give_hlines({0.98,1,1.02});
   c_response->set_info(vInfo);
   c_response->set_lumi(lumi);
   c_response->set_multiple_comparisons();
@@ -343,14 +356,15 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   c_response->set_x_label("q_{T} [GeV]");
   c_response->set_y_label("-<u_{#parallel}>/q_{T}");
   c_response->set_rat_label("#frac{Data}{MC}");
-  c_response->set_rat_lim_range({0.75, 1.25});
+  c_response->set_rat_lim_range({0.9, 1.1});
   c_response->set_legend_lower_right();
   c_response->plot(idx == 0 ? 0 : 1);
 
   Comparison* c_responseEE = new Comparison(c1, vHData_responseEE, vHMC_responseEE);
   c_responseEE->set_filename(output_name);
-  c_responseEE->set_y_lim_range({0.7, 1.1});
-  //c_responseEE->give_hlines({1});
+  c_responseEE->set_y_lim_range({0.85, 1.1});
+  c_responseEE->give_hlines({1});
+  //c_responseEE->give_hlines({0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08});
   c_responseEE->set_info(vInfo);
   c_responseEE->set_lumi(lumi);
   c_responseEE->set_multiple_comparisons();
@@ -360,15 +374,16 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   c_responseEE->set_x_label("q_{T} [GeV]");
   c_responseEE->set_y_label("-<u_{#parallel}>/q_{T}");
   c_responseEE->set_rat_label("#frac{Data}{MC}");
-  c_responseEE->set_rat_lim_range({0.75, 1.25});
+  c_responseEE->set_rat_lim_range({0.9, 1.1});
   c_responseEE->give_info("Z #rightarrow ee Events");
   c_responseEE->set_legend_lower_right();
   c_responseEE->plot(1);
 
   Comparison* c_responseMM = new Comparison(c1, vHData_responseMM, vHMC_responseMM);
   c_responseMM->set_filename(output_name);
-  c_responseMM->set_y_lim_range({0.7, 1.1});
-  //c_responseMM->give_hlines({1});
+  c_responseMM->set_y_lim_range({0.85, 1.1});
+  c_responseMM->give_hlines({1});
+  //c_responseMM->give_hlines({0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08});
   c_responseMM->set_info(vInfo);
   c_responseMM->set_lumi(lumi);
   c_responseMM->set_multiple_comparisons();
@@ -378,7 +393,7 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   c_responseMM->set_x_label("q_{T} [GeV]");
   c_responseMM->set_y_label("-<u_{#parallel}>/q_{T}");
   c_responseMM->set_rat_label("#frac{Data}{MC}");
-  c_responseMM->set_rat_lim_range({0.75, 1.25});
+  c_responseMM->set_rat_lim_range({0.9, 1.1});
   c_responseMM->give_info("Z #rightarrow #mu#mu Events");
   c_responseMM->set_legend_lower_right();
   c_responseMM->plot(1);
@@ -557,17 +572,19 @@ int main(int argc, char* argv[])
   if (eras == "B") 	histIdx = 0;
   if (eras == "C")	histIdx = 1;
   if (eras == "D,E")	histIdx = 2;
-  if (eras == "F" || eras == "Fv2")	histIdx = 3;
+  if (eras == "F" || eras == "Fv2_nominal" || eras == "Fv2")	histIdx = 3;
 
   TString era_info;
   if (eras == "B") 	era_info = "2017 Run B";
   if (eras == "C")      era_info = "2017 Run C";
   if (eras == "D,E")      era_info = "2017 Runs D,E";
   if (eras == "F")      era_info = "2017 Run F";
-  if (eras == "Fv2")      era_info = "2017 Run F (09May2018 ReReco)";
+  if (eras.Contains("Fv2"))      era_info = "2017 Run F (09May2018 ReReco)";
 
 
-  TFile* fData = new TFile("../histograms/Zll_histograms_" + eras + ".root");
+  TString eras_trimmed = eras.Contains("nominal") ? "Fv2" : eras;
+
+  TFile* fData = new TFile("../histograms/Zll_histograms_" + eras_trimmed + ".root");
   TFile* fDY;
   if (eras == "Fv2") 
     fDY = new TFile("../histograms/Zll_histograms_Drell-Yan_v2.root");
@@ -583,19 +600,36 @@ int main(int argc, char* argv[])
   double scaleMC = get_scaleMC(vFiles, "hDilepMass", histIdx, lumi);
   //double scaleMC = lumi; 
 
-  make_met_plots(c1, histIdx, vFiles, output_name, "V8_std", lumi, scaleMC, {"V8 JECs"}, 0);
-  make_met_plots(c1, histIdx, vFiles, output_name, "V8_v1", lumi, scaleMC, {"V8 JECs", "Modified v1 Type-1 MET"}, 1);  
-  make_resolution_plots(c1, histIdx, vFiles, output_name, {"V8_std", "V8_v1"}, lumi, scaleMC, {era_info, "V8 JECs"}, {"Std. Type-1 MET", "Mod. v1 Type-1 MET"}, 1);
+  //make_met_plots(c1, histIdx, vFiles, output_name, "V8_std", lumi, scaleMC, {"V8 JECs"}, 0);
+  //make_met_plots(c1, histIdx, vFiles, output_name, "V8_v1", lumi, scaleMC, {"V8 JECs", "Modified v1 Type-1 MET"}, 1);  
+  //make_resolution_plots(c1, histIdx, vFiles, output_name, {"V8_std", "V8_v1"}, lumi, scaleMC, {era_info, "V8 JECs"}, {"Std. Type-1 MET", "Mod. v1 Type-1 MET"}, 1);
 
-  make_met_plots(c1, histIdx, vFiles, output_name, "V11_std", lumi, scaleMC, {"V11 JECs"}, 1);
-  make_met_plots(c1, histIdx, vFiles, output_name, "V11_v1", lumi, scaleMC, {"V11 JECs", "Modified v1 Type-1 MET"}, 1);
+  make_met_plots(c1, histIdx, vFiles, output_name, "V11_std", lumi, scaleMC, {"V11 JECs"}, 0);
+  //make_met_plots(c1, histIdx, vFiles, output_name, "V11_v1", lumi, scaleMC, {"V11 JECs", "Modified v1 Type-1 MET"}, 1);
   make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2C", lumi, scaleMC, {"V11C JECs", "Modified v2C Type-1 MET"}, 1);
-  make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2D", lumi, scaleMC, {"V11D JECs", "Modified v2D Type-1 MET"}, 1);
+  //make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2D", lumi, scaleMC, {"V11D JECs", "Modified v2D Type-1 MET"}, 1);
  
-  make_resolution_plots(c1, histIdx, vFiles, output_name, {"V11_std", "V11_v1", "V11_v2C", "V11_v2D"}, lumi, scaleMC, {era_info, "V11 JECs"}, {"Std. Type-1 MET", "Mod. v1 Type-1 MET", "Mod. v2C Type-1 MET", "Mod. v2D Type-1 MET"}, 1);
-  make_resolution_plots(c1, histIdx, vFiles, output_name, {"V11_std", "V11_v1"}, lumi, scaleMC, {era_info, "V11 JECs"}, {"Std. Type-1 MET", "Mod. v1 Type-1 MET"}, 1);
-  make_resolution_plots(c1, histIdx, vFiles, output_name, {"V11_std", "V11_v2C"}, lumi, scaleMC, {era_info, "V11 JECs"}, {"Std. Type-1 MET", "Mod. v2C Type-1 MET"}, 2);
+  //make_resolution_plots(c1, histIdx, vFiles, output_name, {"V11_std", "V11_v1", "V11_v2C", "V11_v2D"}, lumi, scaleMC, {era_info, "V11 JECs"}, {"Std. Type-1 MET", "Mod. v1 Type-1 MET", "Mod. v2C Type-1 MET", "Mod. v2D Type-1 MET"}, 1);
+  //make_resolution_plots(c1, histIdx, vFiles, output_name, {"V11_std", "V11_v1"}, lumi, scaleMC, {era_info, "V11 JECs"}, {"Std. Type-1 MET", "Mod. v1 Type-1 MET"}, 1);
+  make_resolution_plots(c1, histIdx, vFiles, output_name, {"V11_std", "V11_v2C"}, lumi, scaleMC, {era_info, "V11 JECs"}, {"Std. Type-1 MET", "Mod. v2C Type-1 MET"}, 1);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Emfrac_central", "Jet Neutral EM Fraction", lumi, -1, {"|#eta| <= 2.7"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Hadfrac_central", "Jet Neutral Hadronic Fraction", lumi, -1, {"|#eta| <= 2.7"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Emfrac_forward", "Jet Neutral EM Fraction", lumi, -1, {"2.7 < |#eta| <= 3.0"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hJet_Neutral_Hadfrac_forward", "Jet Neutral Hadronic Fraction", lumi, -1, {"2.7 < |#eta| <= 3.0"}, 1);
+
+  make_plot(c1, histIdx, vFiles, output_name, "hCCpT", "p_{T} [GeV]", lumi, -1, {"Charged Candidates"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hPhotonpT", "p_{T} [GeV]", lumi, -1, {"Photon Candidates"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hNeutpT", "p_{T} [GeV]", lumi, -1, {"Neutral Hadron Candidates"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hCCeta", "|#eta|", lumi, -1, {"Charged Candidates"}, 1);
+  make_plot(c1, histIdx, vFiles, output_name, "hPhotoneta", "|#eta|", lumi, -1, {"Photon Candidates"}, 1, false, {0.1, 33.3});
+  make_plot(c1, histIdx, vFiles, output_name, "hNeuteta", "|#eta|", lumi, -1, {"Neutral Hadron Candidates"}, 1);
 
   //make_plot_rat_unc(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name, TString hist_name_up, TString hist_name_down, TString x_label, double lumi, double scale, vector<TString> vInfo, int idx, bool rebin = false)
+
+  make_plot(c1, histIdx, vFiles, output_name, "h_eta5_cand3MET", "Raw E_{T}^{miss} [GeV]", lumi, scaleMC, {}, 1, true);
+  make_2Dplot(c1, histIdx, vFiles, output_name, "hJetUncorrPtEta", "(Uncorrected) Jet p_{T} [GeV]", "Jet #eta", lumi, -1, {}, 1);
+
+  make_2Dplot(c1, histIdx, vFiles, output_name, "hT1CMETModvT1CMETModCorr", "Modified E_{T}^{miss} (Uncorr. Thresh.) [GeV]", "Modified E_{T}^{miss} (Corr. Thresh.) [GeV]", lumi, -1, {}, 2);
 
 }
