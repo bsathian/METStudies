@@ -108,7 +108,8 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   mV11_std->create_raw_met_histograms();
   //MetHelper* mV11_v1 = new MetHelper("V11_v1", nHists, "V11", "V11", 1);
   MetHelper* mV11_v2C = new MetHelper("V11_v2C", nHists, "V11", "V11", 2);
-  MetHelper* mV11_v2C_corr = new MetHelper("V11_v2C_corr", nHists, "V11", "V11", 2, true);
+  MetHelper* mV11_v2C_recipe = new MetHelper("V11_v2C_recipe", nHists, "V11", "V11", 4);
+  //MetHelper* mV11_v2C_corr = new MetHelper("V11_v2C_corr", nHists, "V11", "V11", 2, true);
   //MetHelper* mV11_v2D = new MetHelper("V11_v2D", nHists, "V11D", "V11D", 3);
 
   // Jets
@@ -337,13 +338,13 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
         cout << event << " / " << nEventsTree << endl;
         double t1met_recipe = evt_pfmet();
         double t1met_mod_recipe = evt_mod_pfmet();
-        double t1met = t1CMET_configurable(currentFileName, "V6", "V6", 0, {0,0}, true, false, 0, 0).pt();
-        double t1met_mod = t1CMET_configurable(currentFileName, "V6", "V6", 0, {2.65, 3.139}, true, true, 75., 0).pt();
+        //double t1met = t1CMET_configurable(currentFileName, "V6", "V6", 0, {0,0}, true, false, 0, 0).pt();
+        double t1met_mod = t1CMET_configurable(currentFileName, "V11", "V11", 0, {2.65, 3.139}, true, true, 75., 0).pt();
 
         fill_histograms(hpfMET_recipe, t1met_recipe, {1});
         fill_histograms(hpfModifiedMET_recipe, t1met_mod_recipe, {1});
 
-        fill_histograms(hpfMET_myImplementation, t1met, {1});
+        //fill_histograms(hpfMET_myImplementation, t1met, {1});
         fill_histograms(hpfModifiedMET_myImplementation, t1met_mod, {1});
         continue;
       } 
@@ -360,13 +361,17 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       mV11_std->fill_raw_met_histograms(isElEvt, id1, id2, nJet, weight);
       //mV11_v1->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       mV11_v2C->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
-      mV11_v2C_corr->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      //mV11_v2C_corr->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       //mV11_v2D->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
       double t1_met(0), t1_met_mod(0), t1_met_mod_corr(0);
       t1_met = mV11_std->get_t1met();
       t1_met_mod = mV11_v2C->get_t1met();
-      t1_met_mod_corr = mV11_v2C_corr->get_t1met(); 
+      //t1_met_mod_corr = mV11_v2C_corr->get_t1met(); 
+
+      double t1_met_mod_recipe = evt_mod_pfmet();
+      cout << "Modified MET (my imp): " << t1_met_mod << endl;
+      cout << "Modified MET (recipe): " << t1_met_mod_recipe << endl;
 
       fill_histograms2D(hT1CMETvT1CMETMod, t1_met, t1_met_mod, weight);
       fill_histograms2D(hT1CMETModvT1CMETModCorr, t1_met_mod, t1_met_mod_corr, weight);

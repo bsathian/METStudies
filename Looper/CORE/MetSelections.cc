@@ -629,7 +629,7 @@ pair <float, float> getT1CHSMET_fromMINIAOD_configurable( FactorizedJetCorrector
     }
 
     double jet_pt = use_corrected_thresh_2 ? jetp4_uncorr.pt() * corr : jetp4_uncorr.pt();
-    if (!(jet_pt > ptThresh || !(abs(jetp4_uncorr.eta()) > etaExclusionRange[0] && abs(jetp4_uncorr.eta()) < etaExclusionRange[1]))) // don't apply JEC to these jets
+    if (!(jet_pt > ptThresh_2 || !(abs(jetp4_uncorr.eta()) > etaExclusionRange[0] && abs(jetp4_uncorr.eta()) < etaExclusionRange[1]))) // don't apply JEC to these jets
       continue;
 
     if ( corr * jetp4_uncorr.pt() > 15.) { 
@@ -656,24 +656,11 @@ pair <float, float> getT1CHSMET_fromMINIAOD_configurable( FactorizedJetCorrector
       jetp4_uncorr -= cms3.pfjets_pfcandmup4().at(iJet).at(pfcind);
     }
 
-    // for (unsigned int pfcind = 0; pfcind < cms3.pfjets_pfcandIndicies().at(iJet).size(); pfcind++){
-    //   int index = cms3.pfjets_pfcandIndicies().at(iJet).at(pfcind);
-    //   if( cms3.pfcands_isGlobalMuon()    .at(index) ||
-    //       cms3.pfcands_isStandAloneMuon().at(index)){
-    //     jetp4_uncorr -= cms3.pfcands_p4()   .at(index);
-    //   }
-    // }
-
     // get L1FastL2L3 total correction
     jet_corrector->setRho   ( cms3.evt_fixgridfastjet_all_rho()      );
     jet_corrector->setJetA  ( cms3.pfjets_area().at(iJet) );
     jet_corrector->setJetPt ( jetp4_uncorr.pt()                      );
     jet_corrector->setJetEta( jetp4_uncorr.eta()                     );
-
-    //for (unsigned int pfcind = 0; pfcind < cms3.pfjets_pfcandmup4().at(iJet).size(); pfcind++){
-    //  jetp4_uncorr -= cms3.pfjets_pfcandmup4().at(iJet).at(pfcind);
-    //}
-
 
     //Note the subcorrections are stored with corr_vals(N) = corr(N)*corr(N-1)*...*corr(1)
     vector<float> corr_vals = jet_corrector->getSubCorrections();
@@ -683,8 +670,13 @@ pair <float, float> getT1CHSMET_fromMINIAOD_configurable( FactorizedJetCorrector
 
 
     double jet_pt = use_corrected_thresh_2 ? jetp4_uncorr.pt() * corr : jetp4_uncorr.pt();
-    if (!(jet_pt > ptThresh || !(abs(jetp4_uncorr.eta()) > etaExclusionRange[0] && abs(jetp4_uncorr.eta()) < etaExclusionRange[1]))) // don't apply JEC to these jets
+    if (!(jet_pt > ptThresh_2 || !(abs(jetp4_uncorr.eta()) > etaExclusionRange[0] && abs(jetp4_uncorr.eta()) < etaExclusionRange[1]))) {// don't apply JEC to these jets
+      //cout << "skipping this jet. pT: " << jet_pt << " eta: " << jetp4_uncorr.eta() << endl;
       continue;
+    }
+    else {
+      //cout << "good jet. pT: " << jet_pt << " eta: " << jetp4_uncorr.eta() << endl;
+    }
 
     if ( corr * jetp4_uncorr.pt() > 15. ) { 
       T1_metx += jetp4_uncorr.px() * ( corr_l1 - corr );

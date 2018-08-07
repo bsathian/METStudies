@@ -176,7 +176,7 @@ inline
 void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights) {
   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET, fT1CMET_up, fT1CMET_down;
 
-  double pt_jec_thresh(0), pt_thresh(0);
+  double pt_jec_thresh(15), pt_thresh(0);
   vector<double> eta_exclusion_range = {0, 0};
   bool exclude_jets = false;
   if (type == 0) {
@@ -202,13 +202,18 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
     fill_histograms(hJetPt, vCorrectedJets[i].pt(), weights);
   }
 
-  fT1CMET = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 0, mCorr);
-  fT1CMET_up = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 1, mCorr);
-  fT1CMET_down = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 2, mCorr);
 
-  if (type == 2) {
-    cout << fT1CMET.pt() << endl;
+  if (type != 4) {
+    fT1CMET = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 0, mCorr);
+    fT1CMET_up = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 1, mCorr);
+    fT1CMET_down = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 2, mCorr);
   }
+  else {
+    fT1CMET.SetCoordinates(evt_mod_pfmet() * cos(evt_mod_pfmetPhi()), evt_mod_pfmet() * sin(evt_mod_pfmetPhi()), 0, evt_mod_pfmet());
+    fT1CMET_up.SetCoordinates(evt_mod_pfmet_JetEnUp(), 0, 0, evt_mod_pfmet_JetEnUp());
+    fT1CMET_down.SetCoordinates(evt_mod_pfmet_JetEnDown(), 0, 0, evt_mod_pfmet_JetEnDown());
+  }
+
 
   t1met = fT1CMET.pt();
 
