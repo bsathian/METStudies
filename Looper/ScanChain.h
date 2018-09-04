@@ -125,6 +125,17 @@ double DeltaR(const LorentzVector p1, const LorentzVector p2){
   return sqrt( (p1.eta() - p2.eta())*(p1.eta() - p2.eta())+ dphi*dphi );
 }
 
+bool low_pt_ec_jet() {
+  for (int i = 0; i < pfjets_p4().size(); i++) { 
+    if (abs(pfjets_p4()[i].eta()) > 2.65 && abs(pfjets_p4()[i].eta()) < 3.139 && pfjets_p4()[i].pt() > 25 && pfjets_p4()[i].pt() < 50) {
+    //cout << "Jet with eta: " << abs(pfjets_p4()[i].eta()) << " and pt: " << pfjets_p4()[i].pt() << endl;
+    return true;
+  }
+  }
+  return false;
+}
+
+
 int nJets(bool isElEvt, int id1, int id2) {
   int n = 0;
   int nJetCands = pfjets_p4().size();
@@ -280,7 +291,7 @@ bool isClusteredCand(const LorentzVector pCand) {
   return false;
 }
 
-ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET(TString currentFileName) {
+ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET(TString currentFileName, int use_cleaned_met) {
   std::pair<float, float> pT1CMET;
 
   std::vector<std::string> jetcorr_filenames_pfL1FastJetL2L3;
@@ -332,7 +343,7 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET(TString currentFi
 
   jet_corrector = makeJetCorrector(jetcorr_filenames_pfL1FastJetL2L3);
 
-  pT1CMET = getT1CHSMET_fromMINIAOD(jet_corrector, NULL, 0, 0, 0);
+  pT1CMET = getT1CHSMET_fromMINIAOD(jet_corrector, NULL, 0, 0, use_cleaned_met);
 
   float metX = pT1CMET.first * cos(pT1CMET.second);
   float metY = pT1CMET.first * sin(pT1CMET.second);
@@ -341,7 +352,98 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET(TString currentFi
   return fT1CMET;
 }
 
-ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TString currentFileName, string dataVersion, string mcVersion, double ptThresh, vector<double> etaExclusionRange, bool useHE, bool excludeJets = false, double ptThresh2 = 75., int unc = 0, bool corr = false) {
+double t1CMET_raw_configurable(TString currentFileName, string dataVersion, string mcVersion, double ptThresh, vector<double> etaExclusionRange, bool useHE, bool excludeJets = false, double ptThresh2 = 75., int unc = 0, bool corr = false) {
+  std::pair<float, float> pT1CMET;
+
+  std::vector<std::string> jetcorr_filenames_pfL1FastJetL2L3;
+  std::string jetcorr_uncertainty_filename;
+
+
+  FactorizedJetCorrector* jet_corrector(0);
+  JetCorrectionUncertainty jet_uncertainty;
+  if (dataVersion == "V8b" || dataVersion == "V8c" || dataVersion == "V8d" || dataVersion == "V9") {
+    if (currentFileName.Contains("2017B") || currentFileName.Contains("2017C") || currentFileName.Contains("2017D") || currentFileName.Contains("2017E")) {
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> dummy(0, 0, 0, 0);
+      return 0;
+      //return dummy;
+    }
+  }
+  else if (dataVersion == "V11C" || dataVersion == "V11D") {
+    if (currentFileName.Contains("2017B") || currentFileName.Contains("2017C") || currentFileName.Contains("2017D") || currentFileName.Contains("2017E")) {
+      dataVersion = "V11";
+      mcVersion = "V11";
+    }
+  }
+  if (currentFileName.Contains("2017B")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017B_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017B_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
+  }else if (currentFileName.Contains("2017C")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
+  }else if (currentFileName.Contains("2017D")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
+  }else if (currentFileName.Contains("2017E")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
+  }else if (currentFileName.Contains("2017F")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
+  }
+  else if (currentFileName.Contains("Fall17")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_" + mcVersion + "_MC_L1FastJet_AK4PFchs.txt");
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_" + mcVersion + "_MC_L2Relative_AK4PFchs.txt");
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_" + mcVersion + "_MC_L3Absolute_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017_" + mcVersion + "_MC_Uncertainty_AK4PFchs.txt";
+   }
+  else {
+    cout << "Did not grab JECs" << endl; // should not happen
+  }
+
+  jet_corrector = makeJetCorrector(jetcorr_filenames_pfL1FastJetL2L3);
+  jet_uncertainty.setParameters(jetcorr_uncertainty_filename);
+
+  bool uncUp = unc == 1;
+
+  double raw_mod_met = raw_met_modified(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, true, 0, useHE, ptThresh, etaExclusionRange, true, ptThresh2, corr);
+
+  /*
+  if (excludeJets)
+    pT1CMET = getT1CHSMET_fromMINIAOD_configurable(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, true, 0, useHE, ptThresh, etaExclusionRange, true, ptThresh2, corr);
+  else
+    pT1CMET = getT1CHSMET_fromMINIAOD_configurable(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, !useHE, 0, useHE, ptThresh, etaExclusionRange, corr);
+
+  float metX = pT1CMET.first * cos(pT1CMET.second);
+  float metY = pT1CMET.first * sin(pT1CMET.second);
+  ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET(metX, metY, 0, pT1CMET.first);
+  */
+  delete jet_corrector;
+  return raw_mod_met;
+}
+
+
+ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TString currentFileName, string dataVersion, string mcVersion, double ptThresh, vector<double> etaExclusionRange, bool useHE, bool excludeJets = false, double ptThresh2 = 15., int unc = 0, bool corr = false) {
   std::pair<float, float> pT1CMET;
 
   std::vector<std::string> jetcorr_filenames_pfL1FastJetL2L3;
@@ -415,9 +517,9 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TStr
   bool uncUp = unc == 1;
 
   if (excludeJets)
-    pT1CMET = getT1CHSMET_fromMINIAOD_configurable(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, true, 0, useHE, ptThresh, etaExclusionRange, true, ptThresh2, corr);
+    pT1CMET = getT1CHSMET_fromMINIAOD_configurable(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, true, ptThresh, useHE, ptThresh2, etaExclusionRange, true, ptThresh2, corr);
   else
-    pT1CMET = getT1CHSMET_fromMINIAOD_configurable(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, !useHE, 0, useHE, ptThresh, etaExclusionRange, corr);
+    pT1CMET = getT1CHSMET_fromMINIAOD_configurable(jet_corrector, unc > 0 ? &jet_uncertainty : NULL, uncUp, false, 0, useHE, ptThresh, etaExclusionRange, false, ptThresh2, corr);
 
   float metX = pT1CMET.first * cos(pT1CMET.second);
   float metY = pT1CMET.first * sin(pT1CMET.second);

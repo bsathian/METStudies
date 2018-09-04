@@ -640,7 +640,12 @@ void Comparison::draw_2D_histograms(int idx)
 
   mCanvas->Clear();
   mH2DRat = (TH2D*)mH2DData->Clone("mH2DRat");
+
   mH2DData->Draw(m2DDrawOpt);
+
+
+  mH2DData->SetMinimum(pow(10,-1));
+  mH2DData->SetMaximum(pow(10,5));
   if (mCustomYRange) {
     mH2DData->SetMinimum(mYLimRange[0]);
     mH2DData->SetMaximum(mYLimRange[1]);
@@ -698,6 +703,9 @@ void Comparison::draw_2D_histograms(int idx)
   mH2DMC->GetXaxis()->SetTitle(mXLabel);
   mH2DMC->GetYaxis()->SetTitle(mYLabel);
   mH2DMC->GetYaxis()->SetTitleOffset(1.3);
+
+  mH2DMC->SetMinimum(pow(10,-1));
+  mH2DMC->SetMaximum(pow(10,5));
   if (mCustomYRange) {
     mH2DMC->SetMinimum(mYLimRange[0]);
     mH2DMC->SetMaximum(mYLimRange[1]);
@@ -795,7 +803,9 @@ void Comparison::annotate_plot()
     for (int i=0; i<mVHData.size(); i++)
       l1->AddEntry(mVHData[i], mVLegendLabels[i], "lep");
     int idxMC = mVHData.size();
+    cout << "setting legend labels" << endl;
     for (int i=0; i<mVHMC.size(); i++) {
+      cout << "inside loop" << endl;
       if (mMultipleComparisons) break;
       if (!mBothData) l1->AddEntry(mVHMC[i], mVLegendLabels[idxMC+i], "f");
       else l1->AddEntry(mHMC, mVLegendLabels[idxMC], "lep");

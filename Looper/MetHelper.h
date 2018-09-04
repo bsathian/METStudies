@@ -35,6 +35,14 @@ class MetHelper
     vector<TH1D*> hT1CMET_up;
     vector<TH1D*> hT1CMET_down;
 
+    vector<TH1D*> hT1CMET_EE;
+    vector<TH1D*> hT1CMET_EE_up;
+    vector<TH1D*> hT1CMET_EE_down;
+
+    vector<TH1D*> hT1CMET_MM;
+    vector<TH1D*> hT1CMET_MM_up;
+    vector<TH1D*> hT1CMET_MM_down;
+
     vector<TH1D*> hT1CMET_0Jets;
     vector<TH1D*> hT1CMET_0Jets_up;
     vector<TH1D*> hT1CMET_0Jets_down;
@@ -100,6 +108,14 @@ void MetHelper::create_histograms() {
   hT1CMET_1pJets = create_histogram_vector("hT1CMET_1pJets" + name, nBins, x_low, x_high, nHists);
   hT1CMET_1pJets_up = create_histogram_vector("hT1CMET_1pJets_up" + name, nBins, x_low, x_high, nHists);
   hT1CMET_1pJets_down = create_histogram_vector("hT1CMET_1pJets_down" + name, nBins, x_low, x_high, nHists);
+
+  hT1CMET_EE = create_histogram_vector("hT1CMET_EE" + name, nBins, x_low, x_high, nHists);
+  hT1CMET_EE_up = create_histogram_vector("hT1CMET_EE_up" + name, nBins, x_low, x_high, nHists);
+  hT1CMET_EE_down = create_histogram_vector("hT1CMET_EE_down" + name, nBins, x_low, x_high, nHists);
+
+  hT1CMET_MM = create_histogram_vector("hT1CMET_MM" + name, nBins, x_low, x_high, nHists);
+  hT1CMET_MM_up = create_histogram_vector("hT1CMET_MM_up" + name, nBins, x_low, x_high, nHists);
+  hT1CMET_MM_down = create_histogram_vector("hT1CMET_MM_down" + name, nBins, x_low, x_high, nHists);
 
   hJetPt = create_histogram_vector("hJetPt" + name, nBins, x_low, x_high, nHists);
 
@@ -176,7 +192,7 @@ inline
 void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights) {
   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET, fT1CMET_up, fT1CMET_down;
 
-  double pt_jec_thresh(15), pt_thresh(0);
+  double pt_jec_thresh(15), pt_thresh(15);
   vector<double> eta_exclusion_range = {0, 0};
   bool exclude_jets = false;
   if (type == 0) {
@@ -184,15 +200,24 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
   }// standard, do nothing
   else if (type == 1) { // modified
     pt_jec_thresh = 75;
+    pt_thresh = 75;
     eta_exclusion_range = {2.65, 3.139};
   }
   else if (type == 2) { // modified C 
+    pt_jec_thresh = 75;
     pt_thresh = 75;
     eta_exclusion_range = {2.65, 3.139};
     exclude_jets = true;
   }
   else if (type == 3) { // modified D
     pt_thresh = 99999999999;
+    eta_exclusion_range = {2.65, 3.139};
+    exclude_jets = true;
+  }
+
+  else if (type == 5) { // modified C with pT thresh of 50
+    pt_thresh = 50.;
+    pt_jec_thresh = 50.;
     eta_exclusion_range = {2.65, 3.139};
     exclude_jets = true;
   }
@@ -204,9 +229,9 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
 
 
   if (type != 4) {
-    fT1CMET = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 0, mCorr);
-    fT1CMET_up = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 1, mCorr);
-    fT1CMET_down = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, true, exclude_jets, pt_thresh, 2, mCorr);
+    fT1CMET = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, exclude_jets, exclude_jets, pt_thresh, 0, mCorr);
+    fT1CMET_up = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, exclude_jets, exclude_jets, pt_thresh, 1, mCorr);
+    fT1CMET_down = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, exclude_jets, exclude_jets, pt_thresh, 2, mCorr);
   }
   else {
     fT1CMET.SetCoordinates(evt_mod_pfmet() * cos(evt_mod_pfmetPhi()), evt_mod_pfmet() * sin(evt_mod_pfmetPhi()), 0, evt_mod_pfmet());
@@ -220,6 +245,17 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
   fill_histograms(hT1CMET, fT1CMET.pt(), weights);
   fill_histograms(hT1CMET_up, fT1CMET_up.pt(), weights);
   fill_histograms(hT1CMET_down, fT1CMET_down.pt(), weights);
+
+  if (isElEvt) {
+    fill_histograms(hT1CMET_EE, fT1CMET.pt(), weights);
+    fill_histograms(hT1CMET_EE_up, fT1CMET_up.pt(), weights);
+    fill_histograms(hT1CMET_EE_down, fT1CMET_down.pt(), weights);
+  }
+  else {
+    fill_histograms(hT1CMET_MM, fT1CMET.pt(), weights);
+    fill_histograms(hT1CMET_MM_up, fT1CMET_up.pt(), weights);
+    fill_histograms(hT1CMET_MM_down, fT1CMET_down.pt(), weights);
+  }
 
   if (nJets == 0) {
     fill_histograms(hT1CMET_0Jets, fT1CMET.pt(), weights);
