@@ -240,32 +240,42 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
   }
 
 
+  
+
   t1met = fT1CMET.pt();
+ 
+  double t1met_up = fT1CMET_up.pt();
+  double t1met_down = fT1CMET_down.pt();
+
+  vector<double> vMET = {t1met, t1met_up, t1met_down};
+
+  t1met_up = *max_element(vMET.begin(), vMET.end());
+  t1met_down = *min_element(vMET.begin(), vMET.end());
 
   fill_histograms(hT1CMET, fT1CMET.pt(), weights);
-  fill_histograms(hT1CMET_up, fT1CMET_up.pt(), weights);
-  fill_histograms(hT1CMET_down, fT1CMET_down.pt(), weights);
+  fill_histograms(hT1CMET_up, t1met_up, weights);
+  fill_histograms(hT1CMET_down, t1met_down, weights);
 
   if (isElEvt) {
     fill_histograms(hT1CMET_EE, fT1CMET.pt(), weights);
-    fill_histograms(hT1CMET_EE_up, fT1CMET_up.pt(), weights);
-    fill_histograms(hT1CMET_EE_down, fT1CMET_down.pt(), weights);
+    fill_histograms(hT1CMET_EE_up, t1met_up, weights);
+    fill_histograms(hT1CMET_EE_down, t1met_down, weights);
   }
   else {
     fill_histograms(hT1CMET_MM, fT1CMET.pt(), weights);
-    fill_histograms(hT1CMET_MM_up, fT1CMET_up.pt(), weights);
-    fill_histograms(hT1CMET_MM_down, fT1CMET_down.pt(), weights);
+    fill_histograms(hT1CMET_MM_up, t1met_up, weights);
+    fill_histograms(hT1CMET_MM_down, t1met_down, weights);
   }
 
   if (nJets == 0) {
     fill_histograms(hT1CMET_0Jets, fT1CMET.pt(), weights);
-    fill_histograms(hT1CMET_0Jets_up, fT1CMET_up.pt(), weights);
-    fill_histograms(hT1CMET_0Jets_down, fT1CMET_down.pt(), weights);
+    fill_histograms(hT1CMET_0Jets_up, t1met_up, weights);
+    fill_histograms(hT1CMET_0Jets_down, t1met_down, weights);
   }
   else {
     fill_histograms(hT1CMET_1pJets, fT1CMET.pt(), weights);
-    fill_histograms(hT1CMET_1pJets_up, fT1CMET_up.pt(), weights);
-    fill_histograms(hT1CMET_1pJets_down, fT1CMET_down.pt(), weights);
+    fill_histograms(hT1CMET_1pJets_up, t1met_up, weights);
+    fill_histograms(hT1CMET_1pJets_down, t1met_down, weights);
   }
 
 

@@ -206,7 +206,15 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       cms3.GetEntry(event);
       ++nEventsTotal;
       CMS3::progress( nEventsTotal, nEventsChain );
- 
+  
+      if (selection == 10) {
+	double t1met_mod_v2 = t1CMET_configurable(currentFileName, "V6", "V6", 75., {2.65, 3.139}, true, true, 75.).pt();
+        double t1met_mod_v1 = t1CMET_configurable(currentFileName, "V6", "V6", 75., {2.65, 3.139}, true, false).pt();
+        cout << cms3.evt_event() << ":" << cms3.evt_run() << ":" << cms3.evt_lumiBlock() << " , Type-1 MET mod v1: " << t1met_mod_v1 << " , Type-1 MET mod v2: " << t1met_mod_v2 << endl;
+        continue;
+      }
+
+
       if (selection == 3) {
         cout << endl << "Event number " << event << endl;
         cout << "Type-1 MET: " << t1CMET(currentFileName, 0).pt() << endl;
@@ -336,6 +344,19 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 	fill_histograms(hDilepMassEE,dMass, weight);
       else
 	fill_histograms(hDilepMassMuMu,dMass, weight);
+
+
+      if (selection == 9) {
+	if (!isElEvt)									continue;
+	if (dMass < 81 || dMass > 101)                                                  continue;
+	int nJet = nJets(isElEvt, id1, id2);
+	if (nJet == 0) 									continue;
+	if (evt_pfmet_raw() < 250)							continue;
+	double t1met = t1CMET_configurable(currentFileName, "V11", "V11", 0, {0,0}, true, false, 0, 0).pt();
+	//double t1met_mod = t1CMET_configurable(currentFileName, "V11", "V11", 75., {2.65, 3.139}, true, true, 75.).pt();
+	cout << cms3.evt_event() << ":" << cms3.evt_run() << ":" << cms3.evt_lumiBlock() << " , raw MET: " << evt_pfmet_raw() << " , Type-1 MET mod v2: " << t1met << endl;
+	continue;	
+      }
 
       if (selection == 1 || selection == 5) { // regular Z->ll
         if (dMass < 81 || dMass > 101)							continue;
