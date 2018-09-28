@@ -11,7 +11,8 @@ class MetHelper
 
     void create_histograms();
     void create_raw_met_histograms();
-    void fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights);
+    //void fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights);
+    void fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights, vector<double> weights_up, vector<double> weights_down);
     void fill_raw_met_histograms(bool isElEvt, int id1, int id2, int nJets, vector<double> weights);
 
     double get_t1met() { return t1met; }
@@ -34,6 +35,8 @@ class MetHelper
     vector<TH1D*> hT1CMET;
     vector<TH1D*> hT1CMET_up;
     vector<TH1D*> hT1CMET_down;
+    vector<TH1D*> hT1CMET_pu_up;
+    vector<TH1D*> hT1CMET_pu_down;
 
     vector<TH1D*> hT1CMET_EE;
     vector<TH1D*> hT1CMET_EE_up;
@@ -100,6 +103,9 @@ void MetHelper::create_histograms() {
   hT1CMET = create_histogram_vector("hT1CMET" + name, nBins, x_low, x_high, nHists);
   hT1CMET_up = create_histogram_vector("hT1CMET_up" + name, nBins, x_low, x_high, nHists);
   hT1CMET_down = create_histogram_vector("hT1CMET_down" + name, nBins, x_low, x_high, nHists);
+
+  hT1CMET_pu_up = create_histogram_vector("hT1CMET_pu_up" + name, nBins, x_low, x_high, nHists);
+  hT1CMET_pu_down = create_histogram_vector("hT1CMET_pu_down" + name, nBins, x_low, x_high, nHists);
 
   hT1CMET_0Jets = create_histogram_vector("hT1CMET_0Jets" + name, nBins, x_low, x_high, nHists);
   hT1CMET_0Jets_up = create_histogram_vector("hT1CMET_0Jets_up" + name, nBins, x_low, x_high, nHists);
@@ -189,7 +195,7 @@ void MetHelper::fill_raw_met_histograms(bool isElEvt, int id1, int id2, int nJet
 }
 
 inline
-void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights) {
+void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights, vector<double> weights_up = {}, vector<double> weights_down = {}) {
   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET, fT1CMET_up, fT1CMET_down;
 
   double pt_jec_thresh(15), pt_thresh(15);
@@ -255,6 +261,11 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
   fill_histograms(hT1CMET, fT1CMET.pt(), weights);
   fill_histograms(hT1CMET_up, t1met_up, weights);
   fill_histograms(hT1CMET_down, t1met_down, weights);
+
+  if (weights_up.size() > 0) {
+    fill_histograms(hT1CMET_pu_up, t1met, weights_up);
+    fill_histograms(hT1CMET_pu_down, t1met, weights_down);
+  }
 
   if (isElEvt) {
     fill_histograms(hT1CMET_EE, fT1CMET.pt(), weights);

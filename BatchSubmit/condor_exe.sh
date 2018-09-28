@@ -43,5 +43,10 @@ echo "[wrapper] running analyze now"
 echo "[wrapper] ./analyze ${INPUTFILENAMES} ${OUTPUTFILENAME} ${INDEX} ${WEIGHTFILE} ${SELECTION} ${SCALE1FB}"
 ./analyze "${INPUTFILENAMES}" "${OUTPUTFILENAME}" "${INDEX}" "${WEIGHTFILE}" "${SELECTION}" "${SCALE1FB}" 
 
+if [ "$?" != "0" ]; then
+    echo "Removing output file because cmsRun crashed with exit code $?"
+    rm *.root
+fi
+
 echo "[wrapper] gfal-copy output file"
 gfal-copy -p -f -t 4200 --verbose file://`pwd`/${OUTPUTFILENAME}_${INDEX}.root gsiftp://gftp.t2.ucsd.edu/${OUTPUTDIR}/${OUTPUTFILENAME}_${INDEX}.root --checksum ADLER32

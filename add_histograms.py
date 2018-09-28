@@ -24,7 +24,7 @@ if args.skip_data:
 if args.skip_mc:
   doMC = False
 
-tag = "MET_v16"
+tag = "MET_v18"
 
 data = {"B" : ["DoubleEG_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/", "DoubleMuon_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/"],  
         "C" : ["DoubleEG_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/", "DoubleMuon_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/"],

@@ -18,6 +18,7 @@ hadoop_path = "MET"
 parser = argparse.ArgumentParser()
 #parser.add_argument("eras", help = "Which 2017 data eras to consider (B,C,D,E,F)", type=str)
 #parser.add_argument("weightfile", type=str, help = "root file to use for pileup reweighting")
+parser.add_argument("--runF_only", help = "Run only on data from Run F and no mc", action="store_true")
 parser.add_argument("--reweight", help = "(Re)derive pileup weights", action="store_true")
 parser.add_argument("--validation", help = "Run only on 2017F DoubleMuon 949 to validate MET recipe", action="store_true")
 parser.add_argument("--validate_recipe", help = "Validate recipe in CMS4", action="store_true")
@@ -25,12 +26,12 @@ parser.add_argument("--test_run", help = "Just submit for 1 MC sample", action="
 args = parser.parse_args()
 
 #job_tag = "MET_v1" + args.eras
-job_tag = "MET_v16"
+job_tag = "MET_v19"
 
 eras = "B,C,D,E,F"
 eras = eras.split(",")
 
-if args.validation:
+if args.validation or args.runF_only:
   eras = ["F"]
 
 data = {"B" : ["/DoubleEG_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/", "/DoubleMuon_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 
@@ -76,6 +77,9 @@ if args.validate_recipe:
 if args.test_run:
   data = {}
   mc = {"ZZ" : [["/ZZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 10.32, 1949768.0, 0.0, 1],} 
+
+if args.runF_only:
+  mc = {}
 
 basepath = "/hadoop/cms/store/user/smay/ProjectMetis"
 total_summary = {}
