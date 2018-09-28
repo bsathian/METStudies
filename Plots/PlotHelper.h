@@ -39,6 +39,7 @@ class Comparison
     Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC);
     Comparison(TCanvas* c1, TH2D* hData, TH2D* hMC);
     Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC, TH1D* hRatUnc);
+    Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC, vector<TH1D*> hRatUnc);
     //Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC, TH1D* hDataUp, TH1D* hDataDown, vector<TH1D*> hMCUp, vector<TH1D*> hMCDown);
   
     ~Comparison();
@@ -71,7 +72,7 @@ class Comparison
     void set_data_drawOpt(TString drawOpt) {mDataDrawOpt = drawOpt;}
     void set_multiple_comparisons() {mMultipleComparisons = true;}
     void set_legend_lower_right() {mLegendLowerRight = true;} 
-    void set_rat_unc_label(TString label) {mRatUncLabel = label;} 
+    void set_rat_unc_label(vector<TString> label) {mRatUncLabel = label;} 
 
     void give_hlines(vector<double> vHLines) {mVHLines = vHLines;}
     void give_vlines(vector<double> vVLines) {mVVLines = vVLines;}
@@ -108,6 +109,7 @@ class Comparison
     TH1D* mHRat;
     vector<TH1D*> mVHRat;
     TH1D* mHRatUnc;
+    vector<TH1D*> mVHRatUnc;
 
     THStack* mStack;
 
@@ -160,7 +162,7 @@ class Comparison
     int mColor2;
     vector<int> mColorData;
 
-    TString mRatUncLabel;
+    vector<TString> mRatUncLabel;
 
     const double topSpace = 0.15;
     const double botSpace = 0.05;
@@ -179,8 +181,8 @@ Comparison::~Comparison()
     delete mHMC;  
     for (int i = 0; i < mVHMC.size(); i++)
       delete mVHMC[i];
-    if (mRatioUnc)
-      delete mHRatUnc;
+    for (int i = 0; i < mVHRatUnc.size(); i++)
+      delete mVHRatUnc[i];
   }
   else {
     delete mH2DData;
@@ -273,7 +275,33 @@ Comparison::Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC, TH1D* hRatUn
     mHMC->Add(hMC[i]);
 
   mRatioUnc = true;
-  mHRatUnc = (TH1D*)hRatUnc->Clone("mHRatUnc");
+  //mHRatUnc = (TH1D*)hRatUnc->Clone("mHRatUnc");
+  mVHRatUnc.push_back((TH1D*)hRatUnc->Clone("mHRatUnc"));
+}
+
+inline
+Comparison::Comparison(TCanvas* c1, TH1D* hData, vector<TH1D*> hMC, vector<TH1D*> hRatUnc)
+{
+  default_options(c1);
+  mVHData.push_back((TH1D*)hData->Clone("mHData"));
+
+  int nMCHists = hMC.size();
+  for (int i=0; i<nMCHists; i++) {
+    TString idx = Form("%d", i);
+    mVHMC.push_back((TH1D*)hMC[i]->Clone("mHMC"+idx));
+    //mVHRat.push_back((TH1D*)hData[i]->Clone("mHRat"+idx));
+  }
+
+  mHMC = (TH1D*)hMC[0]->Clone("mHMC");
+  for (int i=1; i<nMCHists; i++)
+    mHMC->Add(hMC[i]);
+
+  mRatioUnc = true;
+  //mHRatUnc = (TH1D*)hRatUnc->Clone("mHRatUnc");
+  for (int i = 0; i < hRatUnc.size(); i++) {
+    TString idx = Form("%d", i);
+    mVHRatUnc.push_back((TH1D*)hRatUnc[i]->Clone("mHRatUnc"+idx));
+  } 
 }
 
 
@@ -317,7 +345,7 @@ void Comparison::default_options(TCanvas* c1)
   mYLabelFontSize = 0.04;
   mRatLabel = "#frac{2017 Data}{2016 Data}";
   mRatioUnc = false;
-  mRatUncLabel = "Syst. Unc.";
+  //mRatUncLabel = "Syst. Unc.";
 
   mDataDrawOpt = "E";
   mMultipleComparisons = false;
@@ -897,9 +925,9 @@ void Comparison::make_rat_histogram(TH1D* hData, TH1D* hMC)
   }
   gPad->RedrawAxis();
 
-  if (mRatioUnc) {
+  if (mRatioUnc && mRatUncLabel.size() > 0) {
     TLegend* legend = new TLegend(0.14, 0.38, 0.34, 0.48);
-    legend->AddEntry(mHRatUnc, mRatUncLabel, "f");
+    legend->AddEntry(mHRatUnc, mRatUncLabel[0], "f");
     legend->SetBorderSize(0);
     legend->Draw("SAME");
   }

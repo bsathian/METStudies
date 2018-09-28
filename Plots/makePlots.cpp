@@ -277,7 +277,7 @@ void make_plot_rat_unc(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string o
   c->set_data_drawOpt("E");
   c->set_lumi(lumi);
   c->set_scale(scale);
-  c->set_rat_unc_label("JEC Unc.");
+  c->set_rat_unc_label({"JES Unc."});
   if (rebin)
     c->set_x_bin_range({1, n_met_bins});
   //if (hist_name.Contains("T1CMET"))
