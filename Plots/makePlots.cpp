@@ -252,7 +252,7 @@ void make_plot_rat_unc(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string o
   if (hist_name == "hT1CMET" || hist_name == "hT1CMET_tightID")
     cout << hMC[0]->Integral(41,80) << endl;
   //Comparison* c = new Comparison(c1, hData, hMC);
-  Comparison* c = new Comparison(c1, hData, hMC, hRatUnc);
+  Comparison* c = new Comparison(c1, hData, hMC, {hRatUnc});
   if (lumi == 4.8)
     c->give_info({"2017 Run B"});
   else if (lumi == 23.5)
@@ -340,7 +340,7 @@ void make_2Dplot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_
   delete c;
 }
 
-void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, vector<TString> hist_names, double lumi, double scale, vector<TString> vInfo, vector<TString> vLabels, int idx) {
+void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, vector<TString> hist_names, double lumi, double scale, vector<TString> vInfo, vector<TString> vLabels, int idx, bool compare_to_data = false) {
   c1->cd();
   TPad* mainPad = new TPad("p_main", "p_main", 0.0, 0.3, 1.0, 1.0);
   mainPad->SetBottomMargin(0.02);
@@ -386,6 +386,7 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
       TH1D* hMCTempMM = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseMM" + hist_names[j] + to_string(i+1) + to_string(histIdx));
 
       for (int k = 2; k < vFiles.size(); k++) {
+	if (compare_to_data) continue;
         hMCTemp->Add((TH1D*)vFiles[k]->Get("hT1CMET_Response" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
 	hMCTempEE->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseEE" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
 	hMCTempMM->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseMM" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
@@ -393,18 +394,24 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
    
       vHData_response[j]->SetBinContent(i+1, hDataTemp->GetMean());
       vHData_response[j]->SetBinError(i+1, hDataTemp->GetMeanError());
-      vHMC_response[j]->SetBinContent(i+1, hMCTemp->GetMean());
-      vHMC_response[j]->SetBinError(i+1, hMCTemp->GetMeanError());
-      
+      if (!compare_to_data) {
+	vHMC_response[j]->SetBinContent(i+1, hMCTemp->GetMean());
+	vHMC_response[j]->SetBinError(i+1, hMCTemp->GetMeanError());
+      }      
+
       vHData_responseEE[j]->SetBinContent(i+1, hDataTempEE->GetMean());
       vHData_responseEE[j]->SetBinError(i+1, hDataTempEE->GetMeanError());
-      vHMC_responseEE[j]->SetBinContent(i+1, hMCTempEE->GetMean());
-      vHMC_responseEE[j]->SetBinError(i+1, hMCTempEE->GetMeanError());
+      if (!compare_to_data) {
+        vHMC_responseEE[j]->SetBinContent(i+1, hMCTempEE->GetMean());
+        vHMC_responseEE[j]->SetBinError(i+1, hMCTempEE->GetMeanError());
+      }
 
       vHData_responseMM[j]->SetBinContent(i+1, hDataTempMM->GetMean());
       vHData_responseMM[j]->SetBinError(i+1, hDataTempMM->GetMeanError());
-      vHMC_responseMM[j]->SetBinContent(i+1, hMCTempMM->GetMean());
-      vHMC_responseMM[j]->SetBinError(i+1, hMCTempMM->GetMeanError()); 
+      if (!compare_to_data) {
+        vHMC_responseMM[j]->SetBinContent(i+1, hMCTempMM->GetMean());
+        vHMC_responseMM[j]->SetBinError(i+1, hMCTempMM->GetMeanError()); 
+      }
 
       delete hDataTemp;
       delete hMCTemp;
@@ -422,20 +429,25 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
       TH1D* hDataTempPerp = (TH1D*)vFiles[0]->Get("hT1CMET_ResPerp" + hist_names[j] + to_string(i+1) + "0");
       TH1D* hMCTempPerp = (TH1D*)vFiles[1]->Get("hT1CMET_ResPerp" + hist_names[j] + to_string(i+1) + to_string(histIdx));
       for (int k = 2; k < vFiles.size(); k++) {
+	if (compare_to_data) continue;
         hMCTempPara->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResPara" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
 	hMCTempPerp->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResPerp" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
       }
 
       vHData_res_para[j]->SetBinContent(i+1, hDataTempPara->GetStdDev() / vHData_response[j]->GetBinContent(i+1));
-      vHMC_res_para[j]->SetBinContent(i+1, hMCTempPara->GetStdDev() / vHMC_response[j]->GetBinContent(i+1));
       vHData_res_perp[j]->SetBinContent(i+1, hDataTempPerp->GetStdDev() / vHData_response[j]->GetBinContent(i+1));
-      vHMC_res_perp[j]->SetBinContent(i+1, hMCTempPerp->GetStdDev() / vHMC_response[j]->GetBinContent(i+1));  
+      if (!compare_to_data) {
+	vHMC_res_para[j]->SetBinContent(i+1, hMCTempPara->GetStdDev() / vHMC_response[j]->GetBinContent(i+1));
+	vHMC_res_perp[j]->SetBinContent(i+1, hMCTempPerp->GetStdDev() / vHMC_response[j]->GetBinContent(i+1));  
+      }
 
       vHData_res_para[j]->SetBinError(i+1, hDataTempPara->GetStdDevError() / vHData_response[j]->GetBinContent(i+1));
-      vHMC_res_para[j]->SetBinError(i+1, hMCTempPara->GetStdDevError() / vHMC_response[j]->GetBinContent(i+1));
       vHData_res_perp[j]->SetBinError(i+1, hDataTempPerp->GetStdDevError() / vHData_response[j]->GetBinContent(i+1));
-      vHMC_res_perp[j]->SetBinError(i+1, hMCTempPerp->GetStdDevError() / vHMC_response[j]->GetBinContent(i+1));
- 
+      if (!compare_to_data) {
+	vHMC_res_para[j]->SetBinError(i+1, hMCTempPara->GetStdDevError() / vHMC_response[j]->GetBinContent(i+1));
+	vHMC_res_perp[j]->SetBinError(i+1, hMCTempPerp->GetStdDevError() / vHMC_response[j]->GetBinContent(i+1));
+      } 
+
       delete hDataTempPara;
       delete hMCTempPara;
       delete hDataTempPerp;
@@ -443,6 +455,13 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
     }
   } 
 
+  if (compare_to_data) {
+    vHMC_response.clear();
+    for (int i = 0; i < vHData_response.size(); i++) {
+      TString h_name = "vHData_Response" + to_string(i);
+      vHMC_response.push_back((TH1D*)vHData_response[0]->Clone(h_name));
+    }
+  }
   Comparison* c_response = new Comparison(c1, vHData_response, vHMC_response);
   c_response->set_filename(output_name);
   c_response->set_y_lim_range({0.85, 1.1});
@@ -458,10 +477,21 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   c_response->set_x_label("q_{T} [GeV]");
   c_response->set_y_label("-<u_{#parallel}>/q_{T}");
   c_response->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_response->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
   c_response->set_rat_lim_range({0.9, 1.1});
+  if (compare_to_data)
+    c_response->set_rat_lim_range({0.95, 1.05});
   c_response->set_legend_lower_right();
   c_response->plot((idx == 0 || idx == 3) ? 0 : 1);
 
+  if (compare_to_data) {
+    vHMC_responseEE.clear();
+    for (int i = 0; i < vHData_responseEE.size(); i++) {
+      TString h_name = "vHData_ResponseEE" + to_string(i);
+      vHMC_responseEE.push_back((TH1D*)vHData_responseEE[0]->Clone(h_name));
+    }
+  }
   Comparison* c_responseEE = new Comparison(c1, vHData_responseEE, vHMC_responseEE);
   c_responseEE->set_filename(output_name);
   c_responseEE->set_y_lim_range({0.85, 1.1});
@@ -476,11 +506,22 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   c_responseEE->set_x_label("q_{T} [GeV]");
   c_responseEE->set_y_label("-<u_{#parallel}>/q_{T}");
   c_responseEE->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_responseEE->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
   c_responseEE->set_rat_lim_range({0.9, 1.1});
+  if (compare_to_data)
+    c_responseEE->set_rat_lim_range({0.95, 1.05});
   c_responseEE->give_info("Z #rightarrow ee Events");
   c_responseEE->set_legend_lower_right();
   c_responseEE->plot(1);
 
+  if (compare_to_data) {
+    vHMC_responseMM.clear();
+    for (int i = 0; i < vHData_responseMM.size(); i++) {
+      TString h_name = "vHData_ResponseMM" + to_string(i);
+      vHMC_responseMM.push_back((TH1D*)vHData_responseMM[0]->Clone(h_name));
+    }
+  }
   Comparison* c_responseMM = new Comparison(c1, vHData_responseMM, vHMC_responseMM);
   c_responseMM->set_filename(output_name);
   c_responseMM->set_y_lim_range({0.85, 1.1});
@@ -495,11 +536,22 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   c_responseMM->set_x_label("q_{T} [GeV]");
   c_responseMM->set_y_label("-<u_{#parallel}>/q_{T}");
   c_responseMM->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_responseMM->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
   c_responseMM->set_rat_lim_range({0.9, 1.1});
+  if (compare_to_data)
+    c_responseMM->set_rat_lim_range({0.95, 1.05});
   c_responseMM->give_info("Z #rightarrow #mu#mu Events");
   c_responseMM->set_legend_lower_right();
   c_responseMM->plot(1);
 
+  if (compare_to_data) {
+    vHMC_res_para.clear();
+    for (int i = 0; i < vHData_res_para.size(); i++) {
+      TString h_name = "vHData_res_para" + to_string(i);
+      vHMC_res_para.push_back((TH1D*)vHData_res_para[0]->Clone(h_name));
+    }
+  }
   Comparison* c_res_para = new Comparison(c1, vHData_res_para, vHMC_res_para);
   c_res_para->set_filename(output_name);  
   c_res_para->set_x_bin_range({6, 23});
@@ -514,10 +566,21 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   c_res_para->set_x_label("q_{T} [GeV]");
   c_res_para->set_y_label("#sigma(u_{#parallel}) [GeV]");
   c_res_para->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_res_para->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
   c_res_para->give_info("Response corrected");
   c_res_para->set_rat_lim_range({0.75, 1.25});
+  if (compare_to_data)
+    c_res_para->set_rat_lim_range({0.95, 1.05});
   c_res_para->plot(1);
 
+  if (compare_to_data) {
+    vHMC_res_perp.clear();
+    for (int i = 0; i < vHData_res_perp.size(); i++) {
+      TString h_name = "vHData_res_perp" + to_string(i);
+      vHMC_res_perp.push_back((TH1D*)vHData_res_perp[0]->Clone(h_name));
+    }
+  }
   Comparison* c_res_perp = new Comparison(c1, vHData_res_perp, vHMC_res_perp);
   c_res_perp->set_filename(output_name);
   c_res_perp->set_x_bin_range({6, 23});
@@ -532,8 +595,12 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   c_res_perp->set_x_label("q_{T} [GeV]");
   c_res_perp->set_y_label("#sigma(u_{#perp}) [GeV]");
   c_res_perp->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_res_perp->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
   c_res_perp->give_info("Response corrected");
   c_res_perp->set_rat_lim_range({0.75, 1.25});
+  if (compare_to_data)
+    c_res_perp->set_rat_lim_range({0.95, 1.05});
   c_res_perp->plot((idx == 2 || idx ==3) ? 2 : 1);
 
 }
@@ -780,10 +847,14 @@ int main(int argc, char* argv[])
   TCanvas* c1 = new TCanvas("c1", "histos", 600, 800);
 
   if (eras == "All") {
-    make_met_plots(c1, histIdx, vFiles, output_name, "V11_std", lumi, 1, {"V11 JECs"}, 0);
-    make_met_plots(c1, histIdx, vFiles, output_name, "V11_v1", lumi, 1, {"V11 JECs", "Modified v1 Type-1 MET"}, 1);
-    make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2C", lumi, 1, {"V11 JECs", "Modified v2 Type-1 MET"}, 1);
-    make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2C_50GeV", lumi, 1, {"V11 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 2);
+    //make_met_plots(c1, histIdx, vFiles, output_name, "V11_std", lumi, 1, {"V11 JECs"}, 0);
+    //make_met_plots(c1, histIdx, vFiles, output_name, "V11_v1", lumi, 1, {"V11 JECs", "Modified v1 Type-1 MET"}, 1);
+    //make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2C", lumi, 1, {"V11 JECs", "Modified v2 Type-1 MET"}, 1);
+    //make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2C_50GeV", lumi, 1, {"V11 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 2);
+    make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2C_50GeV", lumi, 1, {"V11 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 0);
+    make_met_plots(c1, histIdx, vFiles, output_name, "V24_v2C_50GeV", lumi, 1, {"V24 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
+    make_met_plots(c1, histIdx, vFiles, output_name, "V25_v2C_50GeV", lumi, 1, {"V25 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
+    make_met_plots(c1, histIdx, vFiles, output_name, "V26_v2C_50GeV", lumi, 1, {"V26 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 2);
     return 0;
   }
 
@@ -795,11 +866,24 @@ int main(int argc, char* argv[])
   //make_resolution_plots(c1, histIdx, vFiles, output_name, {"V8_std", "V8_v1"}, lumi, scaleMC, {era_info, "V8 JECs"}, {"Std. Type-1 MET", "Mod. v1 Type-1 MET"}, 1);
 
   if (eras == "F_V6") {
+    make_resolution_plots(c1, histIdx, vFiles, output_name, {"V6_v2C_50GeV", "V24_v2C_50GeV", "V25_v2C_50GeV", "V26_v2C_50GeV"}, lumi, scaleMC, {era_info}, {"V6 JECs", "V24 JECs", "V25 JECs", "V26 JECs"}, 3, true);
     //make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMETV6_v2C", "hT1CMETV11_v2C", "V6 JECs", "V11 JECs", "E_{T}^{miss} [GeV]", lumi, -1, {"MC vs. MC"}, false, 0);
-    make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMETV6_v2C", "hT1CMETV11_v2C", "V6 JECs", "V11 JECs", "E_{T}^{miss} [GeV]", lumi, -1, {"Data vs. Data"}, true, 1);
+    //make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMETV6_v2C", "hT1CMETV11_v2C", "V6 JECs", "V11 JECs", "E_{T}^{miss} [GeV]", lumi, -1, {"Data vs. Data"}, true, 1);
     return 0;
   }
 
+
+  make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2C_50GeV", lumi, scaleMC, {"V11 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 0);
+  make_met_plots(c1, histIdx, vFiles, output_name, "V24_v2C_50GeV", lumi, scaleMC, {"V24 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
+  make_met_plots(c1, histIdx, vFiles, output_name, "V25_v2C_50GeV", lumi, scaleMC, {"V25 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
+  make_met_plots(c1, histIdx, vFiles, output_name, "V26_v2C_50GeV", lumi, scaleMC, {"V26 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
+
+  make_resolution_plots(c1, histIdx, vFiles, output_name, {"V11_v2C_50GeV", "V24_v2C_50GeV", "V25_v2C_50GeV", "V26_v2C_50GeV"}, lumi, scaleMC, {era_info}, {"V11 JECs", "V24 JECs", "V25 JECs", "V26 JECs"}, 1);
+  make_resolution_plots(c1, histIdx, vFiles, output_name, {"V24_v2C_50GeV", "V25_v2C_50GeV", "V26_v2C_50GeV"}, lumi, scaleMC, {era_info}, {"V24 JECs", "V25 JECs", "V26 JECs"}, 2, true);
+
+  // 2 Oct 2018
+
+  /*
   make_met_plots(c1, histIdx, vFiles, output_name, "V11_std", lumi, scaleMC, {"V11 JECs"}, 0);
   make_met_plots(c1, histIdx, vFiles, output_name, "V11_v1", lumi, scaleMC, {"V11 JECs", "Modified v1 Type-1 MET"}, 1);
   make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2C", lumi, scaleMC, {"V11 JECs", "Modified v2 Type-1 MET"}, 1);
@@ -857,5 +941,5 @@ int main(int argc, char* argv[])
 
   //make_2Dplot(c1, histIdx, vFiles, output_name, "hT1CMETModvT1CMETModCorr", "Modified E_{T}^{miss} (Uncorr. Thresh.) [GeV]", "Modified E_{T}^{miss} (Corr. Thresh.) [GeV]", lumi, -1, {}, 1);
   //make_met_plots(c1, histIdx, vFiles, output_name, "V11_v2C_recipe", lumi, scaleMC, {"V11 JECs", "Modified Type-1 MET", "Official MET Recipe"}, 2); 
-
+  */
 }

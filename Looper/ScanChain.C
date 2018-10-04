@@ -108,6 +108,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   //MetHelper* mV8_v2D = new MetHelper("V8_v2D", nHists, "V8", "V8", 3);
 
   MetHelper* mV6_v2C = new MetHelper("V6_v2C", nHists, "V6", "V6", 2);
+  MetHelper* mV6_v2C_50GeV = new MetHelper("V6_v2C_50GeV", nHists, "V6", "V6", 5);
 
   MetHelper* mV11_std = new MetHelper("V11_std", nHists, "V11", "V11", 0);
   mV11_std->create_raw_met_histograms();
@@ -171,9 +172,9 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
    TString name = "hNVtx"+to_string(i);
    hNVtx.push_back(new TH1D(name,"", nVtxBins, vtxBins));
    hNVtx[i]->Sumw2();
-   hNVtx_up.push_back(new TH1D(name,"", nVtxBins, vtxBins));
+   hNVtx_up.push_back(new TH1D(name + "_up","", nVtxBins, vtxBins));
    hNVtx_up[i]->Sumw2();
-   hNVtx_down.push_back(new TH1D(name,"", nVtxBins, vtxBins));
+   hNVtx_down.push_back(new TH1D(name + "_down","", nVtxBins, vtxBins));
    hNVtx_down[i]->Sumw2();
   }
 
@@ -191,10 +192,10 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
     for (int i = 0; i < nHists; i++) {
       fWeights.push_back(new TFile(vWeightFile[i], "READ"));
       hWeights.push_back((TH1D*)fWeights[i]->Get("pileupReweight"));
-      fWeights_down.push_back(new TFile(vWeightFile[i].ReplaceAll("MC", "MC_down"), "READ"));
-      hWeights_down.push_back((TH1D*)fWeights_down[i]->Get("pileupReweight_down"));
-      fWeights_up.push_back(new TFile(vWeightFile[i].ReplaceAll("MC", "MC_up"), "READ"));
-      hWeights_up.push_back((TH1D*)fWeights_up[i]->Get("pileupReweight_up"));
+      //fWeights_down.push_back(new TFile(vWeightFile[i].ReplaceAll("MC", "MC_down"), "READ"));
+      //hWeights_down.push_back((TH1D*)fWeights_down[i]->Get("pileupReweight_down"));
+      //fWeights_up.push_back(new TFile(vWeightFile[i].ReplaceAll("MC", "MC_up"), "READ"));
+      //hWeights_up.push_back((TH1D*)fWeights_up[i]->Get("pileupReweight_up"));
     }
   } 
 
@@ -355,16 +356,16 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       if (puReweight) {
         for (int i = 0; i < nHists; i++) {
 	  weight[i] *= hWeights[i]->GetBinContent(hWeights[i]->FindBin(nvtx));
-	  weight_up[i] *= hWeights_up[i]->GetBinContent(hWeights_up[i]->FindBin(nvtx));
-	  weight_down[i] *= hWeights_down[i]->GetBinContent(hWeights_down[i]->FindBin(nvtx));
+	  //weight_up[i] *= hWeights_up[i]->GetBinContent(hWeights_up[i]->FindBin(nvtx));
+	  //weight_down[i] *= hWeights_down[i]->GetBinContent(hWeights_down[i]->FindBin(nvtx));
         }
       }
       // Weight further if MC
       if (!cms3.evt_isRealData()) {
 	for (int i = 0; i < nHists; i++) {
           weight[i] *= scale1fb * target_lumi *sgn(genps_weight());
-	  weight_up[i] *= scale1fb * target_lumi *sgn(genps_weight());
-	  weight_down[i] *= scale1fb * target_lumi *sgn(genps_weight());
+	  //weight_up[i] *= scale1fb * target_lumi *sgn(genps_weight());
+	  //weight_down[i] *= scale1fb * target_lumi *sgn(genps_weight());
 	}
       }
 
@@ -485,18 +486,18 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 	fill_histograms(hpfMETraw_1pjets, evt_pfmet_raw(), weight);
         fill_histograms(hpfModMETraw_1pjets, evt_mod_pfmet_raw(), weight);
       }
-      //mV6_v2C->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      mV6_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
       //mV11_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       //mV11_v1->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       //mV11_v2C->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       //mV11_v2C_recipe->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
-      mV11_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, weight_up, weight_down);
+      mV11_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
-      mV24_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, weight_up, weight_down);
-      mV25_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, weight_up, weight_down);
-      mV26_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, weight_up, weight_down);
+      mV24_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      mV25_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      mV26_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
       double t1_met_V11(0), t1_met_V24(0), t1_met_V25(0), t1_met_V26(0);
       t1_met_V11 = mV11_v2C_50GeV->get_t1met();

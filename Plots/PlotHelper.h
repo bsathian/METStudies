@@ -827,7 +827,7 @@ void Comparison::annotate_plot()
     if (!mLegendLowerRight)
       l1 = new TLegend(0.70, 0.75-j, 0.92, 0.89);
     else
-      l1 = new TLegend(0.70, 0.12, 0.92, 0.29+j); 
+      l1 = new TLegend(0.70, 0.06, 0.92, 0.23+j); 
     for (int i=0; i<mVHData.size(); i++)
       l1->AddEntry(mVHData[i], mVLegendLabels[i], "lep");
     int idxMC = mVHData.size();
@@ -899,12 +899,14 @@ void Comparison::make_rat_histogram(TH1D* hData, TH1D* hMC)
   mVHRat[0]->GetXaxis()->SetLabelOffset();
   mVHRat[0]->GetXaxis()->SetLabelSize(0.07);
 
-  if (mRatioUnc) {
-    mHRatUnc->SetFillStyle(1001);
-    mHRatUnc->SetFillColor(kGray+0);
-    mHRatUnc->SetMarkerColor(kGray+0);
-    mHRatUnc->SetLineColor(kGray+0);
-    mHRatUnc->Draw("E2, SAME");
+
+  vector<int> vRatUncColors = {kGray+0, kAzure+1, kRed-7, kGreen, kOrange};
+  for (int i = 0; i < mVHRatUnc.size(); i++) {
+    mVHRatUnc[i]->SetFillStyle(1001);
+    mVHRatUnc[i]->SetFillColor(vRatUncColors[i]);
+    mVHRatUnc[i]->SetMarkerColor(vRatUncColors[i]);
+    mVHRatUnc[i]->SetLineColor(vRatUncColors[i]);
+    mVHRatUnc[i]->Draw("E2, SAME");
   }
 
   mVHRat[0]->Draw("e1 SAME");
@@ -925,12 +927,20 @@ void Comparison::make_rat_histogram(TH1D* hData, TH1D* hMC)
   }
   gPad->RedrawAxis();
 
-  if (mRatioUnc && mRatUncLabel.size() > 0) {
+  /*if (mRatioUnc && mRatUncLabel.size() > 0) {
     TLegend* legend = new TLegend(0.14, 0.38, 0.34, 0.48);
     legend->AddEntry(mHRatUnc, mRatUncLabel[0], "f");
     legend->SetBorderSize(0);
     legend->Draw("SAME");
+  } */
+
+  for (int i = 0; i < mRatUncLabel.size(); i++) {
+    TLegend* legend = new TLegend(0.14 + (i*0.2), 0.38, 0.34 + (i*0.2), 0.48);
+    legend->AddEntry(mVHRatUnc[i], mRatUncLabel[i], "f");
+    legend->SetBorderSize(0);
+    legend->Draw("SAME");
   }
+
 }
 
 inline

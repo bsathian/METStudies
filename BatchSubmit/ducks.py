@@ -26,7 +26,7 @@ parser.add_argument("--test_run", help = "Just submit for 1 MC sample", action="
 args = parser.parse_args()
 
 #job_tag = "MET_v1" + args.eras
-job_tag = "MET_v19"
+job_tag = "MET_v20"
 
 eras = "B,C,D,E,F"
 eras = eras.split(",")
