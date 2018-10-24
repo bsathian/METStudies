@@ -108,6 +108,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   //MetHelper* mV8_v2D = new MetHelper("V8_v2D", nHists, "V8", "V8", 3);
 
   MetHelper* mV6_v2C = new MetHelper("V6_v2C", nHists, "V6", "V6", 2);
+  MetHelper* mV6_std = new MetHelper("V6_std", nHists, "V6", "V6", 0);
   MetHelper* mV6_v2C_50GeV = new MetHelper("V6_v2C_50GeV", nHists, "V6", "V6", 5);
 
   MetHelper* mV11_std = new MetHelper("V11_std", nHists, "V11", "V11", 0);
@@ -118,9 +119,12 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
   MetHelper* mV11_v2C_50GeV = new MetHelper("V11_v2C_50GeV", nHists, "V11", "V11", 5);
  
-  MetHelper* mV24_v2C_50GeV = new MetHelper("V24_v2C_50GeV", nHists, "V24", "V24", 5);
-  MetHelper* mV25_v2C_50GeV = new MetHelper("V25_v2C_50GeV", nHists, "V25", "V24", 5);
-  MetHelper* mV26_v2C_50GeV = new MetHelper("V26_v2C_50GeV", nHists, "V26", "V24", 5);
+  //MetHelper* mV24_v2C_50GeV = new MetHelper("V24_v2C_50GeV", nHists, "V24", "V24", 5);
+  //MetHelper* mV25_v2C_50GeV = new MetHelper("V25_v2C_50GeV", nHists, "V25", "V24", 5);
+  //MetHelper* mV26_v2C_50GeV = new MetHelper("V26_v2C_50GeV", nHists, "V26", "V24", 5);
+  MetHelper* mV27_std = new MetHelper("V27_std", nHists, "V27", "V24", 0); 
+  MetHelper* mV27_v2C_50GeV = new MetHelper("V27_v2C_50GeV", nHists, "V27", "V24", 5);
+
 
   //MetHelper* mV11_v2C_corr = new MetHelper("V11_v2C_corr", nHists, "V11", "V11", 2, true);
   //MetHelper* mV11_v2D = new MetHelper("V11_v2D", nHists, "V11D", "V11D", 3);
@@ -486,26 +490,36 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 	fill_histograms(hpfMETraw_1pjets, evt_pfmet_raw(), weight);
         fill_histograms(hpfModMETraw_1pjets, evt_mod_pfmet_raw(), weight);
       }
-      mV6_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
       //mV11_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       //mV11_v1->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       //mV11_v2C->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
       //mV11_v2C_recipe->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
-      mV11_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      //mV11_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
-      mV24_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
-      mV25_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
-      mV26_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      //mV24_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      //mV25_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
+      //mV26_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
 
-      double t1_met_V11(0), t1_met_V24(0), t1_met_V25(0), t1_met_V26(0);
+
+      double lead_jet_eta = cms3.pfjets_p4().size() > 0 ? abs(cms3.pfjets_p4().at(0).eta()) : 999;
+      double pu = cms3.evt_nvtxs();
+
+      vector<double> vId = {pu, lead_jet_eta};
+
+      mV6_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
+      mV27_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
+
+      mV6_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
+      mV27_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
+
+      
+
+      double t1_met_V6(0), t1_met_V11(0), t1_met_V27(0);
+      t1_met_V6 = mV6_v2C_50GeV->get_t1met();
       t1_met_V11 = mV11_v2C_50GeV->get_t1met();
-      t1_met_V24 = mV24_v2C_50GeV->get_t1met();
-      t1_met_V25 = mV25_v2C_50GeV->get_t1met();
-      t1_met_V26 = mV26_v2C_50GeV->get_t1met();
-
-      cout << t1_met_V11 << " " << t1_met_V24 << " " << t1_met_V25 << " " << t1_met_V26 << endl;
+      t1_met_V27 = mV27_v2C_50GeV->get_t1met();
 
       double t1_met(0), t1_met_mod(0), t1_met_mod_v1(0), t1_met_mod_myImp(0), t1_met_mod_50GeV(0), t1_met_mod_V6(0);
       t1_met = mV11_std->get_t1met();

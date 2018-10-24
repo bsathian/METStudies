@@ -12,7 +12,7 @@ class MetHelper
     void create_histograms();
     void create_raw_met_histograms();
     //void fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights);
-    void fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights, vector<double> weights_up, vector<double> weights_down);
+    void fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights, vector<double> vId, vector<double> weights_up, vector<double> weights_down);
     void fill_raw_met_histograms(bool isElEvt, int id1, int id2, int nJets, vector<double> weights);
 
     double get_t1met() { return t1met; }
@@ -66,6 +66,14 @@ class MetHelper
     vector<vector<TH1D*>> hResponse;
     vector<vector<TH1D*>> hResponseEE;
     vector<vector<TH1D*>> hResponseMM;
+
+    vector<vector<TH1D*>> hResponseLowPU;
+    vector<vector<TH1D*>> hResponseMedPU;
+    vector<vector<TH1D*>> hResponseHighPU;
+
+    vector<vector<TH1D*>> hResponseLeadJetLowEta;
+    vector<vector<TH1D*>> hResponseLeadJetMedEta;
+    vector<vector<TH1D*>> hResponseLeadJetHighEta;
 
     vector<TH1D*> hRawMET;
     vector<TH1D*> hRawMET_0Jets;
@@ -134,6 +142,12 @@ void MetHelper::create_histograms() {
     hResponse.push_back(create_histogram_vector("hT1CMET_Response" + name + to_string(i), 100, -10, 10, nHists));
     hResponseEE.push_back(create_histogram_vector("hT1CMET_ResponseEE" + name + to_string(i), 100, -10, 10, nHists));
     hResponseMM.push_back(create_histogram_vector("hT1CMET_ResponseMM" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseLowPU.push_back(create_histogram_vector("hT1CMET_ResponseLowPU" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseMedPU.push_back(create_histogram_vector("hT1CMET_ResponseMedPU" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseHighPU.push_back(create_histogram_vector("hT1CMET_ResponseHighPU" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseLeadJetLowEta.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetLowEta" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseLeadJetMedEta.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetMedEta" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseLeadJetHighEta.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetHighEta" + name + to_string(i), 100, -10, 10, nHists));
     hResPara.push_back(create_histogram_vector("hT1CMET_ResPara" + name + to_string(i), 200, -400, 400, nHists));
     hResPerp.push_back(create_histogram_vector("hT1CMET_ResPerp" + name + to_string(i), 100, -200, 200, nHists));
   }   
@@ -195,7 +209,7 @@ void MetHelper::fill_raw_met_histograms(bool isElEvt, int id1, int id2, int nJet
 }
 
 inline
-void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights, vector<double> weights_up = {}, vector<double> weights_down = {}) {
+void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int id1, int id2, int nJets, vector<double> weights, vector<double> vId, vector<double> weights_up = {}, vector<double> weights_down = {}) {
   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET, fT1CMET_up, fT1CMET_down;
 
   double pt_jec_thresh(15), pt_thresh(15);
@@ -303,6 +317,15 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
   fill_histograms(hResponse[resolution_idx], -u_para/boson_pt, weights);
   if (isElEvt)      fill_histograms(hResponseEE[resolution_idx], -u_para/boson_pt, weights);
   else              fill_histograms(hResponseMM[resolution_idx], -u_para/boson_pt, weights);
+
+  if (vId[0] < 25) fill_histograms(hResponseLowPU[resolution_idx], -u_para/boson_pt, weights); 
+  else if (vId[0] < 35) fill_histograms(hResponseMedPU[resolution_idx], -u_para/boson_pt, weights); 
+  else if (vId[0] >= 35) fill_histograms(hResponseHighPU[resolution_idx], -u_para/boson_pt, weights); 
+
+  if (abs(vId[1]) < 1.5) fill_histograms(hResponseLeadJetLowEta[resolution_idx], -u_para/boson_pt, weights); 
+  else if (abs(vId[1] < 2.5)) fill_histograms(hResponseLeadJetMedEta[resolution_idx], -u_para/boson_pt, weights);
+  else if (abs(vId[1] >= 2.5)) fill_histograms(hResponseLeadJetHighEta[resolution_idx], -u_para/boson_pt, weights); 
+
   fill_histograms(hResPara[resolution_idx], u_para, weights);
   fill_histograms(hResPerp[resolution_idx], u_perp, weights);
 
