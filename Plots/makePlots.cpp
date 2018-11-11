@@ -340,7 +340,7 @@ void make_2Dplot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_
   delete c;
 }
 
-void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, vector<TString> hist_names, double lumi, double scale, vector<TString> vInfo, vector<TString> vLabels, int idx, bool compare_to_data = false) {
+void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, vector<TString> hist_names, double lumi, double scale, vector<TString> vInfo, vector<TString> vLabels, int idx, bool compare_to_data = false, bool do_jec_unc = false) {
   c1->cd();
   TPad* mainPad = new TPad("p_main", "p_main", 0.0, 0.3, 1.0, 1.0);
   mainPad->SetBottomMargin(0.02);
@@ -354,6 +354,8 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   int n_resolution_bins = (sizeof(resolution_bins)/sizeof(resolution_bins[0]))-1;
 
   vector<TH1D*> vHData_response;
+  vector<TH1D*> vHData_responseUp;
+  vector<TH1D*> vHData_responseDown; 
   vector<TH1D*> vHMC_response;
   vector<TH1D*> vHData_responseEE;
   vector<TH1D*> vHMC_responseEE;
@@ -381,6 +383,8 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
 
   for (int i = 0; i < hist_names.size(); i++) {
     vHData_response.push_back(new TH1D(("hData_response" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHData_responseUp.push_back(new TH1D(("hData_response" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHData_responseDown.push_back(new TH1D(("hData_response" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));   
     vHMC_response.push_back(new TH1D(("hMC_response" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
     vHData_responseEE.push_back(new TH1D(("hData_responseEE" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
     vHMC_responseEE.push_back(new TH1D(("hMC_responseEE" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
@@ -410,6 +414,8 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   for (int i = 0; i < n_resolution_bins; i++) {
     for (int j = 0; j <  hist_names.size(); j++) {
       TH1D* hDataTemp = (TH1D*)vFiles[0]->Get("hT1CMET_Response" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hDataUpTemp = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseUp" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hDataDownTemp = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseDown" + hist_names[j] + to_string(i+1) + "0");
       TH1D* hMCTemp = (TH1D*)vFiles[1]->Get("hT1CMET_Response" + hist_names[j] + to_string(i+1) + to_string(histIdx));
       TH1D* hDataTempEE = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseEE" + hist_names[j] + to_string(i+1) + "0");
       TH1D* hMCTempEE = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseEE" + hist_names[j] + to_string(i+1) + to_string(histIdx));
@@ -445,6 +451,14 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
    
       vHData_response[j]->SetBinContent(i+1, hDataTemp->GetMean());
       vHData_response[j]->SetBinError(i+1, hDataTemp->GetMeanError());
+      if (do_jec_unc) {
+	double stat_unc = hDataTemp->GetMeanError();
+	vector<double> jec_differences = {abs(hDataTemp->GetMean() - hDataUpTemp->GetMean()), abs(hDataTemp->GetMean() - hDataDownTemp->GetMean())};
+	double jec_unc = *max_element(jec_differences.begin(), jec_differences.end());
+	cout << jec_unc << endl;
+	double full_unc = pow( (pow(stat_unc, 2) + pow(jec_unc, 2)), 0.5);
+	vHData_response[j]->SetBinError(i+1, full_unc);
+      }
       if (!compare_to_data) {
 	vHMC_response[j]->SetBinContent(i+1, hMCTemp->GetMean());
 	vHMC_response[j]->SetBinError(i+1, hMCTemp->GetMeanError());
@@ -810,7 +824,7 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   }
   Comparison* c_responseLeadJetHighEta = new Comparison(c1, vHData_responseLeadJetHighEta, vHMC_responseLeadJetHighEta);
   c_responseLeadJetHighEta->set_filename(output_name);
-  c_responseLeadJetHighEta->set_y_lim_range({0.85, 1.1});
+  c_responseLeadJetHighEta->set_y_lim_range({0.65, 1.3});
   c_responseLeadJetHighEta->give_hlines({1});
   //c_responseLeadJetHighEta->give_hlines({0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08});
   c_responseLeadJetHighEta->set_info(vInfo);
@@ -1139,7 +1153,7 @@ int main(int argc, char* argv[])
     make_met_plots(c1, histIdx, vFiles, output_name, "V27_std", lumi, 1, {"V27 JECs"}, 1);
     make_met_plots(c1, histIdx, vFiles, output_name, "V27_v2C_50GeV", lumi, 1, {"V27 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
 
-    make_resolution_plots(c1, histIdx, vFiles, output_name, {"V6_std", "V6_v2C_50GeV", "V27_std", "V27_v2C_50GeV"}, lumi, 1, {era_info}, {"Nominal (V6)", "Modified (V6)", "Nominal (V27)", "Modified (V27)"}, 2, true);
+    make_resolution_plots(c1, histIdx, vFiles, output_name, {"V6_std", "V6_v2C_50GeV", "V27_std", "V27_v2C_50GeV"}, lumi, 1, {era_info}, {"Nominal (V6)", "Modified (V6)", "Nominal (V27)", "Modified (V27)"}, 2, true, true);
 
     //make_met_plots(c1, histIdx, vFiles, output_name, "V11_std", lumi, 1, {"V11 JECs"}, 0);
     //make_met_plots(c1, histIdx, vFiles, output_name, "V11_v1", lumi, 1, {"V11 JECs", "Modified v1 Type-1 MET"}, 1);

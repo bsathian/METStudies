@@ -23,10 +23,11 @@ parser.add_argument("--reweight", help = "(Re)derive pileup weights", action="st
 parser.add_argument("--validation", help = "Run only on 2017F DoubleMuon 949 to validate MET recipe", action="store_true")
 parser.add_argument("--validate_recipe", help = "Validate recipe in CMS4", action="store_true")
 parser.add_argument("--test_run", help = "Just submit for 1 MC sample", action="store_true")
+parser.add_argument("--data_only", help = "Just submit jobs for data", action="store_true")
 args = parser.parse_args()
 
 #job_tag = "MET_v1" + args.eras
-job_tag = "MET_v20"
+job_tag = "MET_v24"
 
 eras = "B,C,D,E,F"
 eras = eras.split(",")
@@ -78,7 +79,7 @@ if args.test_run:
   data = {}
   mc = {"ZZ" : [["/ZZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 10.32, 1949768.0, 0.0, 1],} 
 
-if args.runF_only:
+if args.runF_only or args.data_only:
   mc = {}
 
 basepath = "/hadoop/cms/store/user/smay/ProjectMetis"

@@ -75,6 +75,35 @@ class MetHelper
     vector<vector<TH1D*>> hResponseLeadJetMedEta;
     vector<vector<TH1D*>> hResponseLeadJetHighEta;
 
+    vector<vector<TH1D*>> hResUpPara;
+    vector<vector<TH1D*>> hResUpPerp;
+    vector<vector<TH1D*>> hResponseUp;
+    vector<vector<TH1D*>> hResponseUpEE;
+    vector<vector<TH1D*>> hResponseUpMM;
+
+    vector<vector<TH1D*>> hResponseUpLowPU;
+    vector<vector<TH1D*>> hResponseUpMedPU;
+    vector<vector<TH1D*>> hResponseUpHighPU;
+
+    vector<vector<TH1D*>> hResponseUpLeadJetLowEta;
+    vector<vector<TH1D*>> hResponseUpLeadJetMedEta;
+    vector<vector<TH1D*>> hResponseUpLeadJetHighEta;
+
+    vector<vector<TH1D*>> hResDownPara;
+    vector<vector<TH1D*>> hResDownPerp;
+    vector<vector<TH1D*>> hResponseDown;
+    vector<vector<TH1D*>> hResponseDownEE;
+    vector<vector<TH1D*>> hResponseDownMM;
+
+    vector<vector<TH1D*>> hResponseDownLowPU;
+    vector<vector<TH1D*>> hResponseDownMedPU;
+    vector<vector<TH1D*>> hResponseDownHighPU;
+
+    vector<vector<TH1D*>> hResponseDownLeadJetLowEta;
+    vector<vector<TH1D*>> hResponseDownLeadJetMedEta;
+    vector<vector<TH1D*>> hResponseDownLeadJetHighEta;
+    
+
     vector<TH1D*> hRawMET;
     vector<TH1D*> hRawMET_0Jets;
     vector<TH1D*> hRawMET_1pJets;
@@ -150,6 +179,31 @@ void MetHelper::create_histograms() {
     hResponseLeadJetHighEta.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetHighEta" + name + to_string(i), 100, -10, 10, nHists));
     hResPara.push_back(create_histogram_vector("hT1CMET_ResPara" + name + to_string(i), 200, -400, 400, nHists));
     hResPerp.push_back(create_histogram_vector("hT1CMET_ResPerp" + name + to_string(i), 100, -200, 200, nHists));
+
+    hResponseUp.push_back(create_histogram_vector("hT1CMET_ResponseUp" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseUpEE.push_back(create_histogram_vector("hT1CMET_ResponseUpEE" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseUpMM.push_back(create_histogram_vector("hT1CMET_ResponseUpMM" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseUpLowPU.push_back(create_histogram_vector("hT1CMET_ResponseUpLowPU" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseUpMedPU.push_back(create_histogram_vector("hT1CMET_ResponseUpMedPU" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseUpHighPU.push_back(create_histogram_vector("hT1CMET_ResponseUpHighPU" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseUpLeadJetLowEta.push_back(create_histogram_vector("hT1CMET_ResponseUpLeadJetLowEta" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseUpLeadJetMedEta.push_back(create_histogram_vector("hT1CMET_ResponseUpLeadJetMedEta" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseUpLeadJetHighEta.push_back(create_histogram_vector("hT1CMET_ResponseUpLeadJetHighEta" + name + to_string(i), 100, -10, 10, nHists));
+    hResUpPara.push_back(create_histogram_vector("hT1CMET_ResUpPara" + name + to_string(i), 200, -400, 400, nHists));
+    hResUpPerp.push_back(create_histogram_vector("hT1CMET_ResUpPerp" + name + to_string(i), 100, -200, 200, nHists));
+
+    hResponseDown.push_back(create_histogram_vector("hT1CMET_ResponseDown" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseDownEE.push_back(create_histogram_vector("hT1CMET_ResponseDownEE" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseDownMM.push_back(create_histogram_vector("hT1CMET_ResponseDownMM" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseDownLowPU.push_back(create_histogram_vector("hT1CMET_ResponseDownLowPU" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseDownMedPU.push_back(create_histogram_vector("hT1CMET_ResponseDownMedPU" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseDownHighPU.push_back(create_histogram_vector("hT1CMET_ResponseDownHighPU" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseDownLeadJetLowEta.push_back(create_histogram_vector("hT1CMET_ResponseDownLeadJetLowEta" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseDownLeadJetMedEta.push_back(create_histogram_vector("hT1CMET_ResponseDownLeadJetMedEta" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseDownLeadJetHighEta.push_back(create_histogram_vector("hT1CMET_ResponseDownLeadJetHighEta" + name + to_string(i), 100, -10, 10, nHists));
+    hResDownPara.push_back(create_histogram_vector("hT1CMET_ResDownPara" + name + to_string(i), 200, -400, 400, nHists));
+    hResDownPerp.push_back(create_histogram_vector("hT1CMET_ResDownPerp" + name + to_string(i), 100, -200, 200, nHists));
+  
   }   
 }
 
@@ -272,6 +326,25 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
   t1met_up = *max_element(vMET.begin(), vMET.end());
   t1met_down = *min_element(vMET.begin(), vMET.end());
 
+  ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fT1CMET_temp, fT1CMET_up_temp, fT1CMET_down_temp;
+  fT1CMET_temp = fT1CMET;
+  fT1CMET_up_temp = fT1CMET_up;
+  fT1CMET_down_temp = fT1CMET_down;
+
+  if (fT1CMET_up_temp.pt() >= fT1CMET_temp.pt() && fT1CMET_up_temp.pt() >= fT1CMET_down_temp.pt()) 
+    fT1CMET_up = fT1CMET_up_temp;
+  else if (fT1CMET_temp.pt() >= fT1CMET_up_temp.pt() && fT1CMET_temp.pt() >= fT1CMET_down_temp.pt()) 
+    fT1CMET_up = fT1CMET_temp;
+  else if (fT1CMET_down_temp.pt() >= fT1CMET_temp.pt() && fT1CMET_down_temp.pt() >= fT1CMET_up_temp.pt()) 
+    fT1CMET_up = fT1CMET_down_temp;
+
+  if (fT1CMET_up_temp.pt() <= fT1CMET_temp.pt() && fT1CMET_up_temp.pt() <= fT1CMET_down_temp.pt()) 
+    fT1CMET_down = fT1CMET_up_temp;
+  else if (fT1CMET_temp.pt() <= fT1CMET_up_temp.pt() && fT1CMET_temp.pt() <= fT1CMET_down_temp.pt())
+    fT1CMET_down = fT1CMET_temp;
+  else if (fT1CMET_down_temp.pt() <= fT1CMET_temp.pt() && fT1CMET_down_temp.pt() <= fT1CMET_up_temp.pt())
+    fT1CMET_down = fT1CMET_down_temp;
+
   fill_histograms(hT1CMET, fT1CMET.pt(), weights);
   fill_histograms(hT1CMET_up, t1met_up, weights);
   fill_histograms(hT1CMET_down, t1met_down, weights);
@@ -329,6 +402,43 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
   fill_histograms(hResPara[resolution_idx], u_para, weights);
   fill_histograms(hResPerp[resolution_idx], u_perp, weights);
 
+  double boson_pt_up, u_para_up, u_perp_up, u_para_plus_qt_up;
+  boson_pt_up = boson_pT(isElEvt, id1, id2, fT1CMET_up, u_para_up, u_perp_up, u_para_plus_qt_up);
+  int resolution_idx_up = find_index(resolution_bins, boson_pt_up);
+   
+  fill_histograms(hResponseUp[resolution_idx_up], -u_para_up/boson_pt_up, weights);
+  if (isElEvt)      fill_histograms(hResponseUpEE[resolution_idx_up], -u_para_up/boson_pt_up, weights);
+  else              fill_histograms(hResponseUpMM[resolution_idx_up], -u_para_up/boson_pt_up, weights);
+
+  if (vId[0] < 25) fill_histograms(hResponseUpLowPU[resolution_idx_up], -u_para_up/boson_pt_up, weights);
+  else if (vId[0] < 35) fill_histograms(hResponseUpMedPU[resolution_idx_up], -u_para_up/boson_pt_up, weights);
+  else if (vId[0] >= 35) fill_histograms(hResponseUpHighPU[resolution_idx_up], -u_para_up/boson_pt_up, weights);
+
+  if (abs(vId[1]) < 1.5) fill_histograms(hResponseUpLeadJetLowEta[resolution_idx_up], -u_para_up/boson_pt_up, weights);
+  else if (abs(vId[1] < 2.5)) fill_histograms(hResponseUpLeadJetMedEta[resolution_idx_up], -u_para_up/boson_pt_up, weights);
+  else if (abs(vId[1] >= 2.5)) fill_histograms(hResponseUpLeadJetHighEta[resolution_idx_up], -u_para_up/boson_pt_up, weights);
+
+  fill_histograms(hResUpPara[resolution_idx_up], u_para_up, weights);
+  fill_histograms(hResUpPerp[resolution_idx_up], u_perp_up, weights);
+
+  double boson_pt_down, u_para_down, u_perp_down, u_para_plus_qt_down;
+  boson_pt_down = boson_pT(isElEvt, id1, id2, fT1CMET_down, u_para_down, u_perp_down, u_para_plus_qt_down);
+  int resolution_idx_down = find_index(resolution_bins, boson_pt_down);
+
+  fill_histograms(hResponseDown[resolution_idx_down], -u_para_down/boson_pt_down, weights);
+  if (isElEvt)      fill_histograms(hResponseDownEE[resolution_idx_down], -u_para_down/boson_pt_down, weights);
+  else              fill_histograms(hResponseDownMM[resolution_idx_down], -u_para_down/boson_pt_down, weights);
+
+  if (vId[0] < 25) fill_histograms(hResponseDownLowPU[resolution_idx_down], -u_para_down/boson_pt_down, weights);
+  else if (vId[0] < 35) fill_histograms(hResponseDownMedPU[resolution_idx_down], -u_para_down/boson_pt_down, weights);
+  else if (vId[0] >= 35) fill_histograms(hResponseDownHighPU[resolution_idx_down], -u_para_down/boson_pt_down, weights);
+
+  if (abs(vId[1]) < 1.5) fill_histograms(hResponseDownLeadJetLowEta[resolution_idx_down], -u_para_down/boson_pt_down, weights);
+  else if (abs(vId[1] < 2.5)) fill_histograms(hResponseDownLeadJetMedEta[resolution_idx_down], -u_para_down/boson_pt_down, weights);
+  else if (abs(vId[1] >= 2.5)) fill_histograms(hResponseDownLeadJetHighEta[resolution_idx_down], -u_para_down/boson_pt_down, weights);
+
+  fill_histograms(hResDownPara[resolution_idx_down], u_para_down, weights);
+  fill_histograms(hResDownPerp[resolution_idx_down], u_perp_down, weights);
 
 }
 
