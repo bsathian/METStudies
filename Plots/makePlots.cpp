@@ -306,6 +306,37 @@ void make_plot_rat_unc(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string o
   delete c;
 }
 
+void make_2Dplot_dataRat(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name1, TString hist_name2, TString x_label, TString y_label, double lumi, double scale, vector<TString> vInfo, int idx, bool useMC = false) {
+  TH2D* hData1;
+  TH2D* hData2;
+  if (!useMC) {
+    hData1 = (TH2D*)vFiles[0]->Get(hist_name1 + "0");
+    hData2 = (TH2D*)vFiles[0]->Get(hist_name2 + "0");
+  }
+  else {
+    hData1 = (TH2D*)vFiles[1]->Get(hist_name1 + to_string(histIdx));
+    hData2 = (TH2D*)vFiles[1]->Get(hist_name2 + to_string(histIdx));
+  }
+
+
+  Comparison* c = new Comparison(c1, hData1, hData2);
+  c->set_filename(output_name);
+  c->set_x_label(x_label);
+  c->set_y_label(y_label);
+  c->set_lumi(lumi);
+  c->set_scale(scale);
+
+  for (int i = 0; i < vInfo.size(); i++)
+    c->give_info(vInfo[i]);
+  c->set_rat_lim_range({0.86, 1.14});
+  if (hist_name1 == "hJetEtaPhi_1Jet_qTGeq200V6_std" || hist_name1 == "hJetEtaPhi_1Jet_qTGeq200V27_std")
+    c->set_rat_lim_range({0.8, 1.2});
+  c->plot(idx);
+  delete hData1;
+  delete hData2;
+  delete c;
+
+}
 
 void make_2Dplot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_name, TString hist_name, TString x_label, TString y_label, double lumi, double scale, vector<TString> vInfo, int idx) {
   TH2D* hData = (TH2D*)vFiles[0]->Get(hist_name + "0");
@@ -362,6 +393,8 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   vector<TH1D*> vHData_responseMM;
   vector<TH1D*> vHMC_responseMM;
 
+  vector<TH1D*> vHData_responseVeryLowPU;
+  vector<TH1D*> vHMC_responseVeryLowPU;
   vector<TH1D*> vHData_responseLowPU;
   vector<TH1D*> vHMC_responseLowPU;
   vector<TH1D*> vHData_responseMedPU;
@@ -375,6 +408,20 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   vector<TH1D*> vHMC_responseLeadJetMedEta;
   vector<TH1D*> vHData_responseLeadJetHighEta;
   vector<TH1D*> vHMC_responseLeadJetHighEta;
+
+  vector<TH1D*> vHData_responseLeadJetLowEta_30GeVJet;
+  vector<TH1D*> vHMC_responseLeadJetLowEta_30GeVJet;
+  vector<TH1D*> vHData_responseLeadJetMedEta_30GeVJet;
+  vector<TH1D*> vHMC_responseLeadJetMedEta_30GeVJet;
+  vector<TH1D*> vHData_responseLeadJetHighEta_30GeVJet;
+  vector<TH1D*> vHMC_responseLeadJetHighEta_30GeVJet;
+
+  vector<TH1D*> vHData_responseLeadJetLowEta_100GeVJet;
+  vector<TH1D*> vHMC_responseLeadJetLowEta_100GeVJet;
+  vector<TH1D*> vHData_responseLeadJetMedEta_100GeVJet;
+  vector<TH1D*> vHMC_responseLeadJetMedEta_100GeVJet;
+  vector<TH1D*> vHData_responseLeadJetHighEta_100GeVJet;
+  vector<TH1D*> vHMC_responseLeadJetHighEta_100GeVJet; 
 
   vector<TH1D*> vHData_res_para;
   vector<TH1D*> vHMC_res_para;
@@ -391,6 +438,8 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
     vHData_responseMM.push_back(new TH1D(("hData_responseMM" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
     vHMC_responseMM.push_back(new TH1D(("hMC_responseMM" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
 
+    vHData_responseVeryLowPU.push_back(new TH1D(("hData_responseVeryLowPU" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_responseVeryLowPU.push_back(new TH1D(("hMC_responseVeryLowPU" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
     vHData_responseLowPU.push_back(new TH1D(("hData_responseLowPU" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
     vHMC_responseLowPU.push_back(new TH1D(("hMC_responseLowPU" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
     vHData_responseMedPU.push_back(new TH1D(("hData_responseMedPU" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
@@ -404,6 +453,23 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
 
     vHData_responseLeadJetHighEta.push_back(new TH1D(("hData_responseLeadJetHighEta" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
     vHMC_responseLeadJetHighEta.push_back(new TH1D(("hMC_responseLeadJetHighEta" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+
+    vHData_responseLeadJetLowEta_30GeVJet.push_back(new TH1D(("hData_responseLeadJetLowEta_30GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_responseLeadJetLowEta_30GeVJet.push_back(new TH1D(("hMC_responseLeadJetLowEta_30GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHData_responseLeadJetMedEta_30GeVJet.push_back(new TH1D(("hData_responseLeadJetMedEta_30GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_responseLeadJetMedEta_30GeVJet.push_back(new TH1D(("hMC_responseLeadJetMedEta_30GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+
+    vHData_responseLeadJetHighEta_30GeVJet.push_back(new TH1D(("hData_responseLeadJetHighEta_30GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_responseLeadJetHighEta_30GeVJet.push_back(new TH1D(("hMC_responseLeadJetHighEta_30GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+
+    vHData_responseLeadJetLowEta_100GeVJet.push_back(new TH1D(("hData_responseLeadJetLowEta_100GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_responseLeadJetLowEta_100GeVJet.push_back(new TH1D(("hMC_responseLeadJetLowEta_100GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHData_responseLeadJetMedEta_100GeVJet.push_back(new TH1D(("hData_responseLeadJetMedEta_100GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_responseLeadJetMedEta_100GeVJet.push_back(new TH1D(("hMC_responseLeadJetMedEta_100GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+
+    vHData_responseLeadJetHighEta_100GeVJet.push_back(new TH1D(("hData_responseLeadJetHighEta_100GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+    vHMC_responseLeadJetHighEta_100GeVJet.push_back(new TH1D(("hMC_responseLeadJetHighEta_100GeVJet" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
+ 
 
     vHData_res_para.push_back(new TH1D(("hData_res_para" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
     vHMC_res_para.push_back(new TH1D(("hMC_res_para" + to_string(i)).data(), "", n_resolution_bins, resolution_bins));
@@ -422,6 +488,8 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
       TH1D* hDataTempMM = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseMM" + hist_names[j] + to_string(i+1) + "0");
       TH1D* hMCTempMM = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseMM" + hist_names[j] + to_string(i+1) + to_string(histIdx));
 
+      TH1D* hDataTempVeryLowPU = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseVeryLowPU" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTempVeryLowPU = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseVeryLowPU" + hist_names[j] + to_string(i+1) + to_string(histIdx));
       TH1D* hDataTempLowPU = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseLowPU" + hist_names[j] + to_string(i+1) + "0");
       TH1D* hMCTempLowPU = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseLowPU" + hist_names[j] + to_string(i+1) + to_string(histIdx));
       TH1D* hDataTempMedPU = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseMedPU" + hist_names[j] + to_string(i+1) + "0");
@@ -436,46 +504,18 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
       TH1D* hDataTempLeadJetHighEta = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseLeadJetHighEta" + hist_names[j] + to_string(i+1) + "0");
       TH1D* hMCTempLeadJetHighEta = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseLeadJetHighEta" + hist_names[j] + to_string(i+1) + to_string(histIdx));
 
-      for (int k = 2; k < vFiles.size(); k++) {
-	if (compare_to_data) continue;
-        hMCTemp->Add((TH1D*)vFiles[k]->Get("hT1CMET_Response" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
-	hMCTempEE->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseEE" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
-	hMCTempMM->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseMM" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
-	hMCTempLowPU->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseLowPU" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
-        hMCTempMedPU->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseMedPU" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
-	hMCTempHighPU->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseHighPU" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
-	hMCTempLeadJetLowEta->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseLeadJetLowEta" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
-	hMCTempLeadJetMedEta->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseLeadJetMedEta" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
-	hMCTempLeadJetHighEta->Add((TH1D*)vFiles[k]->Get("hT1CMET_ResponseLeadJetHighEta" + hist_names[j] + to_string(i+1) + to_string(histIdx)));
-      }
-   
-      vHData_response[j]->SetBinContent(i+1, hDataTemp->GetMean());
-      vHData_response[j]->SetBinError(i+1, hDataTemp->GetMeanError());
-      if (do_jec_unc) {
-	double stat_unc = hDataTemp->GetMeanError();
-	vector<double> jec_differences = {abs(hDataTemp->GetMean() - hDataUpTemp->GetMean()), abs(hDataTemp->GetMean() - hDataDownTemp->GetMean())};
-	double jec_unc = *max_element(jec_differences.begin(), jec_differences.end());
-	cout << jec_unc << endl;
-	double full_unc = pow( (pow(stat_unc, 2) + pow(jec_unc, 2)), 0.5);
-	vHData_response[j]->SetBinError(i+1, full_unc);
-      }
-      if (!compare_to_data) {
-	vHMC_response[j]->SetBinContent(i+1, hMCTemp->GetMean());
-	vHMC_response[j]->SetBinError(i+1, hMCTemp->GetMeanError());
-      }      
+      TH1D* hDataTempLeadJetLowEta_30GeVJet = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseLeadJetLowEta_30GeVJet" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTempLeadJetLowEta_30GeVJet = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseLeadJetLowEta_30GeVJet" + hist_names[j] + to_string(i+1) + to_string(histIdx));
+      TH1D* hDataTempLeadJetMedEta_30GeVJet = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseLeadJetMedEta_30GeVJet" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTempLeadJetMedEta_30GeVJet = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseLeadJetMedEta_30GeVJet" + hist_names[j] + to_string(i+1) + to_string(histIdx));
+      TH1D* hDataTempLeadJetHighEta_30GeVJet = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseLeadJetHighEta_30GeVJet" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTempLeadJetHighEta_30GeVJet = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseLeadJetHighEta_30GeVJet" + hist_names[j] + to_string(i+1) + to_string(histIdx));
 
-      vHData_responseEE[j]->SetBinContent(i+1, hDataTempEE->GetMean());
-      vHData_responseEE[j]->SetBinError(i+1, hDataTempEE->GetMeanError());
-      if (!compare_to_data) {
-        vHMC_responseEE[j]->SetBinContent(i+1, hMCTempEE->GetMean());
-        vHMC_responseEE[j]->SetBinError(i+1, hMCTempEE->GetMeanError());
-      }
-
-      vHData_responseMM[j]->SetBinContent(i+1, hDataTempMM->GetMean());
-      vHData_responseMM[j]->SetBinError(i+1, hDataTempMM->GetMeanError());
-      if (!compare_to_data) {
-        vHMC_responseMM[j]->SetBinContent(i+1, hMCTempMM->GetMean());
-        vHMC_responseMM[j]->SetBinError(i+1, hMCTempMM->GetMeanError()); 
+      TH1D* hDataTempLeadJetLowEta_100GeVJet = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseLeadJetLowEta_100GeVJet" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTempLeadJetLowEta_100GeVJet = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseLeadJetLowEta_100GeVJet" + hist_names[j] + to_string(i+1) + to_string(histIdx));
+      TH1D* hDataTempLeadJetMedEta_100GeVJet = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseLeadJetMedEta_100GeVJet" + hist_names[j] + to_string(i+1) + "0");
+        vHMC_responseVeryLowPU[j]->SetBinContent(i+1, hMCTempVeryLowPU->GetMean());
+        vHMC_responseVeryLowPU[j]->SetBinError(i+1, hMCTempVeryLowPU->GetMeanError());
       }
 
       vHData_responseLowPU[j]->SetBinContent(i+1, hDataTempLowPU->GetMean());
@@ -520,12 +560,58 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
         vHMC_responseLeadJetHighEta[j]->SetBinError(i+1, hMCTempLeadJetHighEta->GetMeanError());
       }
 
+      vHData_responseLeadJetLowEta_30GeVJet[j]->SetBinContent(i+1, hDataTempLeadJetLowEta_30GeVJet->GetMean());
+      vHData_responseLeadJetLowEta_30GeVJet[j]->SetBinError(i+1, hDataTempLeadJetLowEta_30GeVJet->GetMeanError());
+      if (!compare_to_data) {
+        vHMC_responseLeadJetLowEta_30GeVJet[j]->SetBinContent(i+1, hMCTempLeadJetLowEta_30GeVJet->GetMean());
+        vHMC_responseLeadJetLowEta_30GeVJet[j]->SetBinError(i+1, hMCTempLeadJetLowEta_30GeVJet->GetMeanError());
+      }
+
+      vHData_responseLeadJetMedEta_30GeVJet[j]->SetBinContent(i+1, hDataTempLeadJetMedEta_30GeVJet->GetMean());
+      vHData_responseLeadJetMedEta_30GeVJet[j]->SetBinError(i+1, hDataTempLeadJetMedEta_30GeVJet->GetMeanError());
+      if (!compare_to_data) {
+        vHMC_responseLeadJetMedEta_30GeVJet[j]->SetBinContent(i+1, hMCTempLeadJetMedEta_30GeVJet->GetMean());
+        vHMC_responseLeadJetMedEta_30GeVJet[j]->SetBinError(i+1, hMCTempLeadJetMedEta_30GeVJet->GetMeanError());
+      }
+
+      vHData_responseLeadJetHighEta_30GeVJet[j]->SetBinContent(i+1, hDataTempLeadJetHighEta_30GeVJet->GetMean());
+      vHData_responseLeadJetHighEta_30GeVJet[j]->SetBinError(i+1, hDataTempLeadJetHighEta_30GeVJet->GetMeanError());
+      if (!compare_to_data) {
+        vHMC_responseLeadJetHighEta_30GeVJet[j]->SetBinContent(i+1, hMCTempLeadJetHighEta_30GeVJet->GetMean());
+        vHMC_responseLeadJetHighEta_30GeVJet[j]->SetBinError(i+1, hMCTempLeadJetHighEta_30GeVJet->GetMeanError());
+      }
+
+      vHData_responseLeadJetLowEta_100GeVJet[j]->SetBinContent(i+1, hDataTempLeadJetLowEta_100GeVJet->GetMean());
+      vHData_responseLeadJetLowEta_100GeVJet[j]->SetBinError(i+1, hDataTempLeadJetLowEta_100GeVJet->GetMeanError());
+      if (!compare_to_data) {
+        vHMC_responseLeadJetLowEta_100GeVJet[j]->SetBinContent(i+1, hMCTempLeadJetLowEta_100GeVJet->GetMean());
+        vHMC_responseLeadJetLowEta_100GeVJet[j]->SetBinError(i+1, hMCTempLeadJetLowEta_100GeVJet->GetMeanError());
+      }
+
+      vHData_responseLeadJetMedEta_100GeVJet[j]->SetBinContent(i+1, hDataTempLeadJetMedEta_100GeVJet->GetMean());
+      vHData_responseLeadJetMedEta_100GeVJet[j]->SetBinError(i+1, hDataTempLeadJetMedEta_100GeVJet->GetMeanError());
+      if (!compare_to_data) {
+        vHMC_responseLeadJetMedEta_100GeVJet[j]->SetBinContent(i+1, hMCTempLeadJetMedEta_100GeVJet->GetMean());
+        vHMC_responseLeadJetMedEta_100GeVJet[j]->SetBinError(i+1, hMCTempLeadJetMedEta_100GeVJet->GetMeanError());
+      }
+
+      vHData_responseLeadJetHighEta_100GeVJet[j]->SetBinContent(i+1, hDataTempLeadJetHighEta_100GeVJet->GetMean());
+      vHData_responseLeadJetHighEta_100GeVJet[j]->SetBinError(i+1, hDataTempLeadJetHighEta_100GeVJet->GetMeanError());
+      if (!compare_to_data) {
+        vHMC_responseLeadJetHighEta_100GeVJet[j]->SetBinContent(i+1, hMCTempLeadJetHighEta_100GeVJet->GetMean());
+        vHMC_responseLeadJetHighEta_100GeVJet[j]->SetBinError(i+1, hMCTempLeadJetHighEta_100GeVJet->GetMeanError());
+      }
+
+
+
       delete hDataTemp;
       delete hMCTemp;
       delete hDataTempEE;
       delete hMCTempEE;
       delete hDataTempMM;
       delete hMCTempMM;
+      delete hDataTempVeryLowPU;
+      delete hMCTempVeryLowPU;
       delete hDataTempLowPU;
       delete hMCTempLowPU;
       delete hDataTempMedPU;
@@ -538,6 +624,18 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
       delete hMCTempLeadJetMedEta;
       delete hDataTempLeadJetHighEta;
       delete hMCTempLeadJetHighEta;
+      delete hDataTempLeadJetLowEta_30GeVJet;
+      delete hMCTempLeadJetLowEta_30GeVJet;
+      delete hDataTempLeadJetMedEta_30GeVJet;
+      delete hMCTempLeadJetMedEta_30GeVJet;
+      delete hDataTempLeadJetHighEta_30GeVJet;
+      delete hMCTempLeadJetHighEta_30GeVJet;
+      delete hDataTempLeadJetLowEta_100GeVJet;
+      delete hMCTempLeadJetLowEta_100GeVJet;
+      delete hDataTempLeadJetMedEta_100GeVJet;
+      delete hMCTempLeadJetMedEta_100GeVJet;
+      delete hDataTempLeadJetHighEta_100GeVJet;
+      delete hMCTempLeadJetHighEta_100GeVJet;
     }   
   }
 
@@ -665,6 +763,36 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   c_responseMM->plot(1);
 
   if (compare_to_data) {
+    vHMC_responseVeryLowPU.clear();
+    for (int i = 0; i < vHData_responseVeryLowPU.size(); i++) {
+      TString h_name = "vHData_ResponseVeryLowPU" + to_string(i);
+      vHMC_responseVeryLowPU.push_back((TH1D*)vHData_responseVeryLowPU[0]->Clone(h_name));
+    }
+  }
+  Comparison* c_responseVeryLowPU = new Comparison(c1, vHData_responseVeryLowPU, vHMC_responseVeryLowPU);
+  c_responseVeryLowPU->set_filename(output_name);
+  c_responseVeryLowPU->set_y_lim_range({0.85, 1.1});
+  c_responseVeryLowPU->give_hlines({1});
+  //c_responseVeryLowPU->give_hlines({0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08});
+  c_responseVeryLowPU->set_info(vInfo);
+  c_responseVeryLowPU->set_lumi(lumi);
+  c_responseVeryLowPU->set_multiple_comparisons();
+  c_responseVeryLowPU->set_no_log();
+  c_responseVeryLowPU->set_legend_labels(vLabels);
+  c_responseVeryLowPU->set_scale(1);
+  c_responseVeryLowPU->set_x_label("q_{T} [GeV]");
+  c_responseVeryLowPU->set_y_label("-<u_{#parallel}>/q_{T}");
+  c_responseVeryLowPU->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_responseVeryLowPU->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
+  c_responseVeryLowPU->set_rat_lim_range({0.9, 1.1});
+  if (compare_to_data)
+    c_responseVeryLowPU->set_rat_lim_range({0.95, 1.05});
+  c_responseVeryLowPU->give_info("N_{vtx} < 10");
+  c_responseVeryLowPU->set_legend_lower_right();
+  c_responseVeryLowPU->plot(1);
+
+  if (compare_to_data) {
     vHMC_responseLowPU.clear();
     for (int i = 0; i < vHData_responseLowPU.size(); i++) {
       TString h_name = "vHData_ResponseLowPU" + to_string(i);
@@ -690,7 +818,7 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
   c_responseLowPU->set_rat_lim_range({0.9, 1.1});
   if (compare_to_data)
     c_responseLowPU->set_rat_lim_range({0.95, 1.05});
-  c_responseLowPU->give_info("N_{vtx} < 25");
+  c_responseLowPU->give_info("10 < N_{vtx} < 25");
   c_responseLowPU->set_legend_lower_right();
   c_responseLowPU->plot(1);
 
@@ -847,6 +975,199 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
 
 
   if (compare_to_data) {
+    vHMC_responseLeadJetLowEta_30GeVJet.clear();
+    for (int i = 0; i < vHData_responseLeadJetLowEta_30GeVJet.size(); i++) {
+      TString h_name = "vHData_ResponseLeadJetLowEta_30GeVJet" + to_string(i);
+      vHMC_responseLeadJetLowEta_30GeVJet.push_back((TH1D*)vHData_responseLeadJetLowEta_30GeVJet[0]->Clone(h_name));
+    }
+  }
+  Comparison* c_responseLeadJetLowEta_30GeVJet = new Comparison(c1, vHData_responseLeadJetLowEta_30GeVJet, vHMC_responseLeadJetLowEta_30GeVJet);
+  c_responseLeadJetLowEta_30GeVJet->set_filename(output_name);
+  c_responseLeadJetLowEta_30GeVJet->set_y_lim_range({0.85, 1.1});
+  c_responseLeadJetLowEta_30GeVJet->give_hlines({1});
+  //c_responseLeadJetLowEta_30GeVJet->give_hlines({0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08});
+  c_responseLeadJetLowEta_30GeVJet->set_info(vInfo);
+  c_responseLeadJetLowEta_30GeVJet->set_lumi(lumi);
+  c_responseLeadJetLowEta_30GeVJet->set_multiple_comparisons();
+  c_responseLeadJetLowEta_30GeVJet->set_no_log();
+  c_responseLeadJetLowEta_30GeVJet->set_legend_labels(vLabels);
+  c_responseLeadJetLowEta_30GeVJet->set_scale(1);
+  c_responseLeadJetLowEta_30GeVJet->set_x_label("q_{T} [GeV]");
+  c_responseLeadJetLowEta_30GeVJet->set_y_label("-<u_{#parallel}>/q_{T}");
+  c_responseLeadJetLowEta_30GeVJet->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_responseLeadJetLowEta_30GeVJet->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
+  c_responseLeadJetLowEta_30GeVJet->set_rat_lim_range({0.9, 1.1});
+  if (compare_to_data)
+    c_responseLeadJetLowEta_30GeVJet->set_rat_lim_range({0.95, 1.05});
+  c_responseLeadJetLowEta_30GeVJet->give_info("Lead jet |#eta| < 1.5");
+  c_responseLeadJetLowEta_30GeVJet->give_info("N_{jets} (p_{T} > 30 GeV) == 1");
+  c_responseLeadJetLowEta_30GeVJet->set_legend_lower_right();
+  c_responseLeadJetLowEta_30GeVJet->plot(1);
+
+  if (compare_to_data) {
+    vHMC_responseLeadJetMedEta_30GeVJet.clear();
+    for (int i = 0; i < vHData_responseLeadJetMedEta_30GeVJet.size(); i++) {
+      TString h_name = "vHData_ResponseLeadJetMedEta_30GeVJet" + to_string(i);
+      vHMC_responseLeadJetMedEta_30GeVJet.push_back((TH1D*)vHData_responseLeadJetMedEta_30GeVJet[0]->Clone(h_name));
+    }
+  }
+  Comparison* c_responseLeadJetMedEta_30GeVJet = new Comparison(c1, vHData_responseLeadJetMedEta_30GeVJet, vHMC_responseLeadJetMedEta_30GeVJet);
+  c_responseLeadJetMedEta_30GeVJet->set_filename(output_name);
+  c_responseLeadJetMedEta_30GeVJet->set_y_lim_range({0.85, 1.1});
+  c_responseLeadJetMedEta_30GeVJet->give_hlines({1});
+  //c_responseLeadJetMedEta_30GeVJet->give_hlines({0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08});
+  c_responseLeadJetMedEta_30GeVJet->set_info(vInfo);
+  c_responseLeadJetMedEta_30GeVJet->set_lumi(lumi);
+  c_responseLeadJetMedEta_30GeVJet->set_multiple_comparisons();
+  c_responseLeadJetMedEta_30GeVJet->set_no_log();
+  c_responseLeadJetMedEta_30GeVJet->set_legend_labels(vLabels);
+  c_responseLeadJetMedEta_30GeVJet->set_scale(1);
+  c_responseLeadJetMedEta_30GeVJet->set_x_label("q_{T} [GeV]");
+  c_responseLeadJetMedEta_30GeVJet->set_y_label("-<u_{#parallel}>/q_{T}");
+  c_responseLeadJetMedEta_30GeVJet->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_responseLeadJetMedEta_30GeVJet->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
+  c_responseLeadJetMedEta_30GeVJet->set_rat_lim_range({0.9, 1.1});
+  if (compare_to_data)
+    c_responseLeadJetMedEta_30GeVJet->set_rat_lim_range({0.95, 1.05});
+  c_responseLeadJetMedEta_30GeVJet->give_info("Lead jet: 1.5 #leq |#eta| #leq 2.5");
+  c_responseLeadJetMedEta_30GeVJet->give_info("N_{jets} (p_{T} > 30 GeV) == 1");
+  c_responseLeadJetMedEta_30GeVJet->set_legend_lower_right();
+  c_responseLeadJetMedEta_30GeVJet->plot(1);
+
+
+  if (compare_to_data) {
+    vHMC_responseLeadJetHighEta_30GeVJet.clear();
+    for (int i = 0; i < vHData_responseLeadJetHighEta_30GeVJet.size(); i++) {
+      TString h_name = "vHData_ResponseLeadJetHighEta_30GeVJet" + to_string(i);
+      vHMC_responseLeadJetHighEta_30GeVJet.push_back((TH1D*)vHData_responseLeadJetHighEta_30GeVJet[0]->Clone(h_name));
+    }
+  }
+  Comparison* c_responseLeadJetHighEta_30GeVJet = new Comparison(c1, vHData_responseLeadJetHighEta_30GeVJet, vHMC_responseLeadJetHighEta_30GeVJet);
+  c_responseLeadJetHighEta_30GeVJet->set_filename(output_name);
+  c_responseLeadJetHighEta_30GeVJet->set_y_lim_range({0.65, 1.3});
+  c_responseLeadJetHighEta_30GeVJet->give_hlines({1});
+  //c_responseLeadJetHighEta_30GeVJet->give_hlines({0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08});
+  c_responseLeadJetHighEta_30GeVJet->set_info(vInfo);
+  c_responseLeadJetHighEta_30GeVJet->set_lumi(lumi);
+  c_responseLeadJetHighEta_30GeVJet->set_multiple_comparisons();
+  c_responseLeadJetHighEta_30GeVJet->set_no_log();
+  c_responseLeadJetHighEta_30GeVJet->set_legend_labels(vLabels);
+  c_responseLeadJetHighEta_30GeVJet->set_scale(1);
+  c_responseLeadJetHighEta_30GeVJet->set_x_label("q_{T} [GeV]");
+  c_responseLeadJetHighEta_30GeVJet->set_y_label("-<u_{#parallel}>/q_{T}");
+  c_responseLeadJetHighEta_30GeVJet->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_responseLeadJetHighEta_30GeVJet->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
+  c_responseLeadJetHighEta_30GeVJet->set_rat_lim_range({0.9, 1.1});
+  if (compare_to_data)
+    c_responseLeadJetHighEta_30GeVJet->set_rat_lim_range({0.95, 1.05});
+  c_responseLeadJetHighEta_30GeVJet->give_info("Lead jet |#eta| #geq 2.5");
+  c_responseLeadJetHighEta_30GeVJet->give_info("N_{jets} (p_{T} > 30 GeV) == 1");
+  c_responseLeadJetHighEta_30GeVJet->set_legend_lower_right();
+  c_responseLeadJetHighEta_30GeVJet->plot(1);
+
+
+  if (compare_to_data) {
+    vHMC_responseLeadJetLowEta_100GeVJet.clear();
+    for (int i = 0; i < vHData_responseLeadJetLowEta_100GeVJet.size(); i++) {
+      TString h_name = "vHData_ResponseLeadJetLowEta_100GeVJet" + to_string(i);
+      vHMC_responseLeadJetLowEta_100GeVJet.push_back((TH1D*)vHData_responseLeadJetLowEta_100GeVJet[0]->Clone(h_name));
+    }
+  }
+  Comparison* c_responseLeadJetLowEta_100GeVJet = new Comparison(c1, vHData_responseLeadJetLowEta_100GeVJet, vHMC_responseLeadJetLowEta_100GeVJet);
+  c_responseLeadJetLowEta_100GeVJet->set_filename(output_name);
+  c_responseLeadJetLowEta_100GeVJet->set_y_lim_range({0.85, 1.1});
+  c_responseLeadJetLowEta_100GeVJet->give_hlines({1});
+  //c_responseLeadJetLowEta_100GeVJet->give_hlines({0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08});
+  c_responseLeadJetLowEta_100GeVJet->set_info(vInfo);
+  c_responseLeadJetLowEta_100GeVJet->set_lumi(lumi);
+  c_responseLeadJetLowEta_100GeVJet->set_multiple_comparisons();
+  c_responseLeadJetLowEta_100GeVJet->set_no_log();
+  c_responseLeadJetLowEta_100GeVJet->set_legend_labels(vLabels);
+  c_responseLeadJetLowEta_100GeVJet->set_scale(1);
+  c_responseLeadJetLowEta_100GeVJet->set_x_label("q_{T} [GeV]");
+  c_responseLeadJetLowEta_100GeVJet->set_y_label("-<u_{#parallel}>/q_{T}");
+  c_responseLeadJetLowEta_100GeVJet->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_responseLeadJetLowEta_100GeVJet->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
+  c_responseLeadJetLowEta_100GeVJet->set_rat_lim_range({0.9, 1.1});
+  if (compare_to_data)
+    c_responseLeadJetLowEta_100GeVJet->set_rat_lim_range({0.95, 1.05});
+  c_responseLeadJetLowEta_100GeVJet->give_info("Lead jet |#eta| < 1.5");
+  c_responseLeadJetLowEta_100GeVJet->give_info("N_{jets} (p_{T} > 30 GeV) == 1");
+  c_responseLeadJetLowEta_100GeVJet->give_info("Lead jet p_{T} > 100 GeV");
+  c_responseLeadJetLowEta_100GeVJet->set_legend_lower_right();
+  c_responseLeadJetLowEta_100GeVJet->plot(1);
+
+  if (compare_to_data) {
+    vHMC_responseLeadJetMedEta_100GeVJet.clear();
+    for (int i = 0; i < vHData_responseLeadJetMedEta_100GeVJet.size(); i++) {
+      TString h_name = "vHData_ResponseLeadJetMedEta_100GeVJet" + to_string(i);
+      vHMC_responseLeadJetMedEta_100GeVJet.push_back((TH1D*)vHData_responseLeadJetMedEta_100GeVJet[0]->Clone(h_name));
+    }
+  }
+  Comparison* c_responseLeadJetMedEta_100GeVJet = new Comparison(c1, vHData_responseLeadJetMedEta_100GeVJet, vHMC_responseLeadJetMedEta_100GeVJet);
+  c_responseLeadJetMedEta_100GeVJet->set_filename(output_name);
+  c_responseLeadJetMedEta_100GeVJet->set_y_lim_range({0.85, 1.1});
+  c_responseLeadJetMedEta_100GeVJet->give_hlines({1});
+  //c_responseLeadJetMedEta_100GeVJet->give_hlines({0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08});
+  c_responseLeadJetMedEta_100GeVJet->set_info(vInfo);
+  c_responseLeadJetMedEta_100GeVJet->set_lumi(lumi);
+  c_responseLeadJetMedEta_100GeVJet->set_multiple_comparisons();
+  c_responseLeadJetMedEta_100GeVJet->set_no_log();
+  c_responseLeadJetMedEta_100GeVJet->set_legend_labels(vLabels);
+  c_responseLeadJetMedEta_100GeVJet->set_scale(1);
+  c_responseLeadJetMedEta_100GeVJet->set_x_label("q_{T} [GeV]");
+  c_responseLeadJetMedEta_100GeVJet->set_y_label("-<u_{#parallel}>/q_{T}");
+  c_responseLeadJetMedEta_100GeVJet->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_responseLeadJetMedEta_100GeVJet->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
+  c_responseLeadJetMedEta_100GeVJet->set_rat_lim_range({0.9, 1.1});
+  if (compare_to_data)
+    c_responseLeadJetMedEta_100GeVJet->set_rat_lim_range({0.95, 1.05});
+  c_responseLeadJetMedEta_100GeVJet->give_info("Lead jet: 1.5 #leq |#eta| #leq 2.5");
+  c_responseLeadJetMedEta_100GeVJet->give_info("N_{jets} (p_{T} > 30 GeV) == 1");
+  c_responseLeadJetMedEta_100GeVJet->give_info("Lead jet p_{T} > 100 GeV");
+  c_responseLeadJetMedEta_100GeVJet->set_legend_lower_right();
+  c_responseLeadJetMedEta_100GeVJet->plot(1);
+
+
+  if (compare_to_data) {
+    vHMC_responseLeadJetHighEta_100GeVJet.clear();
+    for (int i = 0; i < vHData_responseLeadJetHighEta_100GeVJet.size(); i++) {
+      TString h_name = "vHData_ResponseLeadJetHighEta_100GeVJet" + to_string(i);
+      vHMC_responseLeadJetHighEta_100GeVJet.push_back((TH1D*)vHData_responseLeadJetHighEta_100GeVJet[0]->Clone(h_name));
+    }
+  }
+  Comparison* c_responseLeadJetHighEta_100GeVJet = new Comparison(c1, vHData_responseLeadJetHighEta_100GeVJet, vHMC_responseLeadJetHighEta_100GeVJet);
+  c_responseLeadJetHighEta_100GeVJet->set_filename(output_name);
+  c_responseLeadJetHighEta_100GeVJet->set_y_lim_range({0.65, 1.3});
+  c_responseLeadJetHighEta_100GeVJet->give_hlines({1});
+  //c_responseLeadJetHighEta_100GeVJet->give_hlines({0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08});
+  c_responseLeadJetHighEta_100GeVJet->set_info(vInfo);
+  c_responseLeadJetHighEta_100GeVJet->set_lumi(lumi);
+  c_responseLeadJetHighEta_100GeVJet->set_multiple_comparisons();
+  c_responseLeadJetHighEta_100GeVJet->set_no_log();
+  c_responseLeadJetHighEta_100GeVJet->set_legend_labels(vLabels);
+  c_responseLeadJetHighEta_100GeVJet->set_scale(1);
+  c_responseLeadJetHighEta_100GeVJet->set_x_label("q_{T} [GeV]");
+  c_responseLeadJetHighEta_100GeVJet->set_y_label("-<u_{#parallel}>/q_{T}");
+  c_responseLeadJetHighEta_100GeVJet->set_rat_label("#frac{Data}{MC}");
+  if (compare_to_data)
+    c_responseLeadJetHighEta_100GeVJet->set_rat_label("#frac{Data}{" + vLabels[0] + "}");
+  c_responseLeadJetHighEta_100GeVJet->set_rat_lim_range({0.9, 1.1});
+  if (compare_to_data)
+    c_responseLeadJetHighEta_100GeVJet->set_rat_lim_range({0.95, 1.05});
+  c_responseLeadJetHighEta_100GeVJet->give_info("Lead jet |#eta| #geq 2.5");
+  c_responseLeadJetHighEta_100GeVJet->give_info("N_{jets} (p_{T} > 30 GeV) == 1");
+  c_responseLeadJetHighEta_100GeVJet->give_info("Lead jet p_{T} > 100 GeV");
+  c_responseLeadJetHighEta_100GeVJet->set_legend_lower_right();
+  c_responseLeadJetHighEta_100GeVJet->plot(1);
+
+
+  if (compare_to_data) {
     vHMC_res_para.clear();
     for (int i = 0; i < vHData_res_para.size(); i++) {
       TString h_name = "vHData_res_para" + to_string(i);
@@ -998,12 +1319,17 @@ void make_double_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string ou
     c->give_info("Data vs. Data");
   else
     c->give_info("MC vs. MC");
+
+  for (int i = 0; i < vInfo.size(); i++)
+    c->give_info(vInfo[i]);
   c->set_x_label(x_label);
   c->set_y_label("Events");
   c->set_lumi(lumi);
   c->set_scale(scale);
-  c->set_x_bin_range({1,80});
-  c->set_rat_lim_range({0.0, 2.0});
+  //c->set_x_bin_range({1,80});
+  c->set_rat_lim_range({0.8, 1.2});
+  if (hist_name1 == "hJetPtV6_std")
+    c->set_rat_lim_range({0.95, 1.05});
   c->plot(idx);
 
   delete h1;
@@ -1067,6 +1393,16 @@ void make_met_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string outp
   vInfo_1pJets.push_back("#geq 1 Jets");
   make_plot_rat_unc(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets" + name, "hT1CMET_1pJets_up" + name, "hT1CMET_1pJets_down" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_1pJets, histIdx == 4 ? (idx == 2 ? 2 : 1) : idx == 0 ? 0 : 1, true);
   //make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_1pJets" + name, "E_{T}^{miss} [GeV]", lumi, scale, vInfo_1pJets, idx == 0 ? 0 : 1, true);
+
+  /*
+  if (histIdx == 4) {
+    make_plot(c1, histIdx, vFiles, output_name, "hJetPt" + name, "Jet p_{T} [GeV]", lumi, scale, vInfo, 1);
+    make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_UPara_over_high_qT" + name, "u_{#parallel} [GeV]", lumi, scale, vInfo, 1);
+    make_plot(c1, histIdx, vFiles, output_name, "hLeadJetPt" + name, "Lead Jet p_{T} [GeV]", lumi, scale, vInfo, 1);
+    make_plot(c1, histIdx, vFiles, output_name, "hJetMultiplicity" + name, "Jet Multiplicity", lumi, scale, vInfo, 1);
+  }
+  */
+
   vector<TString> vInfo_1pJets_up = vInfo_1pJets;
   if (histIdx != 4) {
     vInfo_1pJets_up.push_back("JEC Varied Up");
@@ -1082,6 +1418,13 @@ void make_met_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string outp
     make_plot(c1, histIdx, vFiles, output_name, "hZpT" + name, "q_{T} [GeV]", lumi, scale, vInfo, 1);
     make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_UPara" + name, "u_{#parallel} [GeV]", lumi, scale, vInfo, 1);
     make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_UPerp" + name, "u_{#perp}  [GeV]", lumi, scale, vInfo, 1);
+
+    make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_UPara_over_high_qT" + name, "u_{#parallel} [GeV]", lumi, scale, vInfo, 1);
+    make_plot(c1, histIdx, vFiles, output_name, "hLeadJetPt" + name, "Lead Jet p_{T} [GeV]", lumi, scale, vInfo, 1);
+    make_plot(c1, histIdx, vFiles, output_name, "hJetMultiplicity" + name, "Jet Multiplicity", lumi, scale, vInfo, 1);
+
+    //make_2Dplot(c1, histIdx, vFiles, output_name, "hJetEtaPhi" + name, "Jet #eta", "Jet #phi", lumi, -1, {}, 1);
+
     make_plot(c1, histIdx, vFiles, output_name, "hT1CMET_UParaPlusqT" + name, "u_{#parallel} + q_{T} [GeV]", lumi, scale, vInfo, idx == 2 ? 2 : 1);
   }
 } 
@@ -1148,7 +1491,31 @@ int main(int argc, char* argv[])
   TCanvas* c1 = new TCanvas("c1", "histos", 600, 800);
 
   if (eras == "All") {
-    make_met_plots(c1, histIdx, vFiles, output_name, "V6_std", lumi, 1, {"V6 JECs"}, 0);
+    make_2Dplot_dataRat(c1, histIdx, vFiles, output_name, "hJetEtaPhiV6_std", "hJetEtaPhiV27_std", "Jet #eta", "Jet #phi", lumi, 1, {}, 0);
+    make_2Dplot_dataRat(c1, histIdx, vFiles, output_name, "hJetEtaPhi_1Jet_qTGeq200V6_std", "hJetEtaPhi_1Jet_qTGeq200V27_std", "Jet #eta", "Jet #phi", lumi, 1, {}, 1);
+    make_2Dplot_dataRat(c1, histIdx, vFiles, output_name, "hJetEtaPhi_1HighPtJet_qTGeq200V6_std", "hJetEtaPhi_1HighPtJet_qTGeq200V27_std", "Jet #eta", "Jet #phi", lumi, 1, {}, 1);
+
+    make_2Dplot_dataRat(c1, 2, vFiles, output_name, "hJetEtaPhiV6_std", "hJetEtaPhiV27_std", "Jet #eta", "Jet #phi", lumi, 1, {}, 1, true);
+    make_2Dplot_dataRat(c1, 2, vFiles, output_name, "hJetEtaPhi_1Jet_qTGeq200V6_std", "hJetEtaPhi_1Jet_qTGeq200V27_std", "Jet #eta", "Jet #phi", lumi, 1, {}, 1, true);
+    make_2Dplot_dataRat(c1, 2, vFiles, output_name, "hJetEtaPhi_1HighPtJet_qTGeq200V6_std", "hJetEtaPhi_1HighPtJet_qTGeq200V27_std", "Jet #eta", "Jet #phi", lumi, 1, {}, 1, true);
+
+    make_double_plot(c1, histIdx, vFiles, output_name, "hJetPtV6_std", "hJetPtV27_std", "V6 JECs", "V27 JECs", "Jet p_{T} [GeV]", lumi, 1, {}, true, 1);
+    make_double_plot(c1, histIdx, vFiles, output_name, "hJetPt_BarrelV6_std", "hJetPt_BarrelV27_std", "V6 JECs", "V27 JECs", "Jet p_{T} [GeV]", lumi, 1, {"Jet |#eta| < 1.6"}, true, 1);
+    make_double_plot(c1, histIdx, vFiles, output_name, "hJetPt_ECV6_std", "hJetPt_ECV27_std", "V6 JECs", "V27 JECs", "Jet p_{T} [GeV]", lumi, 1, {"1.6 < Jet |#eta| < 3.0"}, true, 1);
+    make_double_plot(c1, histIdx, vFiles, output_name, "hJetPt_ForwardV6_std", "hJetPt_ForwardV27_std", "V6 JECs", "V27 JECs", "Jet p_{T} [GeV]", lumi, 1, {"Jet |#eta| > 3.0"}, true, 1);
+
+    make_double_plot(c1, 2, vFiles, output_name, "hJetPtV6_std", "hJetPtV27_std", "V6 JECs", "V27 JECs", "Jet p_{T} [GeV]", lumi, 1, {}, false, 1);
+    make_double_plot(c1, 2, vFiles, output_name, "hJetPt_BarrelV6_std", "hJetPt_BarrelV27_std", "V6 JECs", "V27 JECs", "Jet p_{T} [GeV]", lumi, 1, {"Jet |#eta| < 1.6"}, false, 1);
+    make_double_plot(c1, 2, vFiles, output_name, "hJetPt_ECV6_std", "hJetPt_ECV27_std", "V6 JECs", "V27 JECs", "Jet p_{T} [GeV]", lumi, 1, {"1.6 < Jet |#eta| < 3.0"}, false, 1);
+    make_double_plot(c1, 2, vFiles, output_name, "hJetPt_ForwardV6_std", "hJetPt_ForwardV27_std", "V6 JECs", "V27 JECs", "Jet p_{T} [GeV]", lumi, 1, {"Jet |#eta| > 3.0"}, false, 1);
+
+
+    make_double_plot(c1, histIdx, vFiles, output_name, "hJetMultiplicityV6_std", "hJetMultiplicityV27_std", "V6 JECs", "V27 JECs", "Jet Multiplicity", lumi, 1, {}, true, 1);
+    make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET_UParaV6_std", "hT1CMET_UParaV27_std", "V6 JECs", "V27 JECs", "u_{#parallel} [GeV]", lumi, 1, {}, true, 1);
+    make_double_plot(c1, histIdx, vFiles, output_name, "hT1CMET_UPara_over_high_qTV6_std", "hT1CMET_UPara_over_high_qTV27_std", "V6 JECs", "V27 JECs", "-u_{#parallel}/q_{T}", lumi, 1, {"q_{T} > 300 GeV"}, true, 1);
+
+     
+    make_met_plots(c1, histIdx, vFiles, output_name, "V6_std", lumi, 1, {"V6 JECs"}, 1);
     make_met_plots(c1, histIdx, vFiles, output_name, "V6_v2C_50GeV", lumi, 1, {"V6 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
     make_met_plots(c1, histIdx, vFiles, output_name, "V27_std", lumi, 1, {"V27 JECs"}, 1);
     make_met_plots(c1, histIdx, vFiles, output_name, "V27_v2C_50GeV", lumi, 1, {"V27 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
@@ -1178,7 +1545,6 @@ int main(int argc, char* argv[])
   make_met_plots(c1, histIdx, vFiles, output_name, "V6_v2C_50GeV", lumi, scaleMC, {"V6 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
   make_met_plots(c1, histIdx, vFiles, output_name, "V27_std", lumi, scaleMC, {"V27 JECs"}, 1);
   make_met_plots(c1, histIdx, vFiles, output_name, "V27_v2C_50GeV", lumi, scaleMC, {"V27 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
-
   make_resolution_plots(c1, histIdx, vFiles, output_name, {"V6_std", "V6_v2C_50GeV", "V27_std", "V27_v2C_50GeV"}, lumi, scaleMC, {era_info}, {"Nominal (V6)", "Modified (V6)", "Nominal (V27)", "Modified (V27)"}, 2);
 
   // 14 Oct 2018
