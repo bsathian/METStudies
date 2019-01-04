@@ -388,27 +388,45 @@ double t1CMET_raw_configurable(TString currentFileName, string dataVersion, stri
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
-  }else if (currentFileName.Contains("2017D")) {
+  }
+  else if (currentFileName.Contains("2017D") && dataVersion != "V32") {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
-  }else if (currentFileName.Contains("2017E")) {
+  }else if (currentFileName.Contains("2017E") && dataVersion != "V32") {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
-  }else if (currentFileName.Contains("2017F")) {
+  }
+  else if ((currentFileName.Contains("2017D") || currentFileName.Contains("2017E")) && dataVersion == "V32") {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   ); 
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  ); 
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  ); 
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt"); 
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017DE_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
+  }
+
+  else if (currentFileName.Contains("2017F") && !currentFileName.Contains("09May2018")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
+  }else if (currentFileName.Contains("2017F") && currentFileName.Contains("09May2018")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_09May2018F_V2_DATA_Uncertainty_AK4PFchs.txt";
   }
   else if (currentFileName.Contains("Fall17")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
@@ -478,28 +496,45 @@ ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> t1CMET_configurable(TStr
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017C_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
-  }else if (currentFileName.Contains("2017D")) {
+  }else if (currentFileName.Contains("2017D") && dataVersion != "V32") {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017D_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
-  }else if (currentFileName.Contains("2017E")) {
+  }else if (currentFileName.Contains("2017E") && dataVersion != "V32") {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017E_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
-  }else if (currentFileName.Contains("2017F")) {
+  }
+  else if ((currentFileName.Contains("2017D") || currentFileName.Contains("2017E")) && dataVersion == "V32") {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017DE_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
+  }
+  else if (currentFileName.Contains("2017F") && !currentFileName.Contains("09May2018")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017F_" + dataVersion + "_DATA_Uncertainty_AK4PFchs.txt";
+  }else if (currentFileName.Contains("2017F") && currentFileName.Contains("09May2018")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_09May2018F_V2_DATA_Uncertainty_AK4PFchs.txt";
   }
+
   else if (currentFileName.Contains("Fall17")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_" + mcVersion + "_MC_L1FastJet_AK4PFchs.txt");
@@ -811,10 +846,6 @@ vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> correctedJets(TS
   std::vector<std::string> jetcorr_filenames_pfL1FastJetL2L3;
   std::string jetcorr_uncertainty_filename;
 
-  if (currentFileName.Contains("2017B") || currentFileName.Contains("2017C") || currentFileName.Contains("2017D") || currentFileName.Contains("2017E")) {
-    ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> dummy(0,0,0,0);
-    return {dummy};
-  }
 
   FactorizedJetCorrector* jet_corrector(0);
 
@@ -832,28 +863,43 @@ vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> correctedJets(TS
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + version + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017C_" + version + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017C_" + version + "_DATA_Uncertainty_AK4PFchs.txt";
-  }else if (currentFileName.Contains("2017D")) {
+  }else if (currentFileName.Contains("2017D") && version != "V32") {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + version + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + version + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + version + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017D_" + version + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017D_" + version + "_DATA_Uncertainty_AK4PFchs.txt";
-  }else if (currentFileName.Contains("2017E")) {
+  }else if (currentFileName.Contains("2017E") && version != "V32") {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + version + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + version + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + version + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017E_" + version + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017E_" + version + "_DATA_Uncertainty_AK4PFchs.txt";
-  }else if (currentFileName.Contains("2017F")) {
+  }else if ((currentFileName.Contains("2017D") || currentFileName.Contains("2017E")) && version == "V32") {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + version + "_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + version + "_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + version + "_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017DE_" + version + "_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017DE_" + version + "_DATA_Uncertainty_AK4PFchs.txt";
+  }else if (currentFileName.Contains("2017F") && !currentFileName.Contains("09May2018")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + version + "_DATA_L1FastJet_AK4PFchs.txt"   );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + version + "_DATA_L2Relative_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + version + "_DATA_L3Absolute_AK4PFchs.txt"  );
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017F_" + version + "_DATA_L2L3Residual_AK4PFchs.txt");
     jetcorr_uncertainty_filename = "jetCorrections/Fall17_17Nov2017F_" + version + "_DATA_Uncertainty_AK4PFchs.txt";
+  }else if (currentFileName.Contains("2017F") && currentFileName.Contains("09May2018")) {
+    jetcorr_filenames_pfL1FastJetL2L3.clear();
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L1FastJet_AK4PFchs.txt"   );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L2Relative_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L3Absolute_AK4PFchs.txt"  );
+    jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_09May2018F_V2_DATA_L2L3Residual_AK4PFchs.txt");
+    jetcorr_uncertainty_filename = "jetCorrections/Fall17_09May2018F_V2_DATA_Uncertainty_AK4PFchs.txt";
   }
+
   else if (currentFileName.Contains("Fall17")) {
     jetcorr_filenames_pfL1FastJetL2L3.clear();
     jetcorr_filenames_pfL1FastJetL2L3.push_back  ("jetCorrections/Fall17_17Nov2017_" + version_mc + "_MC_L1FastJet_AK4PFchs.txt");

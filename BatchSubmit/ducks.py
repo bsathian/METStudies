@@ -27,19 +27,20 @@ parser.add_argument("--data_only", help = "Just submit jobs for data", action="s
 args = parser.parse_args()
 
 #job_tag = "MET_v1" + args.eras
-job_tag = "MET_v24"
+job_tag = "MET_v28"
 
-eras = "B,C,D,E,F"
+eras = "B,C,D,E,F,F_v2"
 eras = eras.split(",")
 
 if args.validation or args.runF_only:
-  eras = ["F"]
+  eras = ["F_v2"]
 
 data = {"B" : ["/DoubleEG_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/", "/DoubleMuon_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 
 	"C" : ["/DoubleEG_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/", "/DoubleMuon_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 
 	"D" : ["/DoubleEG_Run2017D-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/", "/DoubleMuon_Run2017D-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 
 	"E": ["/DoubleMuon_Run2017E-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/", "/DoubleEG_Run2017E-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 
 	"F" : ["/DoubleEG_Run2017F-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/", "/DoubleMuon_Run2017F-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"],
+	"F_v2" : ["/DoubleEG_Run2017F-09May2018-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2", "/DoubleMuon_Run2017F-09May2018-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2"],
 }
 
 if args.validate_recipe:
@@ -55,7 +56,7 @@ if args.validation:
   data = {"F" :  ["/DoubleMuon_Run2017F-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"]}
 
 mc = {"Drell-Yan" : [["/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/", "/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10_ext1-v1_MINIAODSIM_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 5765.4, 212922560.0, 0.161, 1],
-	#"Drell-Yan_v2" : [["/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAODv2-PU2017RECOPF_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 5765.4, 4999851, 0.161, 1],
+	"Drell-Yan_v2" : [["/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIFall17MiniAODv2-PU2017RECOPF_12Apr2018_94X_mc2017_realistic_v14-v1_MINIAODSIM_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 5765.4, 4999851, 0.161, 1],
 	"WW" : [["/WW_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 63.21, 7547722.0, 0.0, 5],
 	"WZ" : [["/WZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 22.82, 3928630.0, 0.0, 1],
 	"ZZ" : [["/ZZ_TuneCP5_13TeV-pythia8_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_MINIAODSIM_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2/"], 10.32, 1949768.0, 0.0, 1],

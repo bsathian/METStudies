@@ -24,14 +24,14 @@ if args.skip_data:
 if args.skip_mc:
   doMC = False
 
-tag = "MET_v24"
+tag = "MET_v28"
 
 data = {"B" : ["DoubleEG_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/", "DoubleMuon_Run2017B-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/"],  
         "C" : ["DoubleEG_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/", "DoubleMuon_Run2017C-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/"],
         "D" : ["DoubleEG_Run2017D-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/", "DoubleMuon_Run2017D-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/"],
 	"E" : ["DoubleEG_Run2017E-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/", "DoubleMuon_Run2017E-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/"],
-	"F" : ["DoubleEG_Run2017F-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/", "DoubleMuon_Run2017F-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/"],
-	"Fv2" : ["DoubleEG_Run2017F-09May2018-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/", "DoubleMuon_Run2017F-09May2018-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/"]
+	"F_old" : ["DoubleEG_Run2017F-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/", "DoubleMuon_Run2017F-17Nov2017-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2__" + tag + "/"],
+	"F" : ["DoubleEG_Run2017F-09May2018-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2_" + tag + "/", "DoubleMuon_Run2017F-09May2018-v1_MINIAOD_CMS4_V09-04-13_949_allPfCands_MetRecipe_v2_" + tag + "/"]
 }
 
 
@@ -55,6 +55,7 @@ if (doData):
   intermediate_files = ""
   for era in eras:
     for set in data[era]:
+      print basepath+set+"*.root"
       files = glob.glob(basepath+set+"*.root")
       if len(files) == 0:
 	continue
@@ -68,11 +69,11 @@ if (doData):
 if (doMC):
   process_files = ""
   for key, sets in mc.iteritems():
-    if "Drell-Yan" in key:
-      if args.do_09May2018 and key == "Drell-Yan":
-	continue
-      elif not args.do_09May2018 and key == "Drell-Yan_v2":
-	continue
+    #if "Drell-Yan" in key:
+    if args.do_09May2018 and key != "Drell-Yan_v2":
+      continue
+    elif not args.do_09May2018 and key == "Drell-Yan_v2":
+      continue
     intermediate_files = ""
     for set in sets:
       files = glob.glob(basepath+set+"*.root") 

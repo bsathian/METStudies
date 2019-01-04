@@ -54,12 +54,30 @@ class MetHelper
     vector<TH1D*> hT1CMET_1pJets_up;
     vector<TH1D*> hT1CMET_1pJets_down;
 
+    vector<TH1D*> hJetEta_30GeV;
+    vector<TH1D*> hJetEta_50GeV;
+    vector<TH1D*> hJetEta_100GeV;
+    vector<TH1D*> hLeadJetPt;
     vector<TH1D*> hJetPt; 
+    vector<TH1D*> hJetPt_Barrel;
+    vector<TH1D*> hJetPt_EC;
+    vector<TH1D*> hJetPt_Forward;
 
+    vector<TH1D*> hJetMultiplicity;
+    vector<TH2D*> hJetEtaPhi;
+    vector<TH2D*> hJetEtaPhi_1Jet_qTGeq200;
+    vector<TH2D*> hJetEtaPhi_1HighPtJet_qTGeq200;
+
+
+    vector<TH1D*> hZMassEE;
+    vector<TH1D*> hZMassMuMu;
+    vector<TH1D*> hZMassEE_high_qT;
+    vector<TH1D*> hZMassMuMu_high_qT;
     vector<TH1D*> hZpT;
     vector<TH1D*> hT1CMET_UPara;
     vector<TH1D*> hT1CMET_UPerp;
     vector<TH1D*> hT1CMET_UParaPlusqT;
+    vector<TH1D*> hT1CMET_UPara_over_high_qT;
 
     vector<vector<TH1D*>> hResPara;
     vector<vector<TH1D*>> hResPerp;
@@ -67,6 +85,7 @@ class MetHelper
     vector<vector<TH1D*>> hResponseEE;
     vector<vector<TH1D*>> hResponseMM;
 
+    vector<vector<TH1D*>> hResponseVeryLowPU;
     vector<vector<TH1D*>> hResponseLowPU;
     vector<vector<TH1D*>> hResponseMedPU;
     vector<vector<TH1D*>> hResponseHighPU;
@@ -74,6 +93,14 @@ class MetHelper
     vector<vector<TH1D*>> hResponseLeadJetLowEta;
     vector<vector<TH1D*>> hResponseLeadJetMedEta;
     vector<vector<TH1D*>> hResponseLeadJetHighEta;
+
+    vector<vector<TH1D*>> hResponseLeadJetLowEta_30GeVJet;
+    vector<vector<TH1D*>> hResponseLeadJetMedEta_30GeVJet;
+    vector<vector<TH1D*>> hResponseLeadJetHighEta_30GeVJet;
+
+    vector<vector<TH1D*>> hResponseLeadJetLowEta_100GeVJet;
+    vector<vector<TH1D*>> hResponseLeadJetMedEta_100GeVJet;
+    vector<vector<TH1D*>> hResponseLeadJetHighEta_100GeVJet;
 
     vector<vector<TH1D*>> hResUpPara;
     vector<vector<TH1D*>> hResUpPerp;
@@ -160,23 +187,50 @@ void MetHelper::create_histograms() {
   hT1CMET_MM_up = create_histogram_vector("hT1CMET_MM_up" + name, nBins, x_low, x_high, nHists);
   hT1CMET_MM_down = create_histogram_vector("hT1CMET_MM_down" + name, nBins, x_low, x_high, nHists);
 
+  hJetEta_30GeV = create_histogram_vector("hJetEta_30GeV" + name, nBins, 0, 5, nHists);
+  hJetEta_50GeV = create_histogram_vector("hJetEta_50GeV" + name, nBins, 0, 5, nHists);
+  hJetEta_100GeV = create_histogram_vector("hJetEta_100GeV" + name, nBins, 0, 5, nHists);
+  hLeadJetPt = create_histogram_vector("hLeadJetPt" + name, nBins, x_low, x_high, nHists);
   hJetPt = create_histogram_vector("hJetPt" + name, nBins, x_low, x_high, nHists);
+  hJetPt_Barrel = create_histogram_vector("hJetPt_Barrel" + name, nBins, x_low, x_high, nHists);
+  hJetPt_EC = create_histogram_vector("hJetPt_EC" + name, nBins, x_low, x_high, nHists);
+  hJetPt_Forward = create_histogram_vector("hJetPt_Forward" + name, nBins, x_low, x_high, nHists);
 
+  hJetMultiplicity = create_histogram_vector("hJetMultiplicity" + name, 11, -0.5, 10.5, nHists);
+  hJetEtaPhi = create_2Dhistogram_vector("hJetEtaPhi" + name, 50, -5, 5, 50, -3.142, 3.142, nHists); 
+  hJetEtaPhi_1Jet_qTGeq200 = create_2Dhistogram_vector("hJetEtaPhi_1Jet_qTGeq200" + name, 50, -5, 5, 50, -3.142, 3.142, nHists);
+  hJetEtaPhi_1HighPtJet_qTGeq200 = create_2Dhistogram_vector("hJetEtaPhi_1HighPtJet_qTGeq200" + name, 50, -5, 5, 50, -3.142, 3.142, nHists);
+
+  hZMassEE = create_histogram_vector("hZMassEE" + name, 100, 0, 200, nHists);
+  hZMassMuMu = create_histogram_vector("hZMassMuMu" + name, 100, 0, 200, nHists);
+  hZMassEE_high_qT = create_histogram_vector("hZMassEE_high_qT" + name, 100, 0, 200, nHists);
+  hZMassMuMu_high_qT = create_histogram_vector("hZMassMuMu_high_qT" + name, 100, 0, 200, nHists);
   hZpT = create_histogram_vector("hZpT" + name, 100, 0, 400, nHists);
   hT1CMET_UPara = create_histogram_vector("hT1CMET_UPara" + name, 200, -400, 400, nHists);
   hT1CMET_UPerp = create_histogram_vector("hT1CMET_UPerp" + name, 100, -200, 200, nHists);
   hT1CMET_UParaPlusqT = create_histogram_vector("hT1CMET_UParaPlusqT" + name, 100, -200, 200, nHists);
+  hT1CMET_UPara_over_high_qT = create_histogram_vector("hT1CMET_UPara_over_high_qT" + name, 100, -10, 10, nHists);
 
   for (int i = 0; i < resolution_bins.size(); i++) {
     hResponse.push_back(create_histogram_vector("hT1CMET_Response" + name + to_string(i), 100, -10, 10, nHists));
     hResponseEE.push_back(create_histogram_vector("hT1CMET_ResponseEE" + name + to_string(i), 100, -10, 10, nHists));
     hResponseMM.push_back(create_histogram_vector("hT1CMET_ResponseMM" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseVeryLowPU.push_back(create_histogram_vector("hT1CMET_ResponseVeryLowPU" + name + to_string(i), 100, -10, 10, nHists));
     hResponseLowPU.push_back(create_histogram_vector("hT1CMET_ResponseLowPU" + name + to_string(i), 100, -10, 10, nHists));
     hResponseMedPU.push_back(create_histogram_vector("hT1CMET_ResponseMedPU" + name + to_string(i), 100, -10, 10, nHists));
     hResponseHighPU.push_back(create_histogram_vector("hT1CMET_ResponseHighPU" + name + to_string(i), 100, -10, 10, nHists));
     hResponseLeadJetLowEta.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetLowEta" + name + to_string(i), 100, -10, 10, nHists));
     hResponseLeadJetMedEta.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetMedEta" + name + to_string(i), 100, -10, 10, nHists));
     hResponseLeadJetHighEta.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetHighEta" + name + to_string(i), 100, -10, 10, nHists));
+
+    hResponseLeadJetLowEta_30GeVJet.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetLowEta_30GeVJet" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseLeadJetMedEta_30GeVJet.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetMedEta_30GeVJet" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseLeadJetHighEta_30GeVJet.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetHighEta_30GeVJet" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseLeadJetLowEta_100GeVJet.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetLowEta_100GeVJet" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseLeadJetMedEta_100GeVJet.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetMedEta_100GeVJet" + name + to_string(i), 100, -10, 10, nHists));
+    hResponseLeadJetHighEta_100GeVJet.push_back(create_histogram_vector("hT1CMET_ResponseLeadJetHighEta_100GeVJet" + name + to_string(i), 100, -10, 10, nHists));
+
+
     hResPara.push_back(create_histogram_vector("hT1CMET_ResPara" + name + to_string(i), 200, -400, 400, nHists));
     hResPerp.push_back(create_histogram_vector("hT1CMET_ResPerp" + name + to_string(i), 100, -200, 200, nHists));
 
@@ -296,12 +350,47 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
     exclude_jets = true;
   }
 
-  vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> vCorrectedJets = correctedJets(currentFileName, jec_version_data, jec_version_mc);  
-  for (unsigned int i = 0; i < vCorrectedJets.size(); i++) {
-    fill_histograms(hJetPt, vCorrectedJets[i].pt(), weights);
+  vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>>> vCorrectedJets = correctedJets(currentFileName, jec_version_data, jec_version_mc); 
+  fill_histograms(hLeadJetPt, vCorrectedJets.size() > 0 ? vCorrectedJets[0].pt() : -999, weights); 
+  int n_jets = 0;
+  int n_high_pt_jets = 0;
+
+  LorentzVector pl1, pl2;
+  if (isElEvt) {
+    pl1 = els_p4().at(id1);
+    pl2 = els_p4().at(id2);
+  }
+  else {
+    pl1 = mus_p4().at(id1);
+    pl2 = mus_p4().at(id2);
   }
 
+  for (unsigned int i = 0; i < vCorrectedJets.size(); i++) {
+    if (DeltaR(pfjets_p4().at(i),pl1) < 0.4)            { continue; }
+    if (DeltaR(pfjets_p4().at(i),pl2) < 0.4)            { continue; }    
+    fill_histograms(hJetPt, vCorrectedJets[i].pt(), weights);
+    if (abs(vCorrectedJets[i].eta()) < 1.6)
+      fill_histograms(hJetPt_Barrel, vCorrectedJets[i].pt(), weights);
+    else if (abs(vCorrectedJets[i].eta()) < 3.0)
+      fill_histograms(hJetPt_EC, vCorrectedJets[i].pt(), weights);
+    else 
+      fill_histograms(hJetPt_Forward, vCorrectedJets[i].pt(), weights);
 
+    if (vCorrectedJets[i].pt() > 30) {
+      fill_histograms2D(hJetEtaPhi, vCorrectedJets[i].eta(), vCorrectedJets[i].phi(), weights);
+      fill_histograms(hJetEta_30GeV, abs(vCorrectedJets[i].eta()), weights);
+      n_jets++;
+    }
+    if (vCorrectedJets[i].pt() > 50) {
+      fill_histograms(hJetEta_50GeV, abs(vCorrectedJets[i].eta()), weights);
+    }
+    if (vCorrectedJets[i].pt() > 100) {
+      fill_histograms(hJetEta_100GeV, abs(vCorrectedJets[i].eta()), weights);
+      n_high_pt_jets++;
+    }
+  }
+  fill_histograms(hJetMultiplicity, n_jets, weights);
+  
   if (type != 4) {
     fT1CMET = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, exclude_jets, exclude_jets, pt_thresh, 0, mCorr);
     fT1CMET_up = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, exclude_jets, exclude_jets, pt_thresh, 1, mCorr);
@@ -381,23 +470,72 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
   double boson_pt, u_para, u_perp, u_para_plus_qt;
   boson_pt = boson_pT(isElEvt, id1, id2, fT1CMET, u_para, u_perp, u_para_plus_qt);
 
+  double zpt;
+  double mass = dilepMass(isElEvt, id1, id2, zpt); 
+
+  if (isElEvt)
+    fill_histograms(hZMassEE, mass, weights);
+  else
+    fill_histograms(hZMassMuMu, mass, weights);
+
+  if (boson_pt >= 300) {
+    if (isElEvt)
+      fill_histograms(hZMassEE_high_qT, mass, weights);
+    else
+      fill_histograms(hZMassMuMu_high_qT, mass, weights);
+  }
+
+  if (boson_pt >= 200) {
+    if (n_jets == 1) {
+      for (unsigned int i = 0; i < vCorrectedJets.size(); i++) {
+	if (DeltaR(pfjets_p4().at(i),pl1) < 0.4)            { continue; }
+	if (DeltaR(pfjets_p4().at(i),pl2) < 0.4)            { continue; }
+	if (vCorrectedJets[i].pt() < 30)		{ continue; }
+	fill_histograms2D(hJetEtaPhi_1Jet_qTGeq200, vCorrectedJets[i].eta(), vCorrectedJets[i].phi(), weights);
+      }
+    }
+    if (n_high_pt_jets == 1 && n_jets == 1) {
+      for (unsigned int i = 0; i < vCorrectedJets.size(); i++) {
+        if (DeltaR(pfjets_p4().at(i),pl1) < 0.4)            { continue; }
+        if (DeltaR(pfjets_p4().at(i),pl2) < 0.4)            { continue; }
+	if (vCorrectedJets[i].pt() < 100)		{ continue; }
+        fill_histograms2D(hJetEtaPhi_1HighPtJet_qTGeq200, vCorrectedJets[i].eta(), vCorrectedJets[i].phi(), weights);
+      }
+    }
+  }
+
   int resolution_idx = find_index(resolution_bins, boson_pt);
   fill_histograms(hZpT, boson_pt, weights);
   fill_histograms(hT1CMET_UPara, u_para, weights);
   fill_histograms(hT1CMET_UPerp, u_perp, weights);
   fill_histograms(hT1CMET_UParaPlusqT, u_para_plus_qt, weights);
+  if (boson_pt > 300)
+    fill_histograms(hT1CMET_UPara_over_high_qT, -u_para/boson_pt, weights);
 
   fill_histograms(hResponse[resolution_idx], -u_para/boson_pt, weights);
   if (isElEvt)      fill_histograms(hResponseEE[resolution_idx], -u_para/boson_pt, weights);
   else              fill_histograms(hResponseMM[resolution_idx], -u_para/boson_pt, weights);
 
-  if (vId[0] < 25) fill_histograms(hResponseLowPU[resolution_idx], -u_para/boson_pt, weights); 
+  if (vId[0] < 10) fill_histograms(hResponseVeryLowPU[resolution_idx], -u_para/boson_pt, weights);
+  else if (vId[0] < 25) fill_histograms(hResponseLowPU[resolution_idx], -u_para/boson_pt, weights); 
   else if (vId[0] < 35) fill_histograms(hResponseMedPU[resolution_idx], -u_para/boson_pt, weights); 
   else if (vId[0] >= 35) fill_histograms(hResponseHighPU[resolution_idx], -u_para/boson_pt, weights); 
 
   if (abs(vId[1]) < 1.5) fill_histograms(hResponseLeadJetLowEta[resolution_idx], -u_para/boson_pt, weights); 
   else if (abs(vId[1] < 2.5)) fill_histograms(hResponseLeadJetMedEta[resolution_idx], -u_para/boson_pt, weights);
   else if (abs(vId[1] >= 2.5)) fill_histograms(hResponseLeadJetHighEta[resolution_idx], -u_para/boson_pt, weights); 
+
+  if (n_jets == 1) {
+    if (abs(vId[1]) < 1.5) fill_histograms(hResponseLeadJetLowEta_30GeVJet[resolution_idx], -u_para/boson_pt, weights);
+    else if (abs(vId[1] < 2.5)) fill_histograms(hResponseLeadJetMedEta_30GeVJet[resolution_idx], -u_para/boson_pt, weights);
+    else if (abs(vId[1] >= 2.5)) fill_histograms(hResponseLeadJetHighEta_30GeVJet[resolution_idx], -u_para/boson_pt, weights);
+  }
+  if (n_high_pt_jets == 1 && n_jets == 1) {
+    if (abs(vId[1]) < 1.5) fill_histograms(hResponseLeadJetLowEta_100GeVJet[resolution_idx], -u_para/boson_pt, weights);
+    else if (abs(vId[1] < 2.5)) fill_histograms(hResponseLeadJetMedEta_100GeVJet[resolution_idx], -u_para/boson_pt, weights);
+    else if (abs(vId[1] >= 2.5)) fill_histograms(hResponseLeadJetHighEta_100GeVJet[resolution_idx], -u_para/boson_pt, weights);
+  }
+
 
   fill_histograms(hResPara[resolution_idx], u_para, weights);
   fill_histograms(hResPerp[resolution_idx], u_perp, weights);

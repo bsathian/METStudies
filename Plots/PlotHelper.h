@@ -761,6 +761,11 @@ void Comparison::draw_2D_histograms(int idx)
   mH2DRat->SetMinimum(0);
   mH2DRat->SetMaximum(2);
 
+  if (mCustomRatRange) {
+    mH2DRat->SetMinimum(mRatRange[0]);
+    mH2DRat->SetMaximum(mRatRange[1]);
+  }
+
   mH2DRat->GetXaxis()->SetTitle(mXLabel);
   mH2DRat->GetYaxis()->SetTitle(mYLabel);
   mH2DRat->GetYaxis()->SetTitleOffset(1.3);

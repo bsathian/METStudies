@@ -35,7 +35,12 @@ void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_na
 	else if (h == 3)
 	  era_lumi = 13.5;
 	hMCTemp2->Scale(era_lumi);
-	hMCTemp->Add(hMCTemp2);	
+	if (h == 0) {
+          hMCTemp = (TH1D*)hMCTemp2->Clone(hist_name + "clone");
+	}
+        else {
+	  hMCTemp->Add(hMCTemp2);	
+	}
       }
       hMC.push_back(hMCTemp); 
    } 
@@ -53,6 +58,9 @@ void make_plot(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string output_na
     }
   }
   TString name = output_name;
+  cout << hData->GetMean() << endl;
+  for (int i = 0; i < hMC.size(); i++)
+    cout << hMC[i]->GetMean() << endl;
   Comparison* c = new Comparison(c1, hData, hMC);
   if (lumi == 4.8)
     c->give_info({"2017 Run B"});
@@ -514,9 +522,39 @@ void make_resolution_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, stri
       TH1D* hDataTempLeadJetLowEta_100GeVJet = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseLeadJetLowEta_100GeVJet" + hist_names[j] + to_string(i+1) + "0");
       TH1D* hMCTempLeadJetLowEta_100GeVJet = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseLeadJetLowEta_100GeVJet" + hist_names[j] + to_string(i+1) + to_string(histIdx));
       TH1D* hDataTempLeadJetMedEta_100GeVJet = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseLeadJetMedEta_100GeVJet" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTempLeadJetMedEta_100GeVJet = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseLeadJetMedEta_100GeVJet" + hist_names[j] + to_string(i+1) + to_string(histIdx));
+      TH1D* hDataTempLeadJetHighEta_100GeVJet = (TH1D*)vFiles[0]->Get("hT1CMET_ResponseLeadJetHighEta_100GeVJet" + hist_names[j] + to_string(i+1) + "0");
+      TH1D* hMCTempLeadJetHighEta_100GeVJet = (TH1D*)vFiles[1]->Get("hT1CMET_ResponseLeadJetHighEta_100GeVJet" + hist_names[j] + to_string(i+1) + to_string(histIdx)); 
+ 
+     
+      vHData_response[j]->SetBinContent(i+1, hDataTemp->GetMean());
+      vHData_response[j]->SetBinError(i+1, hDataTemp->GetMeanError());
+      if (!compare_to_data) {
+        vHMC_response[j]->SetBinContent(i+1, hMCTemp->GetMean());
+        vHMC_response[j]->SetBinError(i+1, hMCTemp->GetMeanError());
+      }
+
+      vHData_responseEE[j]->SetBinContent(i+1, hDataTempEE->GetMean());
+      vHData_responseEE[j]->SetBinError(i+1, hDataTempEE->GetMeanError());
+      if (!compare_to_data) {
+        vHMC_responseEE[j]->SetBinContent(i+1, hMCTempEE->GetMean());
+        vHMC_responseEE[j]->SetBinError(i+1, hMCTempEE->GetMeanError());
+      }
+
+      vHData_responseMM[j]->SetBinContent(i+1, hDataTempMM->GetMean());
+      vHData_responseMM[j]->SetBinError(i+1, hDataTempMM->GetMeanError());
+      if (!compare_to_data) {
+        vHMC_responseMM[j]->SetBinContent(i+1, hMCTempMM->GetMean());
+        vHMC_responseMM[j]->SetBinError(i+1, hMCTempMM->GetMeanError());
+      }
+
+      vHData_responseVeryLowPU[j]->SetBinContent(i+1, hDataTempVeryLowPU->GetMean());
+      vHData_responseVeryLowPU[j]->SetBinError(i+1, hDataTempVeryLowPU->GetMeanError());
+      if (!compare_to_data) {
         vHMC_responseVeryLowPU[j]->SetBinContent(i+1, hMCTempVeryLowPU->GetMean());
         vHMC_responseVeryLowPU[j]->SetBinError(i+1, hMCTempVeryLowPU->GetMeanError());
       }
+
 
       vHData_responseLowPU[j]->SetBinContent(i+1, hDataTempLowPU->GetMean());
       vHData_responseLowPU[j]->SetBinError(i+1, hDataTempLowPU->GetMeanError());
@@ -1403,6 +1441,17 @@ void make_met_plots(TCanvas* c1, int histIdx, vector<TFile*> vFiles, string outp
   }
   */
 
+  /*
+  make_plot_rat_unc(c1, histIdx, vFiles, output_name, "hJetEta_30GeV" + name, "hJetEta_30GeV" + name, "hJetEta_30GeV" + name, "Jet |#eta|", lumi, scale, {"Jet p_{T} #geq 30 GeV"}, 1, false);
+  make_plot_rat_unc(c1, histIdx, vFiles, output_name, "hJetEta_50GeV" + name, "hJetEta_50GeV" + name, "hJetEta_50GeV" + name, "Jet |#eta|", lumi, scale, {"Jet p_{T} #geq 50 GeV"}, 1, false);
+  make_plot_rat_unc(c1, histIdx, vFiles, output_name, "hJetEta_100GeV" + name, "hJetEta_100GeV" + name, "hJetEta_100GeV" + name, "Jet |#eta|", lumi, scale, {"Jet p_{T} #geq 100 GeV"}, 1, false);
+
+  make_plot_rat_unc(c1, histIdx, vFiles, output_name, "hZMassEE" + name, "hZMassEE" + name, "hZMassEE" + name, "m_{ll} [GeV]", lumi, scale, {"Z #to ee"}, 1, false);
+  make_plot_rat_unc(c1, histIdx, vFiles, output_name, "hZMassMuMu" + name, "hZMassMuMu" + name, "hZMassMuMu" + name, "m_{ll} [GeV]", lumi, scale, {"Z #to #mu#mu"}, 1, false);
+  make_plot_rat_unc(c1, histIdx, vFiles, output_name, "hZMassEE_high_qT" + name, "hZMassEE_high_qT" + name, "hZMassEE_high_qT" + name, "m_{ll} [GeV]", lumi, scale, {"Z #to ee", "q_{T} #geq 300 GeV"}, 1, false);
+  make_plot_rat_unc(c1, histIdx, vFiles, output_name, "hZMassMuMu_high_qT" + name, "hZMassMuMu_high_qT" + name, "hZMassMuMu_high_qT" + name, "m_{ll} [GeV]", lumi, scale, {"Z #to #mu#mu", "q_{T} #geq 300 GeV"}, histIdx == 4 ? (idx == 2 ? 2 : 1) : idx == 0 ? 0 : 1, false);
+  */
+
   vector<TString> vInfo_1pJets_up = vInfo_1pJets;
   if (histIdx != 4) {
     vInfo_1pJets_up.push_back("JEC Varied Up");
@@ -1455,9 +1504,9 @@ int main(int argc, char* argv[])
   if (eras == "B") 	histIdx = 0;
   if (eras == "C")	histIdx = 1;
   if (eras == "D,E")	histIdx = 2;
-  if (eras == "F" || eras == "Fv2_nominal" || eras == "Fv2")	histIdx = 3;
+  if (eras == "F" || eras == "Fv2_nominal" || eras == "Fv2" || eras == "F_old")	histIdx = 3;
 
-  if (eras == "All") 	histIdx = 4;
+  if (eras == "All" || "All_old") 	histIdx = 4;
 
   TString era_info;
   if (eras == "B") 	era_info = "2017 Run B";
@@ -1467,7 +1516,7 @@ int main(int argc, char* argv[])
   if (eras == "F_V6")   era_info = "2017 Run F";
   if (eras.Contains("Fv2"))      era_info = "2017 Run F (09May2018 ReReco)";
 
-  if (eras == "All")	era_info = "2017 All Runs";
+  if (eras == "All" || eras == "All_old")	era_info = "2017 All Runs";
 
   TString eras_trimmed = eras.Contains("nominal") ? "Fv2" : eras;
   
@@ -1475,6 +1524,9 @@ int main(int argc, char* argv[])
   TFile* fData;
   if (eras == "All")
     fData = new TFile("../histograms/Zll_histograms_All.root");
+  else if (eras == "All_old") {
+    fData = new TFile("../histograms/Zll_histograms_All_v2.root");
+  }
   else
     fData = new TFile("../histograms/Zll_histograms_" + eras_trimmed + ".root");
   TFile* fDY;
@@ -1490,6 +1542,32 @@ int main(int argc, char* argv[])
 
   TCanvas* c1 = new TCanvas("c1", "histos", 600, 800);
 
+  double scaleMC = lumi;
+
+  if (eras == "All" || eras == "All_old") {
+    make_met_plots(c1, histIdx, vFiles, output_name, "V32_std", lumi, 1, {"V32 JECs"}, 0);
+    make_plot(c1, histIdx, vFiles, output_name, "hZMassEEV32_std", "m_{ll} [GeV]", lumi, 1, {"Z #rightarrow ee"}, 1);
+    make_plot(c1, histIdx, vFiles, output_name, "hZMassMuMuV32_std", "m_{ll} [GeV]", lumi, 1, {"Z #rightarrow #mu#mu"}, 1);
+    make_plot(c1, histIdx, vFiles, output_name, "hZMassEE_high_qTV32_std", "m_{ll} [GeV]", lumi, 1, {"Z #rightarrow ee", "q_{T} #geq 300 GeV"}, 1);
+    make_plot(c1, histIdx, vFiles, output_name, "hZMassMuMu_high_qTV32_std", "m_{ll} [GeV]", lumi, 1, {"Z #rightarrow #mu#mu", "q_{T} #geq 300 GeV"}, 1);
+    make_plot(c1, histIdx, vFiles, output_name, "hJetEta_30GeVV32_std", "Jet |#eta|", lumi, 1, {"V32 JECs", "Jet p_{T} #geq 30 GeV"}, 1);
+    make_plot(c1, histIdx, vFiles, output_name, "hJetEta_50GeVV32_std", "Jet |#eta|", lumi, 1, {"V32 JECs", "Jet p_{T} #geq 50 GeV"}, 1);
+    make_plot(c1, histIdx, vFiles, output_name, "hJetEta_100GeVV32_std", "Jet |#eta|", lumi, 1, {"V32 JECs", "Jet p_{T} #geq 100 GeV"}, 2);
+    //make_plot(c1, histIdx, vFiles, output_name, "hCCeta", "|#eta|", lumi, -1, {"Charged Candidates"}, 2);
+    //make_met_plots(c1, histIdx, vFiles, output_name, "V32_v2C_50GeV", lumi, 1, {"V32 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
+    //make_resolution_plots(c1, histIdx, vFiles, output_name, {"V32_std", "V32_v2C_50GeV"}, lumi, 1, {era_info}, {"Nominal (V32)", "Modified (V32)"}, 2, true, false);
+  }
+
+  else {
+    make_met_plots(c1, histIdx, vFiles, output_name, "V32_std", lumi, scaleMC, {eras == "F" ? "09May2018 V2 JECs" : "V32 JECs"}, 0);
+    make_plot(c1, histIdx, vFiles, output_name, "hJetEta_100GeVV32_std", "Jet |#eta|", lumi, 1, {"V32 JECs", "Jet p_{T} #geq 100 GeV"}, 2);
+    //make_plot(c1, histIdx, vFiles, output_name, "hCCeta", "|#eta|", lumi, -1, {"Charged Candidates"}, 2);
+    //make_met_plots(c1, histIdx, vFiles, output_name, "V32_v2C_50GeV", lumi, scaleMC, {eras == "F" ? "09May2018 V2 JECs" : "V32 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
+    //make_resolution_plots(c1, histIdx, vFiles, output_name, {"V32_std", "V32_v2C_50GeV"}, lumi, scaleMC, {era_info}, {eras == "F" ? "Nominal (09May2018 V2)" : "Nominal (V32)", eras == "F" ? "Modified (09May2018 V2)" : "Modified (V32)"}, 2);
+  }
+
+  // 14 Dec 2018
+  /*
   if (eras == "All") {
     make_2Dplot_dataRat(c1, histIdx, vFiles, output_name, "hJetEtaPhiV6_std", "hJetEtaPhiV27_std", "Jet #eta", "Jet #phi", lumi, 1, {}, 0);
     make_2Dplot_dataRat(c1, histIdx, vFiles, output_name, "hJetEtaPhi_1Jet_qTGeq200V6_std", "hJetEtaPhi_1Jet_qTGeq200V27_std", "Jet #eta", "Jet #phi", lumi, 1, {}, 1);
@@ -1546,7 +1624,7 @@ int main(int argc, char* argv[])
   make_met_plots(c1, histIdx, vFiles, output_name, "V27_std", lumi, scaleMC, {"V27 JECs"}, 1);
   make_met_plots(c1, histIdx, vFiles, output_name, "V27_v2C_50GeV", lumi, scaleMC, {"V27 JECs", "Modified v2 Type-1 MET", "50 GeV Jet Threshold"}, 1);
   make_resolution_plots(c1, histIdx, vFiles, output_name, {"V6_std", "V6_v2C_50GeV", "V27_std", "V27_v2C_50GeV"}, lumi, scaleMC, {era_info}, {"Nominal (V6)", "Modified (V6)", "Nominal (V27)", "Modified (V27)"}, 2);
-
+  */
   // 14 Oct 2018
   /*
   if (eras == "F_V6") {

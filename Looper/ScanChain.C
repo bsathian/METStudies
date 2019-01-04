@@ -107,23 +107,23 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
   //MetHelper* mV8_v2C = new MetHelper("V8_v2C", nHists, "V8", "V8", 2);
   //MetHelper* mV8_v2D = new MetHelper("V8_v2D", nHists, "V8", "V8", 3);
 
-  MetHelper* mV6_v2C = new MetHelper("V6_v2C", nHists, "V6", "V6", 2);
-  MetHelper* mV6_std = new MetHelper("V6_std", nHists, "V6", "V6", 0);
-  MetHelper* mV6_v2C_50GeV = new MetHelper("V6_v2C_50GeV", nHists, "V6", "V6", 5);
+  //MetHelper* mV6_v2C = new MetHelper("V6_v2C", nHists, "V6", "V6", 2);
+  //MetHelper* mV6_std = new MetHelper("V6_std", nHists, "V6", "V6", 0);
+  //MetHelper* mV6_v2C_50GeV = new MetHelper("V6_v2C_50GeV", nHists, "V6", "V6", 5);
 
-  MetHelper* mV11_std = new MetHelper("V11_std", nHists, "V11", "V11", 0);
-  mV11_std->create_raw_met_histograms();
-  MetHelper* mV11_v1 = new MetHelper("V11_v1", nHists, "V11", "V11", 1);
-  MetHelper* mV11_v2C = new MetHelper("V11_v2C", nHists, "V11", "V11", 2);
-  MetHelper* mV11_v2C_recipe = new MetHelper("V11_v2C_recipe", nHists, "V11", "V11", 4);
+  //MetHelper* mV11_std = new MetHelper("V11_std", nHists, "V11", "V11", 0);
+  //mV11_std->create_raw_met_histograms();
+  //MetHelper* mV11_v1 = new MetHelper("V11_v1", nHists, "V11", "V11", 1);
+  //MetHelper* mV11_v2C = new MetHelper("V11_v2C", nHists, "V11", "V11", 2);
+  //MetHelper* mV11_v2C_recipe = new MetHelper("V11_v2C_recipe", nHists, "V11", "V11", 4);
 
-  MetHelper* mV11_v2C_50GeV = new MetHelper("V11_v2C_50GeV", nHists, "V11", "V11", 5);
+  //MetHelper* mV11_v2C_50GeV = new MetHelper("V11_v2C_50GeV", nHists, "V11", "V11", 5);
  
   //MetHelper* mV24_v2C_50GeV = new MetHelper("V24_v2C_50GeV", nHists, "V24", "V24", 5);
   //MetHelper* mV25_v2C_50GeV = new MetHelper("V25_v2C_50GeV", nHists, "V25", "V24", 5);
   //MetHelper* mV26_v2C_50GeV = new MetHelper("V26_v2C_50GeV", nHists, "V26", "V24", 5);
-  MetHelper* mV27_std = new MetHelper("V27_std", nHists, "V27", "V24", 0); 
-  MetHelper* mV27_v2C_50GeV = new MetHelper("V27_v2C_50GeV", nHists, "V27", "V24", 5);
+  MetHelper* mV32_std = new MetHelper("V32_std", nHists, "V32", "V24", 0); 
+  //MetHelper* mV32_v2C_50GeV = new MetHelper("V32_v2C_50GeV", nHists, "V32", "V24", 5);
 
 
   //MetHelper* mV11_v2C_corr = new MetHelper("V11_v2C_corr", nHists, "V11", "V11", 2, true);
@@ -508,14 +508,15 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
       vector<double> vId = {pu, lead_jet_eta};
 
-      mV6_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
-      mV27_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
+      //mV6_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
+      mV32_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
 
-      mV6_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
-      mV27_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
+      //mV6_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
+      //mV32_v2C_50GeV->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight, vId);
 
       
 
+      /*
       double t1_met_V6(0), t1_met_V11(0), t1_met_V27(0);
       t1_met_V6 = mV6_v2C_50GeV->get_t1met();
       t1_met_V11 = mV11_v2C_50GeV->get_t1met();
@@ -539,7 +540,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       fill_histograms2D(hT1CMET_Modv1_vs_Nominal, t1_met, t1_met_mod_v1, weight);
       fill_histograms2D(hT1CMET_Modv2_vs_Nominal, t1_met, t1_met_mod, weight);
       fill_histograms2D(hRawCMET_Modv2_vs_Nominal, evt_pfmet_raw(), evt_mod_pfmet_raw(), weight);
-
+      */
 
       //t1_met_mod_corr = mV11_v2C_corr->get_t1met(); 
 
