@@ -9,16 +9,16 @@
 #include "TH2D.h"
 
 // CMS3
-#include "CORE/CMS3.cc"
-#include "CORE/Base.cc"
-#include "CORE/TriggerSelections.cc"
-#include "CORE/IsolationTools.cc"
-#include "CORE/ElectronSelections.cc"
-#include "CORE/MuonSelections.cc"
-#include "CORE/Tools/JetCorrector.cc"
-#include "CORE/Tools/goodrun.cc"
-#include "CORE/MetSelections.cc"
-#include "CORE/VertexSelections.cc"
+#include "../../CORE/CMS3.cc"
+#include "../../CORE/Base.cc"
+#include "../../CORE/TriggerSelections.cc"
+#include "../../CORE/IsolationTools.cc"
+#include "../../CORE/ElectronSelections.cc"
+#include "../../CORE/MuonSelections.cc"
+#include "../../CORE/Tools/JetCorrector.cc"
+#include "../../CORE/Tools/goodrun.cc"
+#include "../../CORE/MetSelections.cc"
+#include "../../CORE/VertexSelections.cc"
 
 //#include "ScanChain.h"
 #include "MetHelper.h"
@@ -623,7 +623,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 	}
       }
 
-      for (int i=0; i<nCands; i++) { // begin pf cand loop
+/*      for (int i=0; i<nCands; i++) { // begin pf cand loop
 	ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float>> fourV = cms3.pfcands_p4().at(i);
         double pt = fourV.Pt();
         double phi = fourV.Phi();
@@ -680,7 +680,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
           //vhMET[i][j][1]->Fill(vSumET[i][j], weight);
           //vhMET[i][j][2]->Fill(vFourVec[i][j].Phi(), weight);
         }
-      }
+      }*/
     }
     delete tree;
     file.Close();
