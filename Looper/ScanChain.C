@@ -17,7 +17,7 @@
 #include "../../CORE/MuonSelections.cc"
 #include "../../CORE/Tools/JetCorrector.cc"
 #include "../../CORE/Tools/goodrun.cc"
-#include "../../CORE/MetSelections.cc"
+#include "CORE/MetSelections.cc"
 #include "../../CORE/VertexSelections.cc"
 
 //#include "ScanChain.h"
