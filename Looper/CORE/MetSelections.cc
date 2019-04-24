@@ -5,13 +5,13 @@
 #include "Math/VectorUtil.h"
 #include "MetSelections.h"
 
-#include "Tools/JetCorrector.h"
-#include "Tools/jetcorr/FactorizedJetCorrector.h"
-#include "Tools/jetcorr/JetCorrectionUncertainty.h"
+#include "../../../CORE/Tools/JetCorrector.h"
+#include "../../../CORE/Tools/jetcorr/FactorizedJetCorrector.h"
+#include "../../../CORE/Tools/jetcorr/JetCorrectionUncertainty.h"
 
-#include "Tools/jetcorr/Utilities.icc"
-#include "Tools/jetcorr/JetCorrectionUncertainty.icc"
-#include "Tools/jetcorr/SimpleJetCorrectionUncertainty.icc"
+#include "../../../CORE/Tools/jetcorr/Utilities.icc"
+#include "../../../CORE/Tools/jetcorr/JetCorrectionUncertainty.icc"
+#include "../../../CORE/Tools/jetcorr/SimpleJetCorrectionUncertainty.icc"
 
 
 using namespace tas;
