@@ -10,7 +10,7 @@
 #include "TTreeCache.h"
 
 // CMS3
-#include "CMS3.cc"
+#include "../../CORE/CMS3.cc"
 
 using namespace std;
 using namespace tas;
