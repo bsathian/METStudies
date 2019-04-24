@@ -351,8 +351,8 @@ pair <float, float> getT1CHSMET_fromMINIAOD( FactorizedJetCorrector * jet_correc
   }
 
   if (use_cleaned_met == 2) {
-    T1_met = cms3.evt_mod_pfmet_raw();
-    T1_metPhi = cms3.evt_mod_pfmetPhi_raw();
+    T1_met = cms3.evt_old_pfmet_raw();
+    T1_metPhi = cms3.evt_old_pfmetPhi_raw();
   }
 
   float T1_metx   = T1_met * cos(T1_metPhi);

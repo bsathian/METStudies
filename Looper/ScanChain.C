@@ -440,7 +440,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 	//  cout << "Jet with pT: " << cms3.pfjets_p4()[i].pt() << ", eta: " << cms3.pfjets_p4()[i].eta() << endl; 
 
         double raw_met_mod = t1CMET_raw_configurable(currentFileName, "V11", "V11", 0, {2.65, 3.139}, true, true, 75., 0);
-        double raw_met_mod_recipe = evt_mod_pfmet_raw();
+        double raw_met_mod_recipe = evt_old_pfmet_raw();
         double raw_met_nominal = evt_pfmet_raw();
 
 	double t1met_v1b = t1CMET_configurable(currentFileName, "V11", "V11", 75., {2.65, 3.139}, true).pt();  
@@ -448,7 +448,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
         //cout << raw_met_nominal << " " << raw_met_mod_recipe << " " << raw_met_mod << endl;
 
         double t1met_mod = t1CMET_configurable(currentFileName, "V11", "V11", 0, {2.65, 3.139}, true, true, 75., 0).pt();
-	cout << raw_met_mod_recipe << " " << raw_met_mod << "         " << evt_mod_pfmet() << " " << t1met_mod << endl;
+	cout << raw_met_mod_recipe << " " << raw_met_mod << "         " << evt_old_pfmet() << " " << t1met_mod << endl;
 
 	//cout << "Modified Type-1 MET V1: " << endl;
 	//cout << t1met_v1b << " " << evt_mod_pfmet() << endl;
@@ -464,7 +464,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
       if (selection == 5) {
         cout << event << " / " << nEventsTree << endl;
         double t1met_recipe = evt_pfmet();
-        double t1met_mod_recipe = evt_mod_pfmet();
+        double t1met_mod_recipe = evt_old_pfmet();
         //double t1met = t1CMET_configurable(currentFileName, "V6", "V6", 0, {0,0}, true, false, 0, 0).pt();
         double t1met_mod = t1CMET_configurable(currentFileName, "V11", "V11", 0, {2.65, 3.139}, true, true, 75., 0).pt();
 
@@ -478,7 +478,7 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
       // Done with selection, now fill histograms
       fill_histograms(hpfMETraw, evt_pfmet_raw(), weight);
-      fill_histograms(hpfModMETraw, evt_mod_pfmet_raw(), weight); 
+      fill_histograms(hpfModMETraw, evt_old_pfmet_raw(), weight); 
 
       int nJet = nJets(isElEvt, id1, id2);
 

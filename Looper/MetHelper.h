@@ -397,9 +397,9 @@ void MetHelper::fill_met_histograms(TString currentFileName, bool isElEvt, int i
     fT1CMET_down = t1CMET_configurable(currentFileName, jec_version_data, jec_version_mc, pt_jec_thresh, eta_exclusion_range, exclude_jets, exclude_jets, pt_thresh, 2, mCorr);
   }
   else {
-    fT1CMET.SetCoordinates(evt_mod_pfmet() * cos(evt_mod_pfmetPhi()), evt_mod_pfmet() * sin(evt_mod_pfmetPhi()), 0, evt_mod_pfmet());
-    fT1CMET_up.SetCoordinates(evt_mod_pfmet_JetEnUp(), 0, 0, evt_mod_pfmet_JetEnUp());
-    fT1CMET_down.SetCoordinates(evt_mod_pfmet_JetEnDown(), 0, 0, evt_mod_pfmet_JetEnDown());
+    fT1CMET.SetCoordinates(evt_old_pfmet() * cos(evt_old_pfmetPhi()), evt_old_pfmet() * sin(evt_old_pfmetPhi()), 0, evt_old_pfmet());
+    fT1CMET_up.SetCoordinates(evt_old_pfmet_JetEnUp(), 0, 0, evt_old_pfmet_JetEnUp());
+    fT1CMET_down.SetCoordinates(evt_old_pfmet_JetEnDown(), 0, 0, evt_old_pfmet_JetEnDown());
   }
 
 
