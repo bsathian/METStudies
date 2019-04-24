@@ -11,6 +11,9 @@
 // CMS3
 #include "../../CORE/CMS3.cc"
 #include "../../CORE/Base.cc"
+#include "../../CORE/Config.h"
+#include "../../CORE/Config.cc"
+
 #include "../../CORE/TriggerSelections.cc"
 #include "../../CORE/IsolationTools.cc"
 #include "../../CORE/ElectronSelections.cc"
