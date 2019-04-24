@@ -484,11 +484,11 @@ int ScanChain(TChain* chain, TString output_name, vector<TString> vWeightFile, b
 
       if (nJet == 0) {
         fill_histograms(hpfMETraw_0jets, evt_pfmet_raw(), weight);
-        fill_histograms(hpfModMETraw_0jets, evt_mod_pfmet_raw(), weight);
+        fill_histograms(hpfModMETraw_0jets, evt_old_pfmet_raw(), weight);
       }
       else if (nJet >= 1) {
 	fill_histograms(hpfMETraw_1pjets, evt_pfmet_raw(), weight);
-        fill_histograms(hpfModMETraw_1pjets, evt_mod_pfmet_raw(), weight);
+        fill_histograms(hpfModMETraw_1pjets, evt_old_pfmet_raw(), weight);
       }
 
       //mV11_std->fill_met_histograms(currentFileName, isElEvt, id1, id2, nJet, weight);
